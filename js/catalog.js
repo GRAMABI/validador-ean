@@ -1,41 +1,78 @@
 /**
  * catalog.js
- * Descarga el Excel desde OneDrive (sin login) y construye Map<SKU, EAN>
+ * Descarga el catálogo SKU→EAN desde Google Sheets (CSV público)
+ * y construye un Map<SKU, EAN> para validación.
  */
  
 const CatalogService = (() => {
  
-  const SHARED_LINK  = 'https://1drv.ms/x/c/46155be10bdedafa/IQD62t4L4VsVIIBGVZMHAAAAAbqRxHnMUPGP4KM1dKbBrmA?e=7Ugpq6';
-  const SHEET_NAME   = 'Publicaciones';
+  // URL CSV pública de Google Sheets — hoja "Publicaciones"
+  const CSV_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRMWDQw0ieF8eB6j3bgr8ZSxFLE97X0VkeDiPp-_BdwpzcdaE81aMeHKvXfPBHWbQ/pub?gid=1452240181&single=true&output=csv';
   const COL_SKU      = 12;   // Columna M (base-0)
   const COL_EAN      = 20;   // Columna U (base-0)
   const CACHE_KEY    = 'vean_catalog';
   const CACHE_TS_KEY = 'vean_catalog_ts';
   const CACHE_TTL    = 24 * 60 * 60 * 1000; // 24 horas
  
-  // Genera todas las URLs posibles para intentar la descarga
-  function buildDownloadUrls(link) {
-    const b64 = btoa(link).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-    return [
-      // Estrategia 1: API de shares de OneDrive (la más directa)
-      `https://api.onedrive.com/v1.0/shares/u!${b64}/root/content`,
-      // Estrategia 2: Graph API
-      `https://graph.microsoft.com/v1.0/shares/u!${b64}/root/content`,
-      // Estrategia 3: URL de descarga directa de OneDrive personal
-      link.replace('1drv.ms/x', '1drv.ms/x/download').replace(/\?.*/, '') + '?download=1',
-    ];
+  // Parsea el texto CSV y devuelve Map<SKU, EAN>
+  function parseCSV(text) {
+    const lines = text.split('\n');
+    const map = new Map();
+    let loaded = 0;
+ 
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+ 
+      const cols = parseCSVLine(line);
+      const sku = (cols[COL_SKU] || '').trim().toUpperCase();
+      const ean = (cols[COL_EAN] || '').trim();
+ 
+      if (!sku || !ean) continue;
+      if (!map.has(sku)) { map.set(sku, ean); loaded++; }
+    }
+ 
+    console.log(`[Catalog] ${loaded} SKUs cargados desde CSV`);
+ 
+    if (loaded === 0) {
+      console.warn('[Catalog] 0 SKUs. Primeras líneas:', lines.slice(0, 3));
+      throw new Error('No se encontraron datos en las columnas M y U. Verificá la hoja "Publicaciones".');
+    }
+ 
+    return map;
   }
  
-  // Intenta cargar el catálogo desde localStorage
+  // Parsea una línea CSV respetando campos entre comillas
+  function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+ 
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current);
+    return result;
+  }
+ 
+  // Caché local
   function loadCache() {
     try {
       const ts = parseInt(localStorage.getItem(CACHE_TS_KEY) || '0', 10);
       if (Date.now() - ts > CACHE_TTL) return null;
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
-      const obj = JSON.parse(raw);
-      const map = new Map(Object.entries(obj));
-      console.log(`[Catalog] Cache: ${map.size} SKUs`);
+      const map = new Map(Object.entries(JSON.parse(raw)));
+      console.log(`[Catalog] Desde caché: ${map.size} SKUs`);
       return map;
     } catch { return null; }
   }
@@ -44,73 +81,18 @@ const CatalogService = (() => {
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify(Object.fromEntries(map)));
       localStorage.setItem(CACHE_TS_KEY, Date.now().toString());
-    } catch (e) { console.warn('[Catalog] No se pudo guardar cache:', e); }
+    } catch (e) { console.warn('[Catalog] No se pudo guardar caché:', e); }
   }
  
-  // Parsea el ArrayBuffer del Excel y devuelve el Map<SKU, EAN>
-  function parseExcel(buf) {
-    const wb = XLSX.read(buf, { type: 'array' });
- 
-    // Buscar la hoja — puede llamarse "Publicaciones" o similar
-    let sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('publicacion'));
-    if (!sheetName) sheetName = wb.SheetNames[0];
-    console.log(`[Catalog] Usando hoja: "${sheetName}"`);
- 
-    const ws   = wb.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
- 
-    const map = new Map();
-    let loaded = 0;
- 
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const sku = String(row[COL_SKU] ?? '').trim().toUpperCase();
-      const ean = String(row[COL_EAN] ?? '').trim();
-      if (!sku || !ean) continue;
-      if (!map.has(sku)) { map.set(sku, ean); loaded++; }
-    }
- 
-    console.log(`[Catalog] ${loaded} SKUs cargados`);
-    if (loaded === 0) {
-      // Mostrar primeras filas para debug
-      console.warn('[Catalog] 0 SKUs. Primeras filas:', rows.slice(0, 3));
-      throw new Error(`No se encontraron datos en columnas M y U. Verificá la hoja "${sheetName}".`);
-    }
-    return map;
-  }
- 
-  // Descarga intentando múltiples URLs
+  // Descarga el CSV desde Google Sheets
   async function download() {
-    const urls = buildDownloadUrls(SHARED_LINK);
-    let lastError = null;
- 
-    for (const url of urls) {
-      try {
-        console.log('[Catalog] Intentando:', url);
-        const resp = await fetch(url, {
-          headers: { 'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, */*' }
-        });
-        if (!resp.ok) {
-          lastError = new Error(`HTTP ${resp.status} en ${url}`);
-          console.warn('[Catalog]', lastError.message);
-          continue;
-        }
-        const buf = await resp.arrayBuffer();
-        const map = parseExcel(buf);
-        saveCache(map);
-        return map;
-      } catch (e) {
-        lastError = e;
-        console.warn('[Catalog] Error con URL:', url, e.message);
-      }
-    }
- 
-    // Si todas fallaron, dar instrucciones claras
-    throw new Error(
-      'No se pudo descargar el catálogo desde OneDrive. ' +
-      'Verificá que el link sea público ("Cualquier persona con el vínculo puede ver"). ' +
-      'Error: ' + (lastError?.message || 'desconocido')
-    );
+    console.log('[Catalog] Descargando desde Google Sheets...');
+    const resp = await fetch(CSV_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} al descargar el catálogo`);
+    const text = await resp.text();
+    const map  = parseCSV(text);
+    saveCache(map);
+    return map;
   }
  
   // Tiempo desde última sincronización
@@ -122,7 +104,7 @@ const CatalogService = (() => {
     if (mins < 1)  return 'hace menos de 1 minuto';
     if (mins < 60) return `hace ${mins} min`;
     const h = Math.floor(mins / 60);
-    if (h < 24) return `hace ${h} hs`;
+    if (h < 24)    return `hace ${h} hs`;
     return `hace ${Math.floor(h / 24)} días`;
   }
  
@@ -134,7 +116,6 @@ const CatalogService = (() => {
     } catch { return 0; }
   }
  
-  // API pública
   async function getCatalog(forceRefresh = false) {
     if (!forceRefresh) {
       const cached = loadCache();
@@ -144,7 +125,7 @@ const CatalogService = (() => {
   }
  
   function validate(sku, scannedEan, catalog) {
-    const key = sku.trim().toUpperCase();
+    const key      = sku.trim().toUpperCase();
     const expected = catalog.get(key);
     if (!expected) return { status: 'not_in_catalog', expected: null };
     const match = scannedEan.trim() === expected.trim();
@@ -153,4 +134,3 @@ const CatalogService = (() => {
  
   return { getCatalog, validate, lastSyncLabel, cachedCount };
 })();
- 
