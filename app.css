@@ -1,0 +1,116 @@
+# Validador EAN — Instrucciones de instalación
+
+## ¿Qué es esto?
+Una app web progresiva (PWA) para validar códigos EAN en la preparación de pedidos de Mercado Libre.
+Se instala en el celular como una app normal, sin Play Store.
+
+---
+
+## PASO 1 — Subir la app a GitHub Pages (una sola vez)
+
+### 1.1 Crear cuenta en GitHub
+1. Entrá a https://github.com
+2. Hacé clic en "Sign up"
+3. Completá usuario, email y contraseña
+4. Verificá el email
+
+### 1.2 Crear el repositorio
+1. Una vez logueado, clic en el "+" (arriba a la derecha) → "New repository"
+2. Nombre del repositorio: `validador-ean`
+3. Seleccioná "Public"
+4. Clic en "Create repository"
+
+### 1.3 Subir los archivos
+1. En la página del repositorio recién creado, clic en "uploading an existing file"
+2. Arrastrá TODOS los archivos y carpetas del ZIP que descargaste:
+   - index.html
+   - manifest.json
+   - sw.js
+   - css/ (carpeta completa)
+   - js/  (carpeta completa)
+   - icons/ (carpeta completa)
+3. Clic en "Commit changes"
+
+### 1.4 Activar GitHub Pages
+1. En el repositorio, clic en "Settings" (pestaña superior)
+2. En el menú izquierdo, clic en "Pages"
+3. En "Source" seleccioná "Deploy from a branch"
+4. En "Branch" elegí "main" y "/" (root)
+5. Clic en "Save"
+6. Esperá 1-2 minutos y la app va a estar disponible en:
+   `https://TU-USUARIO.github.io/validador-ean`
+
+---
+
+## PASO 2 — Instalar en el celular Android
+
+1. Abrí Chrome en el celular Android
+2. Entrá a la URL de tu app: `https://TU-USUARIO.github.io/validador-ean`
+3. Chrome va a mostrar un banner que dice "Agregar a pantalla de inicio"
+   - Si no aparece el banner: tocá los 3 puntitos (⋮) arriba a la derecha → "Agregar a pantalla de inicio"
+4. Confirmá con "Agregar"
+5. La app aparece en el escritorio del celular como cualquier otra app
+
+**Repetir el paso 2 en cada celular del depósito.**
+La URL es siempre la misma, así que se puede enviar por WhatsApp para que cada operario la instale.
+
+---
+
+## PASO 3 — Primer uso
+
+1. Abrí la app desde el ícono en el escritorio
+2. Tocá "Comenzar"
+3. Tocá "Sincronizar catálogo" — va a descargar el Excel de OneDrive (necesita internet, tarda unos segundos)
+4. Tocá "Cargar PDF de pedidos" — seleccioná el PDF del día
+5. Tocá "Ver pedidos →"
+6. ¡Listo! Tocá cualquier pedido para empezar a escanear
+
+---
+
+## USO DIARIO
+
+- Solo necesitás **internet para la primera sincronización** del día
+- El catálogo SKU→EAN queda guardado 24 horas en el celular
+- Cada día nuevo: cargar el PDF del día → escanear → exportar reporte
+- Si actualizás el Excel en OneDrive: tocá ⚙️ Config → "Sincronizar ahora"
+
+---
+
+## SOLUCIÓN DE PROBLEMAS
+
+**"No se puede leer el PDF"**
+- Verificá que sea el PDF de Mercado Libre (el formato de lista de pedidos)
+- El PDF no puede estar protegido con contraseña
+
+**"Error al descargar catálogo"**
+- Verificá que el celular tenga internet
+- El link de OneDrive debe seguir activo (no vencido)
+
+**"Permiso de cámara denegado"**
+- En Chrome Android: tocá el ícono de candado (🔒) en la barra de direcciones
+- Tocá "Permisos del sitio" → "Cámara" → "Permitir"
+
+**La app no detecta el código de barras**
+- Asegurate de que haya buena luz
+- Mantené el celular a 15-25 cm del código
+- Tocá 🔦 para activar la linterna si está disponible
+- Los códigos EAN-13 (13 dígitos) son los más comunes en productos
+
+---
+
+## ACTUALIZAR LA APP
+
+Si en algún momento se necesita actualizar la app:
+1. Modificá los archivos necesarios
+2. Subí los archivos actualizados al repositorio de GitHub (mismo proceso que el paso 1.3)
+3. Esperá 1-2 minutos → la app se actualiza automáticamente en todos los celulares
+
+---
+
+## DATOS TÉCNICOS
+
+- **Catálogo**: Se descarga de OneDrive sin login. Se cachea 24 horas en el celular.
+- **PDF**: Se procesa 100% en el celular, no se sube a ningún servidor.
+- **Reporte**: Se genera en el celular y se descarga como archivo HTML imprimible.
+- **Hosting**: GitHub Pages (gratis, sin límite de uso).
+- **Compatibilidad**: Chrome en Android 8 o superior.
