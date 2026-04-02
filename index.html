@@ -112,11 +112,7 @@
   <div class="content no-top-pad">
     <div id="detail-skus"></div>
     <div class="scanner-wrap" id="scanner-wrap">
-      <video id="scanner-video" autoplay playsinline muted></video>
-      <div class="scanner-overlay-frame">
-        <div class="scanner-line"></div>
-      </div>
-      <div class="scanner-hint">Apuntá al código de barras</div>
+      <div id="scanner-video"></div>
     </div>
     <div id="scanner-error" class="error-msg" style="display:none"></div>
     <div class="scanner-controls">
@@ -137,11 +133,7 @@
   <div class="content">
     <p class="hint-text">Escaneá cualquier EAN para ver a qué SKU pertenece.</p>
     <div class="scanner-wrap">
-      <video id="scanner-video-free" autoplay playsinline muted></video>
-      <div class="scanner-overlay-frame">
-        <div class="scanner-line"></div>
-      </div>
-      <div class="scanner-hint">Apuntá al código de barras</div>
+      <div id="scanner-video-free"></div>
     </div>
     <div id="free-result" class="card mt-16" style="display:none">
       <div class="card-row"><span class="card-label">EAN</span><span id="free-ean" class="card-value mono">—</span></div>
@@ -200,7 +192,7 @@
 <!-- ══════════════════════════ LIBRARIES -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.20.0/index.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="js/catalog.js"></script>
 <script src="js/pdfParser.js"></script>
 <script src="js/scanner.js"></script>
