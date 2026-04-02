@@ -1,109 +1,119 @@
 /**
  * scanner.js
- * Escáner de códigos de barra usando la cámara del dispositivo (ZXing).
- * Soporta EAN-13, EAN-8, Code128, Code39, QR.
+ * Compatible con Android 5+ usando html5-qrcode.
  */
 
 const Scanner = (() => {
 
-  let activeReader   = null;
-  let activeVideoEl  = null;
-  let activeStream   = null;
-  let torchEnabled   = false;
+  let activeScanner = null;
 
-  /**
-   * Inicia el escáner en el elemento <video> indicado.
-   * @param {string} videoId  - ID del elemento <video>
-   * @param {function} onScan - callback(ean: string)
-   * @param {function} onErr  - callback(error: string)
-   */
   async function start(videoId, onScan, onErr) {
-    await stop(); // detener cualquier escáner previo
+    await stop();
 
-    const video = document.getElementById(videoId);
-    if (!video) { onErr('Elemento de video no encontrado'); return; }
-    activeVideoEl = video;
+    if (typeof Html5Qrcode === 'undefined') {
+      onErr('Librería de escáner no disponible. Recargá la página.');
+      return;
+    }
+
+    // El div debe estar vacío antes de iniciar
+    const el = document.getElementById(videoId);
+    if (el) el.innerHTML = '';
 
     try {
-      // Preferir cámara trasera
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+      const scanner = new Html5Qrcode(videoId, {
+        verbose: false,
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true }
       });
-      activeStream = stream;
-      video.srcObject = stream;
-      await video.play();
+      activeScanner = scanner;
 
-      // Activar linterna si está disponible
-      const track = stream.getVideoTracks()[0];
-      const caps  = track.getCapabilities ? track.getCapabilities() : {};
-      if (caps.torch) {
-        document.getElementById('btn-torch') && (document.getElementById('btn-torch').style.display = 'block');
-      }
+      const config = {
+        fps: 10,
+        qrbox: { width: 240, height: 100 },
+        aspectRatio: 1.4,
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+        ]
+      };
 
-      // Iniciar ZXing
-      const hints = new Map();
-      const formats = [
-        ZXing.BarcodeFormat.EAN_13,
-        ZXing.BarcodeFormat.EAN_8,
-        ZXing.BarcodeFormat.CODE_128,
-        ZXing.BarcodeFormat.CODE_39,
-        ZXing.BarcodeFormat.UPC_A,
-      ];
-      hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-      hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-
-      const reader = new ZXing.BrowserMultiFormatReader(hints);
-      activeReader = reader;
-
-      reader.decodeFromVideoElement(video, (result, err) => {
-        if (result) {
-          const ean = result.getText();
-          vibrate(50);
-          onScan(ean);
-        }
-        // err es normal cuando no hay barcode en el frame, ignorar
-      });
+      await scanner.start(
+        { facingMode: 'environment' },
+        config,
+        (decodedText) => {
+          if (navigator.vibrate) navigator.vibrate(50);
+          onScan(decodedText);
+        },
+        () => {}  // error por frame — normal, ignorar
+      );
 
     } catch (e) {
-      if (e.name === 'NotAllowedError') {
-        onErr('Permiso de cámara denegado. Habilitalo en la configuración del navegador.');
-      } else if (e.name === 'NotFoundError') {
+      const msg = e ? e.toString() : '';
+      if (msg.includes('NotAllowedError') || msg.includes('Permission') || msg.includes('permiso')) {
+        onErr('Permiso de cámara denegado. Tocá el candado 🔒 en la barra de direcciones → Permisos → Cámara → Permitir.');
+      } else if (msg.includes('NotFoundError') || msg.includes('no camera')) {
         onErr('No se encontró cámara en este dispositivo.');
       } else {
-        onErr('Error al iniciar la cámara: ' + e.message);
+        onErr('Error al iniciar la cámara: ' + msg);
       }
     }
   }
 
   async function stop() {
-    if (activeReader) {
-      try { activeReader.reset(); } catch {}
-      activeReader = null;
+    if (activeScanner) {
+      try {
+        const state = activeScanner.getState();
+        // Estado 2 = SCANNING, estado 3 = PAUSED
+        if (state === 2 || state === 3) {
+          await activeScanner.stop();
+        }
+        activeScanner.clear();
+      } catch {}
+      activeScanner = null;
     }
-    if (activeStream) {
-      activeStream.getTracks().forEach(t => t.stop());
-      activeStream = null;
-    }
-    if (activeVideoEl) {
-      activeVideoEl.srcObject = null;
-      activeVideoEl = null;
-    }
-    torchEnabled = false;
   }
 
   async function toggleTorch() {
-    if (!activeStream) return;
-    const track = activeStream.getVideoTracks()[0];
-    if (!track) return;
+    if (!activeScanner) return;
     try {
-      torchEnabled = !torchEnabled;
-      await track.applyConstraints({ advanced: [{ torch: torchEnabled }] });
-    } catch (e) { console.warn('Linterna no disponible:', e); }
-  }
-
-  function vibrate(ms = 50) {
-    if (navigator.vibrate) navigator.vibrate(ms);
+      const caps = activeScanner.getRunningTrackCameraCapabilities();
+      if (caps && caps.torchFeature && caps.torchFeature().isSupported()) {
+        const current = caps.torchFeature().value();
+        await caps.torchFeature().apply(!current);
+      }
+    } catch {}
   }
 
   return { start, stop, toggleTorch };
+})();
+
+/* Estilos extra para html5-qrcode — se inyectan en el head */
+(function injectStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    #scanner-video, #scanner-video-free {
+      width: 100% !important;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    #scanner-video > *, #scanner-video-free > * {
+      border-radius: 12px !important;
+    }
+    #html5-qrcode-button-camera-permission {
+      background: #1a56db !important;
+      color: white !important;
+      border: none !important;
+      padding: 12px 24px !important;
+      border-radius: 8px !important;
+      font-size: 15px !important;
+      cursor: pointer !important;
+      margin: 16px auto !important;
+      display: block !important;
+    }
+    #html5-qrcode-anchor-scan-type-change { display: none !important; }
+  `;
+  document.head.appendChild(style);
 })();
