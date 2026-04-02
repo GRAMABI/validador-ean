@@ -1,53 +1,22 @@
 /**
  * catalog.js
- * Descarga el catálogo SKU→EAN desde Google Sheets (CSV público)
- * y construye un Map<SKU, EAN> para validación.
+ * Descarga el catálogo SKU→EAN→Descripción desde Google Sheets (CSV público)
  */
  
 const CatalogService = (() => {
  
-  // URL CSV pública de Google Sheets — hoja "Publicaciones"
   const CSV_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRMWDQw0ieF8eB6j3bgr8ZSxFLE97X0VkeDiPp-_BdwpzcdaE81aMeHKvXfPBHWbQ/pub?gid=1452240181&single=true&output=csv';
-  const COL_SKU      = 12;   // Columna M (base-0)
-  const COL_EAN      = 20;   // Columna U (base-0)
+  const COL_DESC     = 10;   // Columna K (base-0) — descripción
+  const COL_SKU      = 12;   // Columna M (base-0) — SKU
+  const COL_EAN      = 20;   // Columna U (base-0) — EAN
   const CACHE_KEY    = 'vean_catalog';
   const CACHE_TS_KEY = 'vean_catalog_ts';
-  const CACHE_TTL    = 24 * 60 * 60 * 1000; // 24 horas
+  const CACHE_TTL    = 24 * 60 * 60 * 1000;
  
-  // Parsea el texto CSV y devuelve Map<SKU, EAN>
-  function parseCSV(text) {
-    const lines = text.split('\n');
-    const map = new Map();
-    let loaded = 0;
- 
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
- 
-      const cols = parseCSVLine(line);
-      const sku = (cols[COL_SKU] || '').trim().toUpperCase();
-      const ean = (cols[COL_EAN] || '').trim();
- 
-      if (!sku || !ean) continue;
-      if (!map.has(sku)) { map.set(sku, ean); loaded++; }
-    }
- 
-    console.log(`[Catalog] ${loaded} SKUs cargados desde CSV`);
- 
-    if (loaded === 0) {
-      console.warn('[Catalog] 0 SKUs. Primeras líneas:', lines.slice(0, 3));
-      throw new Error('No se encontraron datos en las columnas M y U. Verificá la hoja "Publicaciones".');
-    }
- 
-    return map;
-  }
- 
-  // Parsea una línea CSV respetando campos entre comillas
   function parseCSVLine(line) {
     const result = [];
     let current = '';
     let inQuotes = false;
- 
     for (let i = 0; i < line.length; i++) {
       const ch = line[i];
       if (ch === '"') {
@@ -64,14 +33,41 @@ const CatalogService = (() => {
     return result;
   }
  
-  // Caché local
+  function parseCSV(text) {
+    const lines = text.split('\n');
+    // map: SKU → { ean, desc }
+    const map = new Map();
+    let loaded = 0;
+ 
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cols = parseCSVLine(line);
+      const sku  = (cols[COL_SKU]  || '').trim().toUpperCase();
+      const ean  = (cols[COL_EAN]  || '').trim();
+      const desc = (cols[COL_DESC] || '').trim();
+      if (!sku) continue;
+      if (!map.has(sku)) {
+        // EAN puede estar vacío — lo guardamos igual para mostrar descripción
+        map.set(sku, { ean: ean || null, desc });
+        loaded++;
+      }
+    }
+ 
+    console.log(`[Catalog] ${loaded} SKUs cargados`);
+    if (loaded === 0) throw new Error('No se encontraron datos en las columnas K, M y U.');
+    return map;
+  }
+ 
   function loadCache() {
     try {
       const ts = parseInt(localStorage.getItem(CACHE_TS_KEY) || '0', 10);
       if (Date.now() - ts > CACHE_TTL) return null;
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
-      const map = new Map(Object.entries(JSON.parse(raw)));
+      // Reconstruir Map desde objeto plano
+      const obj = JSON.parse(raw);
+      const map = new Map(Object.entries(obj));
       console.log(`[Catalog] Desde caché: ${map.size} SKUs`);
       return map;
     } catch { return null; }
@@ -84,7 +80,6 @@ const CatalogService = (() => {
     } catch (e) { console.warn('[Catalog] No se pudo guardar caché:', e); }
   }
  
-  // Descarga el CSV desde Google Sheets
   async function download() {
     console.log('[Catalog] Descargando desde Google Sheets...');
     const resp = await fetch(CSV_URL);
@@ -95,7 +90,6 @@ const CatalogService = (() => {
     return map;
   }
  
-  // Tiempo desde última sincronización
   function lastSyncLabel() {
     const ts = parseInt(localStorage.getItem(CACHE_TS_KEY) || '0', 10);
     if (!ts) return 'Sin sincronizar';
@@ -124,13 +118,38 @@ const CatalogService = (() => {
     return await download();
   }
  
-  function validate(sku, scannedEan, catalog) {
-    const key      = sku.trim().toUpperCase();
-    const expected = catalog.get(key);
-    if (!expected) return { status: 'not_in_catalog', expected: null };
-    const match = scannedEan.trim() === expected.trim();
-    return { status: match ? 'ok' : 'error', expected };
+  /**
+   * Obtiene descripción y EAN de un SKU.
+   * @returns {{ ean: string|null, desc: string }}
+   */
+  function getInfo(sku, catalog) {
+    return catalog.get(sku.trim().toUpperCase()) || { ean: null, desc: '' };
   }
  
-  return { getCatalog, validate, lastSyncLabel, cachedCount };
+  /**
+   * Valida el EAN escaneado contra el SKU del pedido.
+   * FIX: solo acepta el EAN exacto del SKU — no cualquier EAN del catálogo.
+   */
+  function validate(sku, scannedEan, catalog) {
+    const info = catalog.get(sku.trim().toUpperCase());
+ 
+    if (!info) return { status: 'not_in_catalog', expected: null, desc: '' };
+ 
+    // SKU existe pero no tiene EAN registrado
+    if (!info.ean) return { status: 'no_ean', expected: null, desc: info.desc };
+ 
+    // Comparación estricta: solo el EAN de ESTE SKU es válido
+    const match = scannedEan.trim() === info.ean.trim();
+    return {
+      status: match ? 'ok' : 'error',
+      expected: info.ean,
+      desc: info.desc,
+    };
+  }
+ 
+  return { getCatalog, validate, getInfo, lastSyncLabel, cachedCount };
 })();
+ 
+
+
+
