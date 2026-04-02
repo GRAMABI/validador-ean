@@ -5,7 +5,7 @@
  
 const CatalogService = (() => {
  
-  const SHARED_LINK  = 'https://1drv.ms/x/c/46155be10bdedafa/IQD62t4L4VsVIIBGid8HAAAAAeq3Dwdezoecx4cXEg2z1DY?e=MK9wWh';
+  const SHARED_LINK  = 'https://1drv.ms/x/c/46155be10bdedafa/IQD62t4L4VsVIIBGVZMHAAAAAbqRxHnMUPGP4KM1dKbBrmA?e=7Ugpq6';
   const SHEET_NAME   = 'Publicaciones';
   const COL_SKU      = 12;   // Columna M (base-0)
   const COL_EAN      = 20;   // Columna U (base-0)
