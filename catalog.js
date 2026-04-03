@@ -39,7 +39,20 @@ const CatalogService = (() => {
     const map = new Map();
     let loaded = 0;
 
-    for (let i = 1; i < lines.length; i++) {
+    // Auto-detectar inicio de datos — saltear filas de encabezado
+    let startRow = 1;
+    for (let i = 1; i < Math.min(6, lines.length); i++) {
+      const cols = parseCSVLine(lines[i].trim());
+      const val  = (cols[COL_SKU] || '').trim();
+      // Es fila de datos si la columna SKU tiene valor y no parece encabezado
+      if (val && !val.toLowerCase().includes('sku') && !val.toLowerCase().includes('obligatorio') && !val.toLowerCase().includes('variante')) {
+        startRow = i;
+        break;
+      }
+    }
+    console.log('[Catalog] Datos desde fila:', startRow);
+
+    for (let i = startRow; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
       const cols = parseCSVLine(line);
@@ -75,6 +88,9 @@ const CatalogService = (() => {
 
   function saveCache(map) {
     try {
+      // Limpiar caché viejo antes de guardar
+      localStorage.removeItem(CACHE_KEY);
+      localStorage.removeItem(CACHE_TS_KEY);
       localStorage.setItem(CACHE_KEY, JSON.stringify(Object.fromEntries(map)));
       localStorage.setItem(CACHE_TS_KEY, Date.now().toString());
     } catch (e) { console.warn('[Catalog] No se pudo guardar caché:', e); }
