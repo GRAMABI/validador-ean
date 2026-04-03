@@ -1,76 +1,15 @@
 /**
  * catalog.js
- * Descarga el catálogo SKU→EAN→Descripción desde Google Sheets (CSV público)
+ * Lee el catálogo SKU→EAN desde catalog_data.json (alojado en GitHub)
+ * Para actualizar: subir nuevo catalog_data.json a GitHub
  */
 
 const CatalogService = (() => {
 
-  const CSV_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSh22UDCGqiFSuGULQzsljqzb8zJesiY5MDSpU38Wfr7gODfrBkXnoG8kWWpCObkA/pub?gid=28525746&single=true&output=csv&cachebust=1775222429.535458';
-  const COL_DESC     = 1;    // Columna B (base-0) — nombre del producto
-  const COL_SKU      = 4;    // Columna E (base-0) — SKU
-  const COL_EAN      = 5;    // Columna F (base-0) — EAN
+  const JSON_URL     = './catalog_data.json';
   const CACHE_KEY    = 'vean_catalog';
   const CACHE_TS_KEY = 'vean_catalog_ts';
   const CACHE_TTL    = 24 * 60 * 60 * 1000;
-
-  function parseCSVLine(line) {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-        else inQuotes = !inQuotes;
-      } else if (ch === ',' && !inQuotes) {
-        result.push(current);
-        current = '';
-      } else {
-        current += ch;
-      }
-    }
-    result.push(current);
-    return result;
-  }
-
-  function parseCSV(text) {
-    const lines = text.split('\n');
-    // map: SKU → { ean, desc }
-    const map = new Map();
-    let loaded = 0;
-
-    // Auto-detectar inicio de datos — saltear filas de encabezado
-    let startRow = 1;
-    for (let i = 1; i < Math.min(6, lines.length); i++) {
-      const cols = parseCSVLine(lines[i].trim());
-      const val  = (cols[COL_SKU] || '').trim();
-      // Es fila de datos si la columna SKU tiene valor y no parece encabezado
-      if (val && !val.toLowerCase().includes('sku') && !val.toLowerCase().includes('obligatorio') && !val.toLowerCase().includes('variante')) {
-        startRow = i;
-        break;
-      }
-    }
-    console.log('[Catalog] Datos desde fila:', startRow);
-
-    for (let i = startRow; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      const cols = parseCSVLine(line);
-      const sku  = (cols[COL_SKU]  || '').trim().toUpperCase();
-      const ean  = (cols[COL_EAN]  || '').trim();
-      const desc = (cols[COL_DESC] || '').trim();
-      if (!sku) continue;
-      if (!map.has(sku)) {
-        // EAN puede estar vacío — lo guardamos igual para mostrar descripción
-        map.set(sku, { ean: ean || null, desc });
-        loaded++;
-      }
-    }
-
-    console.log(`[Catalog] ${loaded} SKUs cargados`);
-    if (loaded === 0) throw new Error('No se encontraron datos en las columnas B, E y F.');
-    return map;
-  }
 
   function loadCache() {
     try {
@@ -78,9 +17,7 @@ const CatalogService = (() => {
       if (Date.now() - ts > CACHE_TTL) return null;
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
-      // Reconstruir Map desde objeto plano
-      const obj = JSON.parse(raw);
-      const map = new Map(Object.entries(obj));
+      const map = new Map(Object.entries(JSON.parse(raw)));
       console.log(`[Catalog] Desde caché: ${map.size} SKUs`);
       return map;
     } catch { return null; }
@@ -88,7 +25,6 @@ const CatalogService = (() => {
 
   function saveCache(map) {
     try {
-      // Limpiar caché viejo antes de guardar
       localStorage.removeItem(CACHE_KEY);
       localStorage.removeItem(CACHE_TS_KEY);
       localStorage.setItem(CACHE_KEY, JSON.stringify(Object.fromEntries(map)));
@@ -97,11 +33,13 @@ const CatalogService = (() => {
   }
 
   async function download() {
-    console.log('[Catalog] Descargando desde Google Sheets...');
-    const resp = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
+    console.log('[Catalog] Descargando catalog_data.json...');
+    const resp = await fetch(JSON_URL + '?t=' + Date.now(), { cache: 'no-store' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status} al descargar el catálogo`);
-    const text = await resp.text();
-    const map  = parseCSV(text);
+    const obj = await resp.json();
+    // obj es { SKU: { ean, desc }, ... }
+    const map = new Map(Object.entries(obj));
+    console.log(`[Catalog] ${map.size} SKUs cargados`);
     saveCache(map);
     return map;
   }
@@ -134,33 +72,16 @@ const CatalogService = (() => {
     return await download();
   }
 
-  /**
-   * Obtiene descripción y EAN de un SKU.
-   * @returns {{ ean: string|null, desc: string }}
-   */
   function getInfo(sku, catalog) {
     return catalog.get(sku.trim().toUpperCase()) || { ean: null, desc: '' };
   }
 
-  /**
-   * Valida el EAN escaneado contra el SKU del pedido.
-   * FIX: solo acepta el EAN exacto del SKU — no cualquier EAN del catálogo.
-   */
   function validate(sku, scannedEan, catalog) {
     const info = catalog.get(sku.trim().toUpperCase());
-
-    if (!info) return { status: 'not_in_catalog', expected: null, desc: '' };
-
-    // SKU existe pero no tiene EAN registrado
+    if (!info)     return { status: 'not_in_catalog', expected: null, desc: '' };
     if (!info.ean) return { status: 'no_ean', expected: null, desc: info.desc };
-
-    // Comparación estricta: solo el EAN de ESTE SKU es válido
     const match = scannedEan.trim() === info.ean.trim();
-    return {
-      status: match ? 'ok' : 'error',
-      expected: info.ean,
-      desc: info.desc,
-    };
+    return { status: match ? 'ok' : 'error', expected: info.ean, desc: info.desc };
   }
 
   return { getCatalog, validate, getInfo, lastSyncLabel, cachedCount };
