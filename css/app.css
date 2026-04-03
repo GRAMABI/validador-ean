@@ -466,3 +466,28 @@ html, body {
 .mt-8  { margin-top: 8px !important; }
 .mt-16 { margin-top: 16px !important; }
 .mt-24 { margin-top: 24px !important; }
+
+/* ═══ Descripción del producto */
+.sku-desc {
+  font-size: 11px;
+  color: var(--gray-text);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ═══ Botón confirmar manual (sin código de barras) */
+.btn-manual {
+  margin-top: 6px;
+  background: var(--amber-bg);
+  color: var(--amber);
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+.btn-manual:active { opacity: .8; }
