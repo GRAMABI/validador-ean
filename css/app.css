@@ -490,3 +490,24 @@ html, body {
   width: 100%;
 }
 .btn-manual:active { opacity: .8; }
+
+
+/* ═══ Resultado validador libre — texto más grande */
+#val-result .card-label {
+  font-size: 14px !important;
+}
+#val-result .card-value {
+  font-size: 16px !important;
+  font-weight: 600;
+}
+#val-ean {
+  font-size: 20px !important;
+  font-family: monospace;
+  font-weight: 700 !important;
+}
+#val-desc {
+  font-size: 14px !important;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: normal !important;
+}
