@@ -359,18 +359,29 @@ document.getElementById('back-to-orders').addEventListener('click', () => {
 });
 
 // ── VALIDADOR EAN ───────────────────────────────────────────
+let _lastValEan = null;
+let _valLock = false;
+
 function startValidator() {
+  _lastValEan = null;
+  _valLock = false;
   Scanner.start('scanner-video-validator', ean => {
+    if (_valLock || ean === _lastValEan) return;
+    _valLock = true;
+    _lastValEan = ean;
+    setTimeout(() => { _valLock = false; }, 2500);
+
     let foundSku = '', foundDesc = '';
     if (State.catalog) {
       for (const [sku, info] of State.catalog) {
         if (info.ean && info.ean.trim() === ean.trim()) { foundSku = sku; foundDesc = info.desc; break; }
       }
     }
+    if (navigator.vibrate) navigator.vibrate(50);
     const res = document.getElementById('val-result');
     document.getElementById('val-ean').textContent  = ean;
-    document.getElementById('val-sku').textContent  = foundSku || '— No encontrado';
-    document.getElementById('val-desc').textContent = foundDesc;
+    document.getElementById('val-sku').textContent  = foundSku || '— No encontrado en catálogo';
+    document.getElementById('val-desc').textContent = foundDesc || (foundSku ? '' : 'Este EAN no está registrado');
     res.style.display = 'block';
     res.style.borderColor = foundSku ? '#1D9E75' : '#dc2626';
   }, err => console.warn('[Val]', err));
