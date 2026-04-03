@@ -115,16 +115,19 @@
     <button class="topbar-back" id="back-from-validator">←</button>
     <span class="topbar-title">Consultar EAN</span>
   </div>
-  <div class="content">
-    <p class="hint-text">Escaneá cualquier código de barras para ver su información.</p>
-    <div class="scanner-wrap">
+  <div class="content" style="display:flex;flex-direction:column;gap:12px;padding-bottom:20px">
+    <div class="scanner-wrap" style="flex-shrink:0">
       <div id="scanner-video-validator"></div>
     </div>
-    <div id="val-result" class="card mt-16" style="display:none;border-width:2px">
-      <div class="card-row"><span class="card-label">EAN</span><span id="val-ean" class="card-value mono">—</span></div>
-      <div class="card-row"><span class="card-label">SKU</span><span id="val-sku" class="card-value">—</span></div>
-      <div class="card-row" style="border:none"><span class="card-label">Producto</span><span id="val-desc" class="card-value" style="text-align:right;font-size:12px">—</span></div>
+    <div id="val-result" class="card" style="display:none;border-width:2px">
+      <div style="font-size:11px;color:var(--gray-text);margin-bottom:4px">EAN</div>
+      <div id="val-ean" style="font-size:22px;font-weight:700;font-family:monospace;margin-bottom:12px;word-break:break-all">—</div>
+      <div style="font-size:11px;color:var(--gray-text);margin-bottom:2px">SKU</div>
+      <div id="val-sku" style="font-size:17px;font-weight:600;font-family:monospace;margin-bottom:12px">—</div>
+      <div style="font-size:11px;color:var(--gray-text);margin-bottom:2px">Producto</div>
+      <div id="val-desc" style="font-size:15px;line-height:1.5;color:var(--text)">—</div>
     </div>
+    <p style="font-size:12px;color:var(--gray-text);text-align:center">Apuntá al código de barras del producto</p>
   </div>
 </div>
 
