@@ -220,18 +220,22 @@ function renderDetail() {
     div.className = 'sku-item';
     div.id = `sku-item-${i}`;
 
+    const hasLastError = item.lastError && item.status === 'pending';
     const icon = item.status === 'ok' ? '✓'
-               : item.status === 'error' ? '✕'
                : item.status === 'no_ean' ? '—'
                : item.status === 'not_in_catalog' ? '?'
+               : hasLastError ? '✕'
                : '○';
     const cls  = item.status === 'ok' ? 'check-ok'
-               : item.status === 'error' ? 'check-error'
                : item.status === 'no_ean' ? 'check-warn'
                : item.status === 'not_in_catalog' ? 'check-warn'
+               : hasLastError ? 'check-error'
                : 'check-gray';
 
-    const eanTxt  = item.scannedEan ? item.scannedEan : (item.hasEan === false ? 'Sin código de barras' : '—');
+    const eanTxt = item.status === 'ok' ? item.scannedEan
+               : item.hasEan === false ? 'Sin código de barras'
+               : hasLastError ? `✕ ${item.lastError} — reescaneá`
+               : '—';
     const progress = item.qty > 1 ? ` (${item.scanned || 0}/${item.qty})` : '';
     const desc    = item.desc ? `<div class="sku-desc">${escHtml(item.desc)}</div>` : '';
 
@@ -290,14 +294,19 @@ function startDetailScanner() {
   });
 }
 
+let _scanning = false;
+
 function onEanScanned(ean) {
+  if (_scanning) return;
+  _scanning = true;
+
   const order = State.orders[State.currentOrderIdx];
   if (!order) return;
 
-  // FIX 3: buscar el próximo ítem pendiente que TENGA EAN
+  // Buscar el próximo ítem pendiente que TENGA EAN
   const itemIdx = order.items.findIndex(i => i.status === 'pending' && i.hasEan !== false);
   if (itemIdx === -1) {
-    showToast('Todos los ítems ya fueron procesados', 'warn');
+    // Todos procesados — no mostrar toast repetido
     return;
   }
 
@@ -316,9 +325,23 @@ function onEanScanned(ean) {
     }
     playBeep('ok');
   } else if (result.status === 'error') {
-    item.status = 'error';
-    showToast(`✕ EAN incorrecto\nEsperado: ${result.expected}\nLeído: ${ean}`, 'error', 4000);
+    item.lastError = ean;
     playBeep('error');
+    // Pausar escáner — el operario debe tocar "Reintentar" para volver a escanear
+    Scanner.stop();
+    _scanning = false;
+    showToast(`✕ EAN incorrecto. Tocá "Reintentar" para escanear de nuevo.`, 'error', 4000);
+    renderDetail();
+    // Mostrar botón reintentar
+    const retryDiv = document.createElement('div');
+    retryDiv.id = 'retry-scan-wrap';
+    retryDiv.style.cssText = 'padding:10px 0;';
+    retryDiv.innerHTML = '<button class="btn-secondary" onclick="retryScan()" style="border-color:#dc2626;color:#dc2626;">↺ Reintentar escaneo</button>';
+    const existing = document.getElementById('retry-scan-wrap');
+    if (existing) existing.remove();
+    const scannerWrap = document.getElementById('scanner-wrap');
+    if (scannerWrap) scannerWrap.insertAdjacentElement('afterend', retryDiv);
+    return;
   } else if (result.status === 'no_ean') {
     // No debería llegar acá pero por las dudas
     item.status = 'no_ean';
@@ -331,6 +354,13 @@ function onEanScanned(ean) {
   updateOrderStatus(order);
   renderDetail();
   renderOrdersList();
+}
+
+function retryScan() {
+  const wrap = document.getElementById('retry-scan-wrap');
+  if (wrap) wrap.remove();
+  _scanning = false;
+  startDetailScanner();
 }
 
 function updateOrderStatus(order) {
