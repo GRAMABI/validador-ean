@@ -85,15 +85,38 @@ const Scanner = (() => {
     }
   }
 
+  let _torchOn = false;
   async function toggleTorch() {
-    if (!activeScanner) return;
     try {
-      const caps = activeScanner.getRunningTrackCameraCapabilities();
-      if (caps && caps.torchFeature && caps.torchFeature().isSupported()) {
-        const current = caps.torchFeature().value();
-        await caps.torchFeature().apply(!current);
+      // Intentar via html5-qrcode primero
+      if (activeScanner) {
+        const caps = activeScanner.getRunningTrackCameraCapabilities();
+        if (caps && caps.torchFeature && caps.torchFeature().isSupported()) {
+          _torchOn = !_torchOn;
+          await caps.torchFeature().apply(_torchOn);
+          return;
+        }
       }
-    } catch {}
+      // Fallback: acceso directo al stream de video
+      const videos = document.querySelectorAll('video');
+      for (const video of videos) {
+        if (video.srcObject) {
+          const tracks = video.srcObject.getVideoTracks();
+          for (const track of tracks) {
+            const caps = track.getCapabilities ? track.getCapabilities() : {};
+            if (caps.torch) {
+              _torchOn = !_torchOn;
+              await track.applyConstraints({ advanced: [{ torch: _torchOn }] });
+              return;
+            }
+          }
+        }
+      }
+      alert('Este dispositivo no tiene linterna disponible o no está soportada por el navegador.');
+    } catch(e) {
+      console.warn('Linterna error:', e);
+      alert('No se pudo activar la linterna: ' + e.message);
+    }
   }
 
   return { start, stop, toggleTorch };
