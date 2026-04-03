@@ -43,10 +43,19 @@ const Scanner = (() => {
       await scanner.start(
         { facingMode: 'environment' },
         config,
-        (decodedText) => {
-          if (navigator.vibrate) navigator.vibrate(50);
-          onScan(decodedText);
-        },
+        (() => {
+          let _lastEan = null;
+          let _lock = false;
+          return (decodedText) => {
+            // Anti-repetición a nivel de escáner: mismo EAN o lock activo = ignorar
+            if (_lock || decodedText === _lastEan) return;
+            _lock = true;
+            _lastEan = decodedText;
+            setTimeout(() => { _lock = false; _lastEan = null; }, 2000);
+            if (navigator.vibrate) navigator.vibrate(50);
+            onScan(decodedText);
+          };
+        })(),
         () => {}  // error por frame — normal, ignorar
       );
 
