@@ -1,468 +1,151 @@
-/* ═══════════════════════════════════════ RESET & BASE */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/**
+ * catalog.js
+ * Descarga el catálogo SKU→EAN→Descripción desde Google Sheets (CSV público)
+ */
 
-:root {
-  --brand: #1a56db;
-  --brand-dark: #1044b8;
-  --green: #1D9E75;
-  --green-bg: #e6f4ee;
-  --red: #dc2626;
-  --red-bg: #fee2e2;
-  --amber: #d97706;
-  --amber-bg: #fef3c7;
-  --gray-bg: #f3f4f6;
-  --gray-border: #e5e7eb;
-  --gray-text: #6b7280;
-  --text: #111827;
-  --white: #ffffff;
-  --topbar-h: 52px;
-  --bottom-nav-h: 60px;
-  --radius: 12px;
-  --radius-sm: 8px;
-}
+const CatalogService = (() => {
 
-html, body {
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--gray-bg);
-  color: var(--text);
-  overflow: hidden;
-  font-size: 15px;
-  -webkit-font-smoothing: antialiased;
-}
+  const CSV_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSh22UDCGqiFSuGULQzsljqzb8zJesiY5MDSpU38Wfr7gODfrBkXnoG8kWWpCObkA/pub?gid=28525746&single=true&output=csv';
+  const COL_DESC     = 1;    // Columna B (base-0) — nombre del producto
+  const COL_SKU      = 4;    // Columna E (base-0) — SKU
+  const COL_EAN      = 5;    // Columna F (base-0) — EAN
+  const CACHE_KEY    = 'vean_catalog';
+  const CACHE_TS_KEY = 'vean_catalog_ts';
+  const CACHE_TTL    = 24 * 60 * 60 * 1000;
 
-/* ═══════════════════════════════════════ SCREENS */
-.screen {
-  display: none;
-  position: fixed;
-  inset: 0;
-  flex-direction: column;
-  background: var(--gray-bg);
-  overflow: hidden;
-}
-.screen.active { display: flex; }
+  function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+        else inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current);
+    return result;
+  }
 
-/* ═══════════════════════════════════════ TOPBAR */
-.topbar {
-  height: var(--topbar-h);
-  background: var(--white);
-  border-bottom: 1px solid var(--gray-border);
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  gap: 10px;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 10;
-}
-.topbar-title {
-  flex: 1;
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.topbar-back {
-  background: none;
-  border: none;
-  font-size: 20px;
-  color: var(--brand);
-  cursor: pointer;
-  padding: 6px 8px 6px 0;
-  line-height: 1;
-}
-.topbar-action {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 6px;
-}
+  function parseCSV(text) {
+    const lines = text.split('\n');
+    // map: SKU → { ean, desc }
+    const map = new Map();
+    let loaded = 0;
 
-/* ═══════════════════════════════════════ CONTENT */
-.content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px 14px;
-  padding-bottom: calc(var(--bottom-nav-h) + 16px);
-  -webkit-overflow-scrolling: touch;
-}
-.content.no-top-pad { padding-top: 8px; }
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cols = parseCSVLine(line);
+      const sku  = (cols[COL_SKU]  || '').trim().toUpperCase();
+      const ean  = (cols[COL_EAN]  || '').trim();
+      const desc = (cols[COL_DESC] || '').trim();
+      if (!sku) continue;
+      if (!map.has(sku)) {
+        // EAN puede estar vacío — lo guardamos igual para mostrar descripción
+        map.set(sku, { ean: ean || null, desc });
+        loaded++;
+      }
+    }
 
-/* ═══════════════════════════════════════ BOTTOM NAV */
-.bottom-nav {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: var(--bottom-nav-h);
-  background: var(--white);
-  border-top: 1px solid var(--gray-border);
-  display: flex;
-  z-index: 10;
-}
-.nav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  font-size: 10px;
-  color: var(--gray-text);
-  cursor: pointer;
-  transition: color .15s;
-}
-.nav-item span:first-child { font-size: 18px; }
-.nav-item.active { color: var(--brand); }
+    console.log(`[Catalog] ${loaded} SKUs cargados`);
+    if (loaded === 0) throw new Error('No se encontraron datos en las columnas B, E y F.');
+    return map;
+  }
 
-/* ═══════════════════════════════════════ CARDS */
-.card {
-  background: var(--white);
-  border: 1px solid var(--gray-border);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 10px;
-}
-.card-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--gray-border);
-  gap: 8px;
-}
-.card-row:last-child { border-bottom: none; }
-.card-label { font-size: 13px; color: var(--gray-text); flex-shrink: 0; }
-.card-value { font-size: 13px; font-weight: 500; text-align: right; }
-.text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
-.mono { font-family: monospace; }
+  function loadCache() {
+    try {
+      const ts = parseInt(localStorage.getItem(CACHE_TS_KEY) || '0', 10);
+      if (Date.now() - ts > CACHE_TTL) return null;
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      // Reconstruir Map desde objeto plano
+      const obj = JSON.parse(raw);
+      const map = new Map(Object.entries(obj));
+      console.log(`[Catalog] Desde caché: ${map.size} SKUs`);
+      return map;
+    } catch { return null; }
+  }
 
-/* ═══════════════════════════════════════ SECTION LABELS */
-.section-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--gray-text);
-  text-transform: uppercase;
-  letter-spacing: .6px;
-  margin-bottom: 8px;
-}
+  function saveCache(map) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(Object.fromEntries(map)));
+      localStorage.setItem(CACHE_TS_KEY, Date.now().toString());
+    } catch (e) { console.warn('[Catalog] No se pudo guardar caché:', e); }
+  }
 
-/* ═══════════════════════════════════════ BUTTONS */
-.btn-primary {
-  width: 100%;
-  background: var(--brand);
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 14px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .15s, opacity .15s;
-}
-.btn-primary:hover { background: var(--brand-dark); }
-.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+  async function download() {
+    console.log('[Catalog] Descargando desde Google Sheets...');
+    const resp = await fetch(CSV_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} al descargar el catálogo`);
+    const text = await resp.text();
+    const map  = parseCSV(text);
+    saveCache(map);
+    return map;
+  }
 
-.btn-secondary {
-  width: 100%;
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--gray-border);
-  border-radius: var(--radius-sm);
-  padding: 11px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background .15s;
-  display: block;
-}
-.btn-secondary:hover { background: var(--gray-bg); }
+  function lastSyncLabel() {
+    const ts = parseInt(localStorage.getItem(CACHE_TS_KEY) || '0', 10);
+    if (!ts) return 'Sin sincronizar';
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1)  return 'hace menos de 1 minuto';
+    if (mins < 60) return `hace ${mins} min`;
+    const h = Math.floor(mins / 60);
+    if (h < 24)    return `hace ${h} hs`;
+    return `hace ${Math.floor(h / 24)} días`;
+  }
 
-/* ═══════════════════════════════════════ BADGES */
-.badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 20px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.badge-ok    { background: var(--green-bg); color: var(--green); }
-.badge-error { background: var(--red-bg);   color: var(--red); }
-.badge-warn  { background: var(--amber-bg); color: var(--amber); }
-.badge-gray  { background: var(--gray-bg);  color: var(--gray-text); }
+  function cachedCount() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return 0;
+      return Object.keys(JSON.parse(raw)).length;
+    } catch { return 0; }
+  }
 
-/* ═══════════════════════════════════════ ORDER LIST */
-.order-item {
-  background: var(--white);
-  border: 1px solid var(--gray-border);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  cursor: pointer;
-  transition: background .1s;
-  -webkit-tap-highlight-color: transparent;
-}
-.order-item:active { background: var(--gray-bg); }
-.order-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  margin-top: 5px;
-  flex-shrink: 0;
-}
-.dot-ok    { background: var(--green); }
-.dot-error { background: var(--red); }
-.dot-warn  { background: var(--amber); }
-.order-info { flex: 1; min-width: 0; }
-.order-name { font-weight: 600; font-size: 14px; }
-.order-sub  { font-size: 12px; color: var(--gray-text); margin-top: 2px; }
-.order-id-text { font-size: 10px; color: #aaa; font-family: monospace; margin-top: 2px; }
+  async function getCatalog(forceRefresh = false) {
+    if (!forceRefresh) {
+      const cached = loadCache();
+      if (cached) return cached;
+    }
+    return await download();
+  }
 
-/* ═══════════════════════════════════════ PROGRESS */
-.progress-bar-wrap {
-  height: 4px;
-  background: var(--gray-border);
-  flex-shrink: 0;
-}
-.progress-bar-fill {
-  height: 100%;
-  background: var(--green);
-  transition: width .4s ease;
-  width: 0%;
-}
-.progress-label {
-  font-size: 11px;
-  color: var(--gray-text);
-  padding: 5px 14px 0;
-  flex-shrink: 0;
-}
+  /**
+   * Obtiene descripción y EAN de un SKU.
+   * @returns {{ ean: string|null, desc: string }}
+   */
+  function getInfo(sku, catalog) {
+    return catalog.get(sku.trim().toUpperCase()) || { ean: null, desc: '' };
+  }
 
-/* ═══════════════════════════════════════ ORDER DETAIL */
-.order-id-bar {
-  font-size: 11px;
-  font-family: monospace;
-  color: #aaa;
-  padding: 4px 14px;
-  background: var(--white);
-  border-bottom: 1px solid var(--gray-border);
-  flex-shrink: 0;
-}
+  /**
+   * Valida el EAN escaneado contra el SKU del pedido.
+   * FIX: solo acepta el EAN exacto del SKU — no cualquier EAN del catálogo.
+   */
+  function validate(sku, scannedEan, catalog) {
+    const info = catalog.get(sku.trim().toUpperCase());
 
-.sku-item {
-  background: var(--white);
-  border: 1px solid var(--gray-border);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.sku-check {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700;
-  flex-shrink: 0;
-}
-.check-ok    { background: var(--green-bg); color: var(--green); }
-.check-error { background: var(--red-bg);   color: var(--red); }
-.check-warn  { background: var(--amber-bg); color: var(--amber); }
-.check-gray  { background: var(--gray-bg);  color: var(--gray-text); }
+    if (!info) return { status: 'not_in_catalog', expected: null, desc: '' };
 
-.sku-info { flex: 1; min-width: 0; }
-.sku-code { font-size: 12px; font-weight: 600; font-family: monospace; }
-.sku-name { font-size: 11px; color: var(--gray-text); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sku-ean  { font-size: 10px; color: #bbb; font-family: monospace; margin-top: 1px; }
-.sku-qty  { font-size: 12px; color: var(--gray-text); flex-shrink: 0; }
+    // SKU existe pero no tiene EAN registrado
+    if (!info.ean) return { status: 'no_ean', expected: null, desc: info.desc };
 
-/* ═══════════════════════════════════════ SCANNER */
-.scanner-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4/3;
-  background: #000;
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin: 8px 0;
-}
-#scanner-video, #scanner-video-free {
-  width: 100%; height: 100%;
-  object-fit: cover;
-}
-.scanner-overlay-frame {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.scanner-overlay-frame::before {
-  content: '';
-  position: absolute;
-  width: 70%; height: 45%;
-  border: 2px solid rgba(255,255,255,.7);
-  border-radius: 6px;
-}
-.scanner-line {
-  position: absolute;
-  width: 65%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #1D9E75, transparent);
-  animation: scan 2s ease-in-out infinite;
-}
-@keyframes scan {
-  0%   { top: 30%; }
-  50%  { top: 67%; }
-  100% { top: 30%; }
-}
-.scanner-hint {
-  position: absolute;
-  bottom: 10px;
-  width: 100%;
-  text-align: center;
-  font-size: 12px;
-  color: rgba(255,255,255,.7);
-}
-.scanner-controls {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
+    // Comparación estricta: solo el EAN de ESTE SKU es válido
+    const match = scannedEan.trim() === info.ean.trim();
+    return {
+      status: match ? 'ok' : 'error',
+      expected: info.ean,
+      desc: info.desc,
+    };
+  }
 
-/* ═══════════════════════════════════════ BOTTOM ACTION */
-.bottom-action {
-  padding: 10px 14px;
-  background: var(--white);
-  border-top: 1px solid var(--gray-border);
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════ TOAST */
-#toast-container {
-  position: fixed;
-  bottom: 80px;
-  left: 14px; right: 14px;
-  z-index: 100;
-  pointer-events: none;
-}
-.toast {
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  margin-top: 6px;
-  animation: slideup .2s ease;
-}
-.toast-ok    { background: var(--green-bg); color: var(--green); border: 1px solid #86efac; }
-.toast-error { background: var(--red-bg);   color: var(--red);   border: 1px solid #fca5a5; }
-.toast-warn  { background: var(--amber-bg); color: var(--amber); border: 1px solid #fcd34d; }
-@keyframes slideup {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* ═══════════════════════════════════════ SUMMARY */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.metric-card {
-  background: var(--white);
-  border: 1px solid var(--gray-border);
-  border-radius: var(--radius-sm);
-  padding: 12px 8px;
-  text-align: center;
-}
-.metric-val { font-size: 26px; font-weight: 700; }
-.metric-val.green  { color: var(--green); }
-.metric-val.red    { color: var(--red); }
-.metric-val.amber  { color: var(--amber); }
-.metric-label { font-size: 11px; color: var(--gray-text); margin-top: 2px; }
-
-.summary-item {
-  background: var(--white);
-  border: 1px solid var(--gray-border);
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.summary-name { font-size: 13px; font-weight: 500; }
-.summary-sub  { font-size: 11px; color: var(--gray-text); }
-
-/* ═══════════════════════════════════════ LOGIN */
-.login-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 24px;
-  gap: 8px;
-}
-.login-icon  { font-size: 64px; margin-bottom: 8px; }
-.login-title { font-size: 28px; font-weight: 700; color: var(--brand); }
-.login-sub   { font-size: 15px; color: var(--gray-text); margin-bottom: 16px; }
-.login-card  {
-  background: var(--white);
-  border: 1px solid var(--gray-border);
-  border-radius: var(--radius);
-  padding: 20px;
-  width: 100%;
-  max-width: 340px;
-}
-.login-desc { font-size: 14px; color: var(--gray-text); margin-bottom: 16px; line-height: 1.5; }
-
-/* ═══════════════════════════════════════ LOADER */
-#loader {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-.loader-box {
-  background: var(--white);
-  border-radius: var(--radius);
-  padding: 28px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  min-width: 180px;
-}
-.spinner {
-  width: 36px; height: 36px;
-  border: 3px solid var(--gray-border);
-  border-top-color: var(--brand);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loader-msg { font-size: 14px; color: var(--gray-text); text-align: center; }
-
-/* ═══════════════════════════════════════ MISC */
-.error-msg {
-  background: var(--red-bg);
-  color: var(--red);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  font-size: 13px;
-  margin-top: 8px;
-}
-.hint-text { font-size: 13px; color: var(--gray-text); margin-bottom: 10px; }
-.mt-8  { margin-top: 8px !important; }
-.mt-16 { margin-top: 16px !important; }
-.mt-24 { margin-top: 24px !important; }
+  return { getCatalog, validate, getInfo, lastSyncLabel, cachedCount };
+})();
