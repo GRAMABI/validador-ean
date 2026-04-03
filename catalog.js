@@ -5,7 +5,7 @@
 
 const CatalogService = (() => {
 
-  const CSV_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSh22UDCGqiFSuGULQzsljqzb8zJesiY5MDSpU38Wfr7gODfrBkXnoG8kWWpCObkA/pub?gid=28525746&single=true&output=csv';
+  const CSV_URL      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSh22UDCGqiFSuGULQzsljqzb8zJesiY5MDSpU38Wfr7gODfrBkXnoG8kWWpCObkA/pub?gid=28525746&single=true&output=csv&cachebust=1775222429.535458';
   const COL_DESC     = 1;    // Columna B (base-0) — nombre del producto
   const COL_SKU      = 4;    // Columna E (base-0) — SKU
   const COL_EAN      = 5;    // Columna F (base-0) — EAN
@@ -98,7 +98,7 @@ const CatalogService = (() => {
 
   async function download() {
     console.log('[Catalog] Descargando desde Google Sheets...');
-    const resp = await fetch(CSV_URL);
+    const resp = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status} al descargar el catálogo`);
     const text = await resp.text();
     const map  = parseCSV(text);
