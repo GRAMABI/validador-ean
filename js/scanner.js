@@ -204,3 +204,104 @@ const Scanner = (() => {
   `;
   document.head.appendChild(style);
 })();
+
+
+// ═══════════════════════════════════════════════════════════
+// Scanner2: escáner directo con getUserMedia + BarcodeDetector
+// Usado en Consultar EAN para tener acceso al track de video
+// ═══════════════════════════════════════════════════════════
+const Scanner2 = (() => {
+  let _stream = null;
+  let _track  = null;
+  let _torchOn = false;
+  let _interval = null;
+  let _detector = null;
+  let _video = null;
+
+  async function start(videoId, onScan, onErr) {
+    await stop();
+
+    // BarcodeDetector API — disponible en Chrome Android 83+
+    if (!('BarcodeDetector' in window)) {
+      onErr('Tu navegador no soporta el escáner nativo. Actualizá Chrome.');
+      return;
+    }
+
+    _detector = new BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e']
+    });
+
+    try {
+      _stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+
+      _track = _stream.getVideoTracks()[0];
+
+      // Mostrar stream en el div contenedor
+      const container = document.getElementById(videoId);
+      if (container) {
+        container.innerHTML = '';
+        _video = document.createElement('video');
+        _video.srcObject = _stream;
+        _video.autoplay = true;
+        _video.playsInline = true;
+        _video.muted = true;
+        _video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:12px';
+        container.appendChild(_video);
+        await _video.play();
+      }
+
+      // Escanear cada 300ms
+      let _lastEan = null;
+      let _lock = false;
+      _interval = setInterval(async () => {
+        if (!_video || _video.readyState < 2 || _lock) return;
+        try {
+          const barcodes = await _detector.detect(_video);
+          if (barcodes.length > 0) {
+            const ean = barcodes[0].rawValue;
+            if (ean === _lastEan) return;
+            _lock = true;
+            _lastEan = ean;
+            setTimeout(() => { _lock = false; _lastEan = null; }, 2500);
+            if (navigator.vibrate) navigator.vibrate(50);
+            onScan(ean);
+          }
+        } catch {}
+      }, 300);
+
+    } catch(e) {
+      if (e.name === 'NotAllowedError') {
+        onErr('Permiso de cámara denegado.');
+      } else {
+        onErr('Error al iniciar cámara: ' + e.message);
+      }
+    }
+  }
+
+  async function stop() {
+    if (_interval) { clearInterval(_interval); _interval = null; }
+    if (_track) {
+      try { await _track.applyConstraints({ advanced: [{ torch: false }] }); } catch {}
+      _track = null;
+    }
+    if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
+    if (_video) { _video.srcObject = null; _video = null; }
+    _torchOn = false;
+  }
+
+  async function toggleTorch() {
+    if (!_track) { alert('Esperá que la cámara encienda antes de usar la linterna.'); return; }
+    const caps = _track.getCapabilities ? _track.getCapabilities() : {};
+    if (!caps.torch) { alert('Linterna no disponible en este dispositivo.'); return; }
+    _torchOn = !_torchOn;
+    try {
+      await _track.applyConstraints({ advanced: [{ torch: _torchOn }] });
+    } catch(e) {
+      console.warn('Torch error:', e);
+    }
+  }
+
+  return { start, stop, toggleTorch };
+})();
