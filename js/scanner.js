@@ -40,6 +40,22 @@ const Scanner = (() => {
         ]
       };
 
+      // Capturar el track de video para la linterna DESPUÉS del start
+      // Lo hacemos con un pequeño delay para que el stream esté activo
+      setTimeout(() => {
+        const videos = document.querySelectorAll('video');
+        for (const video of videos) {
+          if (video.srcObject) {
+            const tracks = video.srcObject.getVideoTracks();
+            for (const track of tracks) {
+              const caps = track.getCapabilities ? track.getCapabilities() : {};
+              if (caps.torch) { _videoTrack = track; break; }
+            }
+          }
+        }
+        console.log('[Scanner] Track para linterna:', _videoTrack ? 'OK' : 'no disponible');
+      }, 1500);
+
       await scanner.start(
         { facingMode: 'environment' },
         config,
