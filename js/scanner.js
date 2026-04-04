@@ -40,21 +40,30 @@ const Scanner = (() => {
         ]
       };
 
-      // Capturar el track de video para la linterna DESPUÉS del start
-      // Lo hacemos con un pequeño delay para que el stream esté activo
-      setTimeout(() => {
+      // Capturar el track con reintentos hasta que esté disponible
+      let _attempts = 0;
+      const _findTrack = setInterval(() => {
+        _attempts++;
         const videos = document.querySelectorAll('video');
         for (const video of videos) {
           if (video.srcObject) {
             const tracks = video.srcObject.getVideoTracks();
             for (const track of tracks) {
               const caps = track.getCapabilities ? track.getCapabilities() : {};
-              if (caps.torch) { _videoTrack = track; break; }
+              if (caps.torch) {
+                _videoTrack = track;
+                console.log('[Scanner] Track con linterna encontrado en intento', _attempts);
+                clearInterval(_findTrack);
+                return;
+              }
             }
           }
         }
-        console.log('[Scanner] Track para linterna:', _videoTrack ? 'OK' : 'no disponible');
-      }, 1500);
+        if (_attempts >= 10) {
+          console.log('[Scanner] No se encontró track con linterna después de', _attempts, 'intentos');
+          clearInterval(_findTrack);
+        }
+      }, 500);
 
       await scanner.start(
         { facingMode: 'environment' },
@@ -107,22 +116,22 @@ const Scanner = (() => {
   }
 
   let _torchOn = false;
-  let _videoTrack = null; // guardamos el track activo para la linterna
+  let _videoTrack = null;
 
   async function toggleTorch() {
     try {
-      // Si ya tenemos el track guardado, usarlo directamente
+      // 1. Usar track guardado
       if (_videoTrack) {
         _torchOn = !_torchOn;
         await _videoTrack.applyConstraints({ advanced: [{ torch: _torchOn }] });
         return;
       }
-      // Buscar el track en todos los videos activos
+
+      // 2. Buscar en videos del DOM
       const videos = document.querySelectorAll('video');
       for (const video of videos) {
         if (video.srcObject) {
-          const tracks = video.srcObject.getVideoTracks();
-          for (const track of tracks) {
+          for (const track of video.srcObject.getVideoTracks()) {
             const caps = track.getCapabilities ? track.getCapabilities() : {};
             if (caps.torch) {
               _videoTrack = track;
@@ -133,9 +142,35 @@ const Scanner = (() => {
           }
         }
       }
-      alert('Linterna no disponible en este dispositivo.');
+
+      // 3. Último recurso: pedir stream propio con torch activado
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', advanced: [{ torch: true }] }
+      });
+      const track = stream.getVideoTracks()[0];
+      if (track) {
+        _videoTrack = track;
+        _torchOn = true;
+      }
     } catch(e) {
       console.warn('Linterna error:', e);
+      // Intentar con constraint directo
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } }
+        });
+        const track = stream.getVideoTracks()[0];
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        if (caps.torch) {
+          _videoTrack = track;
+          _torchOn = !_torchOn;
+          await track.applyConstraints({ advanced: [{ torch: _torchOn }] });
+        } else {
+          alert('La linterna no está disponible en este dispositivo o navegador.');
+        }
+      } catch(e2) {
+        console.warn('Linterna fallback error:', e2);
+      }
     }
   }
 
