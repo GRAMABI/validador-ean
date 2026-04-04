@@ -75,7 +75,6 @@ const Scanner = (() => {
     if (activeScanner) {
       try {
         const state = activeScanner.getState();
-        // Estado 2 = SCANNING, estado 3 = PAUSED
         if (state === 2 || state === 3) {
           await activeScanner.stop();
         }
@@ -83,21 +82,26 @@ const Scanner = (() => {
       } catch {}
       activeScanner = null;
     }
+    // Apagar linterna y limpiar track
+    if (_videoTrack) {
+      try { await _videoTrack.applyConstraints({ advanced: [{ torch: false }] }); } catch {}
+      _videoTrack = null;
+    }
+    _torchOn = false;
   }
 
   let _torchOn = false;
+  let _videoTrack = null; // guardamos el track activo para la linterna
+
   async function toggleTorch() {
     try {
-      // Intentar via html5-qrcode primero
-      if (activeScanner) {
-        const caps = activeScanner.getRunningTrackCameraCapabilities();
-        if (caps && caps.torchFeature && caps.torchFeature().isSupported()) {
-          _torchOn = !_torchOn;
-          await caps.torchFeature().apply(_torchOn);
-          return;
-        }
+      // Si ya tenemos el track guardado, usarlo directamente
+      if (_videoTrack) {
+        _torchOn = !_torchOn;
+        await _videoTrack.applyConstraints({ advanced: [{ torch: _torchOn }] });
+        return;
       }
-      // Fallback: acceso directo al stream de video
+      // Buscar el track en todos los videos activos
       const videos = document.querySelectorAll('video');
       for (const video of videos) {
         if (video.srcObject) {
@@ -105,6 +109,7 @@ const Scanner = (() => {
           for (const track of tracks) {
             const caps = track.getCapabilities ? track.getCapabilities() : {};
             if (caps.torch) {
+              _videoTrack = track;
               _torchOn = !_torchOn;
               await track.applyConstraints({ advanced: [{ torch: _torchOn }] });
               return;
@@ -112,10 +117,9 @@ const Scanner = (() => {
           }
         }
       }
-      alert('Este dispositivo no tiene linterna disponible o no está soportada por el navegador.');
+      alert('Linterna no disponible en este dispositivo.');
     } catch(e) {
       console.warn('Linterna error:', e);
-      alert('No se pudo activar la linterna: ' + e.message);
     }
   }
 
