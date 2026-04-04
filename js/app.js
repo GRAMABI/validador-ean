@@ -1,42 +1,44 @@
 /**
- * app.js v3 - todas las mejoras
+ * app.js — versión limpia y funcional
  */
 
 const State = {
-  catalog: null, orders: [], currentOrderIdx: -1,
-  pdfLoaded: false, catalogLoaded: false,
+  catalog: null,
+  orders: [],
+  currentOrderIdx: -1,
+  pdfLoaded: false,
+  catalogLoaded: false,
   operario: localStorage.getItem('vean_operario') || '',
-  sessionKey: null,
 };
 let _scanning = false;
 
-// ── SESIÓN PERSISTENTE ──────────────────────────────────────
-function saveSession() {
-  if (!State.sessionKey) return;
-  try {
-    localStorage.setItem('vean_sess_' + State.sessionKey, JSON.stringify({
-      orders: State.orders, operario: State.operario, savedAt: Date.now()
-    }));
-  } catch(e) {}
+// ── PERSISTENCIA ─────────────────────────────────────────────
+function saveProgress() {
+  try { localStorage.setItem('vean_progress', JSON.stringify({ orders: State.orders, operario: State.operario })); } catch {}
 }
-function loadSession(key) {
-  try { return JSON.parse(localStorage.getItem('vean_sess_' + key)); } catch { return null; }
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem('vean_progress')); } catch { return null; }
 }
-function clearSession() {
-  if (State.sessionKey) localStorage.removeItem('vean_sess_' + State.sessionKey);
-  State.sessionKey = null; State.orders = []; State.pdfLoaded = false;
+function clearProgress() {
+  localStorage.removeItem('vean_progress');
+  State.orders = [];
+  State.pdfLoaded = false;
 }
 
-// ── NAVEGACIÓN ──────────────────────────────────────────────
+// ── NAVEGACIÓN ───────────────────────────────────────────────
 function showScreen(id) {
   if (id !== 'screen-detail' && id !== 'screen-validator') Scanner.stop();
+  if (id !== 'screen-validator') Scanner2.stop();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-validator') startValidator();
   if (id === 'screen-summary') renderSummary();
 }
 
-function showLoader(msg) { document.getElementById('loader-msg').textContent = msg || 'Cargando...'; document.getElementById('loader').style.display = 'flex'; }
+function showLoader(msg) {
+  document.getElementById('loader-msg').textContent = msg || 'Cargando...';
+  document.getElementById('loader').style.display = 'flex';
+}
 function hideLoader() { document.getElementById('loader').style.display = 'none'; }
 
 function showToast(msg, type, duration) {
@@ -50,102 +52,71 @@ function showToast(msg, type, duration) {
   setTimeout(() => d.remove(), duration || 2500);
 }
 
-// ── INICIO ──────────────────────────────────────────────────
+// ── INICIO ───────────────────────────────────────────────────
 async function initApp() {
   showScreen('screen-home');
-  // Cargar catálogo en segundo plano
+  // Cargar catálogo en segundo plano silenciosamente
   try {
     State.catalog = await CatalogService.getCatalog(false);
     State.catalogLoaded = true;
-  } catch(e) { console.warn('[App] Catálogo:', e.message); }
+  } catch(e) { console.warn('[Catálogo]', e.message); }
 
-  // Retomar sesión pendiente
-  const lastKey = localStorage.getItem('vean_last_sess');
-  if (lastKey) {
-    const sess = loadSession(lastKey);
-    if (sess && sess.orders && sess.orders.filter(o => o.status === 'pending').length > 0) {
-      showResumeDialog(sess, lastKey);
-    }
+  // Verificar si hay progreso guardado y mostrar dialog
+  const prog = loadProgress();
+  if (prog && prog.orders && prog.orders.length > 0) {
+    const pending = prog.orders.filter(o => o.status === 'pending').length;
+    if (pending > 0) showResumeDialog(prog);
   }
 }
 
-function showResumeDialog(sess, key) {
-  const done  = sess.orders.filter(o => o.status !== 'pending').length;
-  const total = sess.orders.length;
-  const date  = new Date(sess.savedAt).toLocaleString('es-AR');
+function showResumeDialog(prog) {
+  const done  = prog.orders.filter(o => o.status !== 'pending').length;
+  const total = prog.orders.length;
   const dlg = document.createElement('div');
   dlg.id = 'resume-dlg';
-  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px';
+  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;box-sizing:border-box';
   dlg.innerHTML = `<div style="background:#fff;border-radius:16px;padding:24px;max-width:340px;width:100%">
     <div style="font-size:24px;margin-bottom:8px">📋</div>
     <div style="font-size:16px;font-weight:600;margin-bottom:6px">Sesión en progreso</div>
-    <div style="font-size:13px;color:#6b7280;margin-bottom:4px">Operario: ${escHtml(sess.operario || 'Sin identificar')}</div>
-    <div style="font-size:13px;color:#6b7280;margin-bottom:16px">${done}/${total} pedidos · ${date}</div>
-    <button class="btn-primary" style="margin-bottom:8px" onclick="resumeSession('${key}')">Continuar sesión</button>
-    <button class="btn-secondary" onclick="discardSession('${key}')">Empezar de nuevo</button>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:16px">${done} de ${total} pedidos procesados</div>
+    <button class="btn-primary" style="margin-bottom:8px" onclick="doResume()">Continuar</button>
+    <button class="btn-secondary" onclick="doDiscard()">Empezar nuevo</button>
   </div>`;
   document.body.appendChild(dlg);
 }
-window.resumeSession = function(key) {
+
+window.doResume = function() {
   document.getElementById('resume-dlg')?.remove();
-  const sess = loadSession(key);
-  if (!sess) return;
-  State.orders = sess.orders; State.operario = sess.operario || '';
-  State.sessionKey = key; State.pdfLoaded = true;
-  renderOrdersList(); showScreen('screen-orders');
-};
-window.discardSession = function(key) {
-  document.getElementById('resume-dlg')?.remove();
-  localStorage.removeItem('vean_sess_' + key);
+  const prog = loadProgress();
+  if (!prog) return;
+  State.orders   = prog.orders;
+  State.operario = prog.operario || State.operario;
+  State.pdfLoaded = true;
+  renderOrdersList();
+  showScreen('screen-orders');
 };
 
-// ── HELPERS ─────────────────────────────────────────────────
-async function ensureCatalog() {
-  if (State.catalog) return;
-  showLoader('Cargando catálogo...');
-  try {
-    State.catalog = await CatalogService.getCatalog(false);
-    State.catalogLoaded = true;
-  } catch(e) { console.warn('[ensureCatalog]', e); }
-  finally { hideLoader(); }
-}
+window.doDiscard = function() {
+  document.getElementById('resume-dlg')?.remove();
+  clearProgress();
+};
 
-// ── BOTONES HOME ────────────────────────────────────────────
+// ── BOTONES HOME ─────────────────────────────────────────────
 document.getElementById('btn-mode-orders').addEventListener('click', () => {
-  const nombre = (document.getElementById('input-operario')?.value || '').trim();
-  if (!nombre) { alert('Por favor ingresá tu nombre antes de continuar.'); return; }
-  State.operario = nombre;
-  localStorage.setItem('vean_operario', nombre);
-  // Verificar progreso guardado
-  const saved = loadSession('orders');
-  if (saved && saved.length > 0) {
-    const done = saved.filter(o => o.status !== 'pending').length;
-    if (confirm(`Tenés trabajo en progreso (${done}/${saved.length} pedidos).
-¿Continuar o empezar nuevo?`)) {
-      State.orders = saved;
-      State.pdfLoaded = true;
-      ensureCatalog().then(() => { renderOrdersList(); showScreen('screen-orders'); });
-      return;
-    } else {
-      clearSession();
-    }
-  }
-  ensureCatalog().then(() => { updateConfigUI(); showScreen('screen-config'); });
+  updateConfigUI();
+  showScreen('screen-config');
 });
 
 document.getElementById('btn-mode-validator').addEventListener('click', () => {
-  const nombre = (document.getElementById('input-operario')?.value || '').trim();
-  if (!nombre) { alert('Por favor ingresá tu nombre antes de continuar.'); return; }
-  State.operario = nombre;
-  localStorage.setItem('vean_operario', nombre);
   showScreen('screen-validator');
 });
 
-// ── CONFIG ──────────────────────────────────────────────────
+// ── CONFIG ───────────────────────────────────────────────────
 function updateConfigUI() {
   const st = document.getElementById('catalog-status');
   const cr = document.getElementById('catalog-count-row');
   const sr = document.getElementById('catalog-sync-row');
+
   if (State.catalogLoaded && State.catalog) {
     st.textContent = 'Sincronizado'; st.className = 'badge badge-ok';
     document.getElementById('catalog-count').textContent = State.catalog.size + ' SKUs';
@@ -158,18 +129,24 @@ function updateConfigUI() {
       document.getElementById('catalog-count').textContent = n + ' SKUs';
       document.getElementById('catalog-sync-time').textContent = CatalogService.lastSyncLabel();
       cr.style.display = sr.style.display = 'flex';
-    } else { st.textContent = 'Sin catálogo'; st.className = 'badge badge-warn'; }
+    } else {
+      st.textContent = 'Sin catálogo'; st.className = 'badge badge-warn';
+    }
   }
+
+  // Mostrar nombre del operario
   const oi = document.getElementById('input-operario');
-  if (oi) oi.value = State.operario;
+  if (oi && State.operario) oi.value = State.operario;
+
   checkCanGoOrders();
 }
 
 function checkCanGoOrders() {
-  const ok = (State.catalogLoaded || CatalogService.cachedCount() > 0) && State.pdfLoaded;
-  document.getElementById('btn-go-orders').disabled = !ok;
+  const catOk = State.catalogLoaded || CatalogService.cachedCount() > 0;
+  document.getElementById('btn-go-orders').disabled = !(catOk && State.pdfLoaded);
 }
 
+// Guardar nombre del operario cuando escribe en config
 document.getElementById('input-operario').addEventListener('input', e => {
   State.operario = e.target.value.trim();
   localStorage.setItem('vean_operario', State.operario);
@@ -181,34 +158,45 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
   showLoader('Actualizando catálogo...');
   try {
     State.catalog = await CatalogService.getCatalog(true);
-    State.catalogLoaded = true; updateConfigUI();
-  } catch(e) { err.textContent = 'Error: ' + e.message; err.style.display = 'block'; }
-  finally { hideLoader(); }
+    State.catalogLoaded = true;
+    updateConfigUI();
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+    err.style.display = 'block';
+  } finally { hideLoader(); }
 });
 
 document.getElementById('input-pdf').addEventListener('change', async e => {
   const file = e.target.files[0]; if (!file) return;
-  const err = document.getElementById('pdf-error'); err.style.display = 'none';
+  const err = document.getElementById('pdf-error');
+  err.style.display = 'none';
   showLoader('Leyendo PDF...');
   try {
     const orders = await PdfParser.parse(file);
     if (!orders.length) throw new Error('No se encontraron pedidos en el PDF.');
+
+    // Enriquecer con info del catálogo
     if (State.catalog) {
       orders.forEach(o => o.items.forEach(item => {
         const info = CatalogService.getInfo(item.sku, State.catalog);
-        item.desc = info.desc || ''; item.hasEan = !!info.ean;
+        item.desc  = info.desc || '';
+        item.hasEan = !!info.ean;
       }));
     }
-    State.orders = orders; State.pdfLoaded = true;
-    State.sessionKey = 'sess_' + Date.now();
-    localStorage.setItem('vean_last_sess', State.sessionKey);
+
+    State.orders    = orders;
+    State.pdfLoaded = true;
+    saveProgress();
+
     document.getElementById('pdf-status-row').style.display = 'flex';
     document.getElementById('pdf-orders-row').style.display = 'flex';
     document.getElementById('pdf-name').textContent = file.name;
     document.getElementById('pdf-orders-count').textContent = orders.length + ' pedidos';
     checkCanGoOrders();
-  } catch(e) { err.textContent = 'Error: ' + e.message; err.style.display = 'block'; }
-  finally { hideLoader(); }
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message;
+    err.style.display = 'block';
+  } finally { hideLoader(); }
 });
 
 document.getElementById('btn-go-orders').addEventListener('click', async () => {
@@ -217,40 +205,48 @@ document.getElementById('btn-go-orders').addEventListener('click', async () => {
     try { State.catalog = await CatalogService.getCatalog(false); State.catalogLoaded = true; }
     catch(e) {} finally { hideLoader(); }
   }
+  // Enriquecer ítems que aún no tienen desc/hasEan
   State.orders.forEach(o => o.items.forEach(item => {
-    if (item.desc === undefined) {
+    if (item.desc === undefined && State.catalog) {
       const info = CatalogService.getInfo(item.sku, State.catalog);
-      item.desc = info.desc || ''; item.hasEan = !!info.ean;
+      item.desc  = info.desc || '';
+      item.hasEan = !!info.ean;
     }
   }));
-  renderOrdersList(); showScreen('screen-orders');
+  renderOrdersList();
+  showScreen('screen-orders');
 });
 
 document.getElementById('back-to-config').addEventListener('click', () => {
-  updateConfigUI(); showScreen('screen-config');
+  updateConfigUI();
+  showScreen('screen-config');
 });
 
-// ── LISTA PEDIDOS ───────────────────────────────────────────
+// ── LISTA PEDIDOS ────────────────────────────────────────────
 function renderOrdersList() {
-  const list = document.getElementById('orders-list');
+  const list  = document.getElementById('orders-list');
   list.innerHTML = '';
   const total = State.orders.length;
   const done  = State.orders.filter(o => o.status !== 'pending').length;
-  document.getElementById('progress-fill').style.width = (total ? done/total*100 : 0) + '%';
+
+  document.getElementById('progress-fill').style.width = (total ? done / total * 100 : 0) + '%';
   document.getElementById('progress-label').textContent = `${done} de ${total} pedidos procesados`;
+
   const ol = document.getElementById('operario-label');
   if (ol) ol.textContent = State.operario ? 'Operario: ' + State.operario : '';
 
   State.orders.forEach((order, idx) => {
     const div = document.createElement('div');
     div.className = 'order-item';
-    const dc = order.status==='ok' ? 'dot-ok' : order.status==='error' ? 'dot-error' : 'dot-warn';
-    const bc = order.status==='ok' ? 'badge-ok' : order.status==='error' ? 'badge-error' : 'badge-warn';
-    const bt = order.status==='ok' ? 'OK' : order.status==='error' ? 'Error' : 'Pendiente';
-    const pend = order.items.filter(i => i.status==='pending').length;
-    const sub = order.status==='pending' ? `${order.items.length} producto${order.items.length>1?'s':''} · ${pend} sin procesar`
-              : order.status==='ok' ? 'Validado ✓' : 'Con errores';
-    div.innerHTML = `<div class="order-dot ${dc}"></div>
+    const dc = order.status === 'ok' ? 'dot-ok' : order.status === 'error' ? 'dot-error' : 'dot-warn';
+    const bc = order.status === 'ok' ? 'badge-ok' : order.status === 'error' ? 'badge-error' : 'badge-warn';
+    const bt = order.status === 'ok' ? 'OK' : order.status === 'error' ? 'Error' : 'Pendiente';
+    const pend = order.items.filter(i => i.status === 'pending').length;
+    const sub  = order.status === 'pending'
+      ? `${order.items.length} producto${order.items.length > 1 ? 's' : ''} · ${pend} sin procesar`
+      : order.status === 'ok' ? 'Validado ✓' : 'Con errores';
+    div.innerHTML = `
+      <div class="order-dot ${dc}"></div>
       <div class="order-info">
         <div class="order-name">${escHtml(order.buyer)}</div>
         <div class="order-sub">${sub}</div>
@@ -260,42 +256,58 @@ function renderOrdersList() {
     div.addEventListener('click', () => openOrder(idx));
     list.appendChild(div);
   });
-  saveSession();
+  saveProgress();
 }
 
-// ── DETALLE PEDIDO ──────────────────────────────────────────
+// ── DETALLE PEDIDO ───────────────────────────────────────────
 function openOrder(idx) {
-  State.currentOrderIdx = idx; Scanner.stop(); _scanning = false;
+  State.currentOrderIdx = idx;
+  Scanner.stop();
+  _scanning = false;
   document.getElementById('retry-scan-wrap')?.remove();
-  renderDetail(); showScreen('screen-detail'); startDetailScanner();
+  renderDetail();
+  showScreen('screen-detail');
+  startDetailScanner();
 }
 
 function renderDetail() {
-  const order = State.orders[State.currentOrderIdx]; if (!order) return;
+  const order = State.orders[State.currentOrderIdx];
+  if (!order) return;
+
   document.getElementById('detail-buyer-name').textContent = order.buyer;
   document.getElementById('detail-order-id').textContent   = order.id;
+
   const badge = document.getElementById('detail-status-badge');
-  badge.textContent = order.status==='ok' ? 'OK' : order.status==='error' ? 'Error' : 'Pendiente';
-  badge.className = 'badge ' + (order.status==='ok' ? 'badge-ok' : order.status==='error' ? 'badge-error' : 'badge-warn');
+  badge.textContent = order.status === 'ok' ? 'OK' : order.status === 'error' ? 'Error' : 'Pendiente';
+  badge.className   = 'badge ' + (order.status === 'ok' ? 'badge-ok' : order.status === 'error' ? 'badge-error' : 'badge-warn');
 
   const container = document.getElementById('detail-skus');
   container.innerHTML = '';
+
   order.items.forEach((item, i) => {
-    const div = document.createElement('div');
-    div.className = 'sku-item';
-    const scanned = item.scanned || 0;
-    const hasErr  = item.lastError && item.status === 'pending';
-    const icon = item.status==='ok' ? '✓' : item.status==='no_ean' ? '—' : item.status==='not_in_catalog' ? '?' : hasErr ? '✕' : '○';
-    const cls  = item.status==='ok' ? 'check-ok' : item.status==='no_ean' ? 'check-warn' : item.status==='not_in_catalog' ? 'check-warn' : hasErr ? 'check-error' : 'check-gray';
+    const div      = document.createElement('div');
+    div.className  = 'sku-item';
+    const scanned  = item.scanned || 0;
+    const hasErr   = item.lastError && item.status === 'pending';
+    const icon = item.status === 'ok' ? '✓'
+               : item.status === 'no_ean' ? '—'
+               : item.status === 'not_in_catalog' ? '?'
+               : hasErr ? '✕' : '○';
+    const cls  = item.status === 'ok' ? 'check-ok'
+               : item.status === 'no_ean' ? 'check-warn'
+               : item.status === 'not_in_catalog' ? 'check-warn'
+               : hasErr ? 'check-error' : 'check-gray';
     const progress = item.qty > 1 ? ` (${scanned}/${item.qty})` : '';
-    const eanTxt = item.status==='ok' ? (item.scannedEan||'')
-                 : item.hasEan===false ? 'Sin código de barras'
-                 : hasErr ? `✕ ${item.lastError} — reescaneá`
-                 : item.qty>1 && scanned>0 ? `${scanned}/${item.qty} escaneados` : '—';
-    const desc = item.desc ? `<div class="sku-desc">${escHtml(item.desc)}</div>` : '';
-    const manBtn = (item.status==='pending' && item.hasEan===false)
+    const eanTxt   = item.status === 'ok' ? (item.scannedEan || '')
+                   : item.hasEan === false ? 'Sin código de barras'
+                   : hasErr ? `✕ ${item.lastError} — reescaneá`
+                   : scanned > 0 ? `${scanned}/${item.qty} escaneados` : '—';
+    const desc   = item.desc ? `<div class="sku-desc">${escHtml(item.desc)}</div>` : '';
+    const manBtn = (item.status === 'pending' && item.hasEan === false)
       ? `<button class="btn-manual" onclick="confirmManual(${i})">Confirmar manual</button>` : '';
-    div.innerHTML = `<div class="sku-check ${cls}">${icon}</div>
+
+    div.innerHTML = `
+      <div class="sku-check ${cls}">${icon}</div>
       <div class="sku-info">
         <div class="sku-code">${escHtml(item.sku)}${progress}</div>
         ${desc}<div class="sku-ean">${eanTxt}</div>${manBtn}
@@ -303,13 +315,18 @@ function renderDetail() {
       <div class="sku-qty">×${item.qty}</div>`;
     container.appendChild(div);
   });
-  document.getElementById('btn-confirm-order').disabled = !order.items.every(i => i.status !== 'pending');
+
+  document.getElementById('btn-confirm-order').disabled =
+    !order.items.every(i => i.status !== 'pending');
 }
 
 window.confirmManual = function(i) {
   const o = State.orders[State.currentOrderIdx]; if (!o) return;
-  o.items[i].status = 'ok'; o.items[i].scannedEan = 'Confirmado manualmente';
-  updateOrderStatus(o); renderDetail(); renderOrdersList();
+  o.items[i].status     = 'ok';
+  o.items[i].scannedEan = 'Confirmado manualmente';
+  updateOrderStatus(o);
+  renderDetail();
+  renderOrdersList();
   showToast('✓ Confirmado manualmente', 'ok');
 };
 
@@ -317,7 +334,8 @@ function startDetailScanner() {
   document.getElementById('scanner-error').style.display = 'none';
   const order = State.orders[State.currentOrderIdx];
   if (order && order.items.every(i => i.hasEan === false)) {
-    document.getElementById('scanner-wrap').style.display = 'none'; return;
+    document.getElementById('scanner-wrap').style.display = 'none';
+    return;
   }
   document.getElementById('scanner-wrap').style.display = 'block';
   Scanner.start('scanner-video', onEanScanned, err => {
@@ -331,9 +349,11 @@ function onEanScanned(ean) {
   _scanning = true;
   const order = State.orders[State.currentOrderIdx];
   if (!order) { _scanning = false; return; }
+
   const itemIdx = order.items.findIndex(i => i.status === 'pending' && i.hasEan !== false);
   if (itemIdx === -1) { _scanning = false; return; }
-  const item = order.items[itemIdx];
+
+  const item   = order.items[itemIdx];
   const result = CatalogService.validate(item.sku, ean, State.catalog);
   item.scannedEan = ean;
 
@@ -347,24 +367,36 @@ function onEanScanned(ean) {
     }
     playBeep('ok');
     setTimeout(() => { _scanning = false; }, 800);
-    updateOrderStatus(order); renderDetail(); renderOrdersList();
+    updateOrderStatus(order);
+    renderDetail();
+    renderOrdersList();
 
   } else if (result.status === 'error') {
     item.lastError = ean;
-    playBeep('error'); Scanner.stop(); _scanning = false;
-    showToast('✕ EAN incorrecto. Tocá "Reintentar" para escanear de nuevo.', 'error', 4000);
+    playBeep('error');
+    Scanner.stop();
+    _scanning = false;
+    showToast('✕ EAN incorrecto. Tocá "Reintentar".', 'error', 4000);
     renderDetail();
-    const retryDiv = document.createElement('div');
-    retryDiv.id = 'retry-scan-wrap'; retryDiv.style.cssText = 'padding:10px 0';
-    retryDiv.innerHTML = '<button class="btn-secondary" onclick="retryScan()" style="border-color:#dc2626;color:#dc2626">↺ Reintentar escaneo</button>';
     document.getElementById('retry-scan-wrap')?.remove();
+    const retryDiv = document.createElement('div');
+    retryDiv.id = 'retry-scan-wrap';
+    retryDiv.style.cssText = 'padding:10px 0';
+    retryDiv.innerHTML = '<button class="btn-secondary" onclick="retryScan()" style="border-color:#dc2626;color:#dc2626">↺ Reintentar escaneo</button>';
     document.getElementById('scanner-wrap').insertAdjacentElement('afterend', retryDiv);
 
   } else {
-    if (result.status === 'no_ean') { item.status = 'no_ean'; showToast('⚠ Sin EAN registrado', 'warn'); }
-    else { item.status = 'not_in_catalog'; showToast('⚠ SKU no encontrado en catálogo', 'warn', 3000); }
+    if (result.status === 'no_ean') {
+      item.status = 'no_ean';
+      showToast('⚠ Sin EAN registrado', 'warn');
+    } else {
+      item.status = 'not_in_catalog';
+      showToast('⚠ SKU no encontrado en catálogo', 'warn', 3000);
+    }
     setTimeout(() => { _scanning = false; }, 800);
-    updateOrderStatus(order); renderDetail(); renderOrdersList();
+    updateOrderStatus(order);
+    renderDetail();
+    renderOrdersList();
   }
 }
 
@@ -372,75 +404,113 @@ window.retryScan = function() {
   document.getElementById('retry-scan-wrap')?.remove();
   _scanning = false;
   const o = State.orders[State.currentOrderIdx];
-  if (o) o.items.forEach(i => { delete i.lastError; });
-  renderDetail(); startDetailScanner();
+  if (o) o.items.forEach(i => { if (i.lastError) { delete i.lastError; } });
+  renderDetail();
+  startDetailScanner();
 };
 
 function updateOrderStatus(order) {
   const hasError = order.items.some(i => i.status === 'error');
   const allDone  = order.items.every(i => i.status !== 'pending');
-  order.status = !allDone ? 'pending' : hasError ? 'error' : 'ok';
+  order.status   = !allDone ? 'pending' : hasError ? 'error' : 'ok';
 }
 
 document.getElementById('btn-confirm-order').addEventListener('click', () => {
   const o = State.orders[State.currentOrderIdx]; if (!o) return;
   o.confirmedAt = new Date().toLocaleTimeString('es-AR');
-  Scanner.stop(); renderOrdersList(); saveSession(); showScreen('screen-orders');
+  Scanner.stop();
+  renderOrdersList();
+  showScreen('screen-orders');
 });
+
 document.getElementById('btn-torch').addEventListener('click', () => Scanner.toggleTorch());
+
 document.getElementById('back-to-orders').addEventListener('click', () => {
-  Scanner.stop(); saveSession(); renderOrdersList(); showScreen('screen-orders');
+  Scanner.stop();
+  renderOrdersList();
+  showScreen('screen-orders');
 });
 
-// ── VALIDADOR EAN ───────────────────────────────────────────
-let _lastValEan = null;
-let _valLock = false;
-
+// ── VALIDADOR EAN ────────────────────────────────────────────
 function startValidator() {
-  // Usar Scanner2 (BarcodeDetector nativo) para tener acceso al torch
+  document.getElementById('val-result').style.display = 'none';
   Scanner2.start('scanner-video-validator', ean => {
     let foundSku = '', foundDesc = '';
     if (State.catalog) {
       for (const [sku, info] of State.catalog) {
-        if (info.ean && info.ean.trim() === ean.trim()) { foundSku = sku; foundDesc = info.desc; break; }
+        if (info.ean && info.ean.trim() === ean.trim()) {
+          foundSku = sku; foundDesc = info.desc; break;
+        }
       }
     }
     const res = document.getElementById('val-result');
     document.getElementById('val-ean').textContent  = ean;
-    document.getElementById('val-sku').textContent  = foundSku || '— No encontrado en catálogo';
-    document.getElementById('val-desc').textContent = foundDesc || (foundSku ? '' : 'Este EAN no está registrado');
-    res.style.display = 'block';
+    document.getElementById('val-sku').textContent  = foundSku || '— No encontrado';
+    document.getElementById('val-desc').textContent = foundDesc || (foundSku ? '' : 'EAN no registrado en catálogo');
+    res.style.display    = 'block';
     res.style.borderColor = foundSku ? '#1D9E75' : '#dc2626';
   }, err => {
-    console.warn('[Val]', err);
-    // Fallback al scanner normal si BarcodeDetector no está disponible
+    // BarcodeDetector no disponible — usar html5-qrcode como fallback
+    console.warn('[Validador] BarcodeDetector no disponible, usando fallback:', err);
     Scanner.start('scanner-video-validator', ean => {
       let foundSku = '', foundDesc = '';
       if (State.catalog) {
         for (const [sku, info] of State.catalog) {
-          if (info.ean && info.ean.trim() === ean.trim()) { foundSku = sku; foundDesc = info.desc; break; }
+          if (info.ean && info.ean.trim() === ean.trim()) {
+            foundSku = sku; foundDesc = info.desc; break;
+          }
         }
       }
       const res = document.getElementById('val-result');
       document.getElementById('val-ean').textContent  = ean;
       document.getElementById('val-sku').textContent  = foundSku || '— No encontrado';
       document.getElementById('val-desc').textContent = foundDesc || '';
-      res.style.display = 'block';
+      res.style.display    = 'block';
       res.style.borderColor = foundSku ? '#1D9E75' : '#dc2626';
-    }, e => console.warn('[Val fallback]', e));
+    }, e => console.warn('[Validador fallback]', e));
   });
 }
+
 document.getElementById('back-from-validator').addEventListener('click', () => {
-  Scanner.stop(); Scanner2.stop(); showScreen('screen-home');
+  Scanner.stop();
+  Scanner2.stop();
+  showScreen('screen-home');
 });
 
-// Linterna validador — usa Scanner2 que tiene acceso directo al track
 ['btn-torch-validator', 'btn-torch-validator-2'].forEach(id => {
   const btn = document.getElementById(id);
-  if (btn) btn.addEventListener('click', async () => {
-    await Scanner2.toggleTorch();
-  });
+  if (btn) btn.addEventListener('click', () => Scanner2.toggleTorch());
 });
 
-// ── RESUMEN ─────────────────────────────────────────────────
-fu
+// ── RESUMEN ──────────────────────────────────────────────────
+function renderSummary() {
+  const ok   = State.orders.filter(o => o.status === 'ok').length;
+  const pend = State.orders.filter(o => o.status === 'pending').length;
+  const err  = State.orders.filter(o => o.status === 'error').length;
+  document.getElementById('sum-ok').textContent      = ok;
+  document.getElementById('sum-pending').textContent = pend;
+  document.getElementById('sum-error').textContent   = err;
+
+  const so = document.getElementById('sum-operario');
+  if (so) so.textContent = State.operario ? 'Operario: ' + State.operario : '';
+
+  const list = document.getElementById('summary-list');
+  list.innerHTML = '';
+  State.orders.forEach(o => {
+    const div = document.createElement('div');
+    div.className = 'summary-item';
+    const bc = o.status === 'ok' ? 'badge-ok' : o.status === 'error' ? 'badge-error' : 'badge-warn';
+    const bt = o.status === 'ok' ? '✓ OK' : o.status === 'error' ? '✕ Error' : 'Pendiente';
+    div.innerHTML = `
+      <div>
+        <div class="summary-name">${escHtml(o.buyer)}</div>
+        <div class="summary-sub">${o.id}</div>
+      </div>
+      <span class="badge ${bc}">${bt}</span>`;
+    list.appendChild(div);
+  });
+}
+
+// ── EXPORTAR REPORTE ─────────────────────────────────────────
+document.getElementById('btn-export').addEventListener('click', () => {
+  const
