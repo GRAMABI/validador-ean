@@ -1,3 +1,4 @@
+/* v20260405 */
 /**
  * app.js — versión limpia y funcional
  */
@@ -512,5 +513,4 @@ function renderSummary() {
 }
 
 // ── EXPORTAR REPORTE ─────────────────────────────────────────
-document.getElementById('btn-export').addEventListener('click', () => {
-  const
+document.getElementById('btn-export').addEventListener('click',
