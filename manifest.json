@@ -1,7 +1,7 @@
 {
   "name": "Validador EAN",
   "short_name": "Validador EAN",
-  "description": "App para validación de códigos EAN en preparación de pedidos",
+  "description": "App para validación de códigos EAN en preparación de pedidos - Gramabi",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
@@ -9,13 +9,13 @@
   "theme_color": "#1a56db",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
