@@ -218,6 +218,10 @@ document.getElementById('btn-go-orders').addEventListener('click', async () => {
   showScreen('screen-orders');
 });
 
+document.getElementById('back-to-home').addEventListener('click', () => {
+  showScreen('screen-home');
+});
+
 document.getElementById('back-to-config').addEventListener('click', () => {
   updateConfigUI();
   showScreen('screen-config');
