@@ -25,10 +25,11 @@ const PdfParser = (() => {
   }
 
   function detectFormat(text) {
+    if (/zipnova|Lista de pickeo|Lista de preparaci/i.test(text)) return 'zipnova';
     if (/Orden\s*#\d+\s*-\s*Paquete/i.test(text)) return 'gramabi';
     if (/[0-9a-f]{8}-[0-9a-f]{4}/i.test(text)) return 'ml_uuid';
     if (/\b\d{11}\b/.test(text)) return 'ml_numeric';
-    return 'ml_uuid'; // fallback
+    return 'ml_uuid';
   }
 
   // ── FORMATO GRAMABI: "Orden #6829 - Paquete #1"
@@ -168,21 +169,71 @@ const PdfParser = (() => {
     return { id, packId, ventaId, buyer, items, status: 'pending', confirmedAt: null };
   }
 
+  // ── FORMATO ZIPNOVA ─────────────────────────────────────────
+  // Líneas de "Lista de preparación":
+  // 0999-26022322  0999-26022322-0001  IPN100R3 (1)
+  function parseZipnova(text) {
+    const orders = [];
+    const normalized = text.replace(/\r/g, '').replace(/\t/g, ' ');
+
+    // Buscar la sección "Lista de preparación"
+    const listStart = normalized.search(/Lista de preparaci[oó]n/i);
+    if (listStart === -1) return [];
+
+    const listText = normalized.slice(listStart);
+
+    // Cada línea: NroPaquete  #Etiqueta  SKU (qty)
+    // Patron: número de paquete tipo 0999-XXXXXXXX
+    const lineRegex = /^(\d{4}-\d{8})\s+(\d{4}-\d{8}-\d{4})\s+([A-Z0-9]+)\s+\((\d+)\)/gm;
+    let m;
+    while ((m = lineRegex.exec(listText)) !== null) {
+      const id  = m[1];
+      const sku = m[3].trim().toUpperCase();
+      const qty = parseInt(m[4], 10);
+
+      // Buscar si ya existe ese paquete
+      let order = orders.find(o => o.id === id);
+      if (!order) {
+        order = {
+          id,
+          packId: m[2],
+          ventaId: null,
+          buyer: 'Paquete ' + id,
+          items: [],
+          status: 'pending',
+          confirmedAt: null,
+        };
+        orders.push(order);
+      }
+
+      order.items.push({
+        sku, qty,
+        scanned: 0,
+        scannedEan: null,
+        status: 'pending',
+        lastError: null,
+      });
+    }
+
+    console.log('[PDF Zipnova] ' + orders.length + ' paquetes encontrados');
+    return orders;
+  }
+
   async function parse(file) {
     const text   = await extractText(file);
     const format = detectFormat(text);
     console.log('[PDF] Formato detectado:', format);
 
     let orders = [];
-    if (format === 'gramabi') {
+    if (format === 'zipnova') {
+      orders = parseZipnova(text);
+    } else if (format === 'gramabi') {
       orders = parseGramabi(text);
     } else if (format === 'ml_numeric') {
       orders = parseMlNumeric(text);
-      // Si no encontró nada, intentar con UUID
       if (orders.length === 0) orders = parseMlUuid(text);
     } else {
       orders = parseMlUuid(text);
-      // Si no encontró nada, intentar numérico
       if (orders.length === 0) orders = parseMlNumeric(text);
     }
 
