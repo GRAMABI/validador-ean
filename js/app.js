@@ -180,8 +180,9 @@ document.getElementById('input-pdf').addEventListener('change', async e => {
     if (State.catalog) {
       orders.forEach(o => o.items.forEach(item => {
         const info = CatalogService.getInfo(item.sku, State.catalog);
-        item.desc  = info.desc || '';
+        item.desc   = info.desc  || '';
         item.hasEan = !!info.ean;
+        item.marca  = info.marca || 'Varios';
       }));
     }
 
@@ -206,12 +207,13 @@ document.getElementById('btn-go-orders').addEventListener('click', async () => {
     try { State.catalog = await CatalogService.getCatalog(false); State.catalogLoaded = true; }
     catch(e) {} finally { hideLoader(); }
   }
-  // Enriquecer ítems que aún no tienen desc/hasEan
+  // Enriquecer ítems que aún no tienen desc/hasEan/marca
   State.orders.forEach(o => o.items.forEach(item => {
     if (item.desc === undefined && State.catalog) {
       const info = CatalogService.getInfo(item.sku, State.catalog);
-      item.desc  = info.desc || '';
+      item.desc   = info.desc  || '';
       item.hasEan = !!info.ean;
+      item.marca  = info.marca || 'Varios';
     }
   }));
   renderOrdersList();
@@ -236,31 +238,66 @@ function renderOrdersList() {
 
   document.getElementById('progress-fill').style.width = (total ? done / total * 100 : 0) + '%';
   document.getElementById('progress-label').textContent = `${done} de ${total} pedidos procesados`;
-
   const ol = document.getElementById('operario-label');
   if (ol) ol.textContent = State.operario ? 'Operario: ' + State.operario : '';
 
-  State.orders.forEach((order, idx) => {
-    const div = document.createElement('div');
-    div.className = 'order-item';
-    const dc = order.status === 'ok' ? 'dot-ok' : order.status === 'error' ? 'dot-error' : 'dot-warn';
-    const bc = order.status === 'ok' ? 'badge-ok' : order.status === 'error' ? 'badge-error' : 'badge-warn';
-    const bt = order.status === 'ok' ? 'OK' : order.status === 'error' ? 'Error' : 'Pendiente';
-    const pend = order.items.filter(i => i.status === 'pending').length;
-    const sub  = order.status === 'pending'
-      ? `${order.items.length} producto${order.items.length > 1 ? 's' : ''} · ${pend} sin procesar`
-      : order.status === 'ok' ? 'Validado ✓' : 'Con errores';
-    div.innerHTML = `
-      <div class="order-dot ${dc}"></div>
-      <div class="order-info">
-        <div class="order-name">${escHtml(order.buyer)}</div>
-        <div class="order-sub">${sub}</div>
-        <div class="order-id-text">${order.id}</div>
-      </div>
-      <span class="badge ${bc}">${bt}</span>`;
-    div.addEventListener('click', () => openOrder(idx));
-    list.appendChild(div);
+  // Agrupar por marca
+  // Estructura: { marca: [ { orderIdx, item, itemIdx } ] }
+  const byMarca = {};
+  State.orders.forEach((order, orderIdx) => {
+    order.items.forEach((item, itemIdx) => {
+      const marca = (item.marca || 'Varios').trim();
+      if (!byMarca[marca]) byMarca[marca] = [];
+      byMarca[marca].push({ orderIdx, itemIdx, item, order });
+    });
   });
+
+  // Ordenar marcas: alfabético, 'Varios' al final
+  const marcas = Object.keys(byMarca).sort((a, b) => {
+    if (a === 'Varios') return 1;
+    if (b === 'Varios') return -1;
+    return a.localeCompare(b, 'es');
+  });
+
+  marcas.forEach(marca => {
+    const entries = byMarca[marca];
+
+    // Encabezado de marca
+    const header = document.createElement('div');
+    header.className = 'marca-header';
+    const totalItems = entries.length;
+    const doneItems  = entries.filter(e => e.item.status !== 'pending').length;
+    header.innerHTML = `
+      <span class="marca-name">${escHtml(marca)}</span>
+      <span class="marca-count">${doneItems}/${totalItems}</span>`;
+    list.appendChild(header);
+
+    // Artículos de esa marca
+    entries.forEach(({ orderIdx, itemIdx, item, order }) => {
+      const div = document.createElement('div');
+      div.className = 'marca-item';
+
+      const stIcon = item.status === 'ok' ? '✓'
+                   : item.status === 'error' || item.lastError ? '✕'
+                   : item.hasEan === false ? '—' : '○';
+      const stCls  = item.status === 'ok' ? 'check-ok'
+                   : item.status === 'error' || item.lastError ? 'check-error'
+                   : item.hasEan === false ? 'check-warn' : 'check-gray';
+      const scanned = item.scanned || 0;
+      const progress = item.qty > 1 ? ` (${scanned}/${item.qty})` : '';
+
+      div.innerHTML = `
+        <div class="sku-check ${stCls}" style="flex-shrink:0">${stIcon}</div>
+        <div class="marca-item-info">
+          <div class="marca-item-sku">${escHtml(item.sku)}${progress} <span style="font-weight:400;color:var(--gray-text)">×${item.qty}</span></div>
+          <div class="marca-item-desc">${escHtml(item.desc || '')}</div>
+          <div class="marca-item-buyer">📦 ${escHtml(order.buyer)} <span style="font-family:monospace;font-size:10px;color:#bbb">${order.id}</span></div>
+        </div>
+        <button class="marca-item-btn" onclick="openOrder(${orderIdx})">Escanear →</button>`;
+      list.appendChild(div);
+    });
+  });
+
   saveProgress();
 }
 
