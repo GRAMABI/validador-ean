@@ -511,3 +511,53 @@ html, body {
   word-break: break-word;
   white-space: normal !important;
 }
+
+/* ═══ Vista por marca en lista de pedidos */
+.marca-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px 4px;
+  margin-top: 10px;
+  border-bottom: 2px solid var(--brand, #1a56db);
+}
+.marca-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a56db;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.marca-count {
+  font-size: 11px;
+  color: var(--gray-text, #6b7280);
+  font-weight: 500;
+}
+.marca-item {
+  background: var(--white, #fff);
+  border: 1px solid var(--gray-border, #e5e7eb);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 6px 14px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.marca-item-info { flex: 1; min-width: 0; }
+.marca-item-sku  { font-size: 13px; font-weight: 600; font-family: monospace; }
+.marca-item-desc { font-size: 12px; color: var(--gray-text, #6b7280); margin-top: 2px; line-height: 1.3; }
+.marca-item-buyer{ font-size: 11px; color: #999; margin-top: 4px; }
+.marca-item-btn  {
+  flex-shrink: 0;
+  background: #1a56db;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: center;
+}
+.marca-item-btn:active { opacity: .8; }
