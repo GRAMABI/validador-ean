@@ -170,52 +170,68 @@ const PdfParser = (() => {
   }
 
   // ── FORMATO ZIPNOVA ─────────────────────────────────────────
-  // Líneas de "Lista de preparación":
-  // 0999-26022322  0999-26022322-0001  IPN100R3 (1)
   function parseZipnova(text) {
     const orders = [];
-    const normalized = text.replace(/\r/g, '').replace(/\t/g, ' ');
 
-    // Buscar la sección "Lista de preparación"
+    // Normalizar completamente: unir todo en una sola línea
+    const normalized = text.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ');
+    console.log('[Zipnova] Texto normalizado (primeros 300 chars):', normalized.slice(0, 300));
+
+    // ESTRATEGIA 1: Parsear "Lista de preparación" con ID de paquete + etiqueta + SKU (qty)
     const listStart = normalized.search(/Lista de preparaci[oó]n/i);
-    if (listStart === -1) return [];
+    if (listStart !== -1) {
+      const listText = normalized.slice(listStart);
+      console.log('[Zipnova] Sección preparación encontrada en pos', listStart);
+      console.log('[Zipnova] Primeros 400 chars:', listText.slice(0, 400));
 
-    const listText = normalized.slice(listStart);
-
-    // Cada línea: NroPaquete  #Etiqueta  SKU (qty)
-    // Patron: número de paquete tipo 0999-XXXXXXXX
-    const lineRegex = /^(\d{4}-\d{8})\s+(\d{4}-\d{8}-\d{4})\s+([A-Z0-9]+)\s+\((\d+)\)/gm;
-    let m;
-    while ((m = lineRegex.exec(listText)) !== null) {
-      const id  = m[1];
-      const sku = m[3].trim().toUpperCase();
-      const qty = parseInt(m[4], 10);
-
-      // Buscar si ya existe ese paquete
-      let order = orders.find(o => o.id === id);
-      if (!order) {
-        order = {
-          id,
-          packId: m[2],
-          ventaId: null,
-          buyer: 'Paquete ' + id,
-          items: [],
-          status: 'pending',
-          confirmedAt: null,
-        };
-        orders.push(order);
+      // Patrón: XXXX-XXXXXXXX  XXXX-XXXXXXXX-XXXX  SKU (qty)
+      const re1 = /(\d{4}-\d{8})\s+\d{4}-\d{8}-\d{4}\s+([A-Z0-9]+)\s*\((\d+)\)/g;
+      let m;
+      while ((m = re1.exec(listText)) !== null) {
+        const id  = m[1];
+        const sku = m[2].toUpperCase();
+        const qty = parseInt(m[3], 10);
+        let order = orders.find(o => o.id === id);
+        if (!order) {
+          order = { id, packId: null, ventaId: null, buyer: 'Paquete ' + id,
+                    items: [], status: 'pending', confirmedAt: null };
+          orders.push(order);
+        }
+        order.items.push({ sku, qty, scanned: 0, scannedEan: null,
+                           status: 'pending', lastError: null });
       }
-
-      order.items.push({
-        sku, qty,
-        scanned: 0,
-        scannedEan: null,
-        status: 'pending',
-        lastError: null,
-      });
     }
 
-    console.log('[PDF Zipnova] ' + orders.length + ' paquetes encontrados');
+    // ESTRATEGIA 2 (fallback): Si no encontró nada, usar "Lista de pickeo"
+    // Formato: SKU  descripcion  cantidad (al final de la línea)
+    if (orders.length === 0) {
+      console.log('[Zipnova] Estrategia 1 falló, intentando con Lista de pickeo...');
+      const pickStart = normalized.search(/Lista de pickeo/i);
+      const pickEnd   = normalized.search(/Fin del pickeo|Lista de preparaci/i);
+      if (pickStart !== -1) {
+        const pickText = normalized.slice(pickStart, pickEnd !== -1 ? pickEnd : undefined);
+        // Formato pickeo: SKU descripcion... cantidad
+        // El SKU es la primera palabra (mayúsculas/números), la cantidad es el último número antes del siguiente SKU
+        const pickRe = /\b([A-Z][A-Z0-9]{2,})\b[^\d]*(\d+)(?=\s+[A-Z][A-Z0-9]{2,}|\s*Fin)/g;
+        let pm;
+        while ((pm = pickRe.exec(pickText)) !== null) {
+          const sku = pm[1];
+          const qty = parseInt(pm[2], 10);
+          if (sku.length < 4) continue;
+          // En modo pickeo no tenemos ID de paquete, crear uno por SKU
+          const fakeId = 'PICK-' + sku;
+          orders.push({
+            id: fakeId, packId: null, ventaId: null,
+            buyer: sku + ' ×' + qty,
+            items: [{ sku, qty, scanned: 0, scannedEan: null,
+                      status: 'pending', lastError: null }],
+            status: 'pending', confirmedAt: null
+          });
+        }
+      }
+    }
+
+    console.log('[PDF Zipnova] ' + orders.length + ' paquetes/items encontrados');
     return orders;
   }
 
