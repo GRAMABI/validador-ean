@@ -73,7 +73,7 @@ const CatalogService = (() => {
   }
 
   function getInfo(sku, catalog) {
-    return catalog.get(sku.trim().toUpperCase()) || { ean: null, desc: '' };
+    return catalog.get(sku.trim().toUpperCase()) || { ean: null, desc: '', marca: 'Varios' };
   }
 
   function validate(sku, scannedEan, catalog) {
