@@ -513,4 +513,139 @@ function startValidator() {
       document.getElementById('val-ean').textContent  = ean;
       document.getElementById('val-sku').textContent  = foundSku || '— No encontrado';
       document.getElementById('val-desc').textContent = foundDesc || '';
-      res.
+      res.style.display    = 'block';
+      res.style.borderColor = foundSku ? '#1D9E75' : '#dc2626';
+    }, e => console.warn('[Validador fallback]', e));
+  });
+}
+
+document.getElementById('back-from-validator').addEventListener('click', () => {
+  Scanner.stop();
+  Scanner2.stop();
+  showScreen('screen-home');
+});
+
+['btn-torch-validator', 'btn-torch-validator-2'].forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', () => Scanner2.toggleTorch());
+});
+
+// ── RESUMEN ──────────────────────────────────────────────────
+function renderSummary() {
+  const ok   = State.orders.filter(o => o.status === 'ok').length;
+  const pend = State.orders.filter(o => o.status === 'pending').length;
+  const err  = State.orders.filter(o => o.status === 'error').length;
+  document.getElementById('sum-ok').textContent      = ok;
+  document.getElementById('sum-pending').textContent = pend;
+  document.getElementById('sum-error').textContent   = err;
+
+  const so = document.getElementById('sum-operario');
+  if (so) so.textContent = State.operario ? 'Operario: ' + State.operario : '';
+
+  const list = document.getElementById('summary-list');
+  list.innerHTML = '';
+  State.orders.forEach(o => {
+    const div = document.createElement('div');
+    div.className = 'summary-item';
+    const bc = o.status === 'ok' ? 'badge-ok' : o.status === 'error' ? 'badge-error' : 'badge-warn';
+    const bt = o.status === 'ok' ? '✓ OK' : o.status === 'error' ? '✕ Error' : 'Pendiente';
+    div.innerHTML = `
+      <div>
+        <div class="summary-name">${escHtml(o.buyer)}</div>
+        <div class="summary-sub">${o.id}</div>
+      </div>
+      <span class="badge ${bc}">${bt}</span>`;
+    list.appendChild(div);
+  });
+}
+
+// ── EXPORTAR REPORTE ─────────────────────────────────────────
+document.getElementById('btn-export').addEventListener('click', () => {
+  const now  = new Date().toLocaleString('es-AR');
+  const ok   = State.orders.filter(o => o.status === 'ok');
+  const err  = State.orders.filter(o => o.status === 'error');
+  const pend = State.orders.filter(o => o.status === 'pending');
+
+  let html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
+<style>
+body{font-family:Arial,sans-serif;font-size:13px;padding:24px}
+h1{color:#1a56db}.meta{color:#6b7280;font-size:12px;margin-bottom:16px}
+.metrics{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.metric{background:#f3f4f6;border-radius:8px;padding:12px 20px;text-align:center}
+.val{font-size:28px;font-weight:700}.green{color:#1D9E75}.red{color:#dc2626}.amber{color:#d97706}
+table{width:100%;border-collapse:collapse;margin-bottom:16px}
+th{background:#1a56db;color:#fff;padding:7px 10px;font-size:12px;text-align:left}
+td{padding:6px 10px;border-bottom:1px solid #e5e7eb;font-size:12px}
+tr:nth-child(even) td{background:#f9fafb}
+.ok{color:#1D9E75;font-weight:600}.er{color:#dc2626;font-weight:600}.pn{color:#d97706;font-weight:600}
+</style></head><body>
+<h1>📦 Reporte de despacho</h1>
+<div class="meta">Operario: <strong>${escHtml(State.operario || 'Sin identificar')}</strong> · Generado: ${now}</div>
+<div class="metrics">
+  <div class="metric"><div class="val green">${ok.length}</div><div>Validados</div></div>
+  <div class="metric"><div class="val amber">${pend.length}</div><div>Pendientes</div></div>
+  <div class="metric"><div class="val red">${err.length}</div><div>Con error</div></div>
+  <div class="metric"><div class="val">${State.orders.length}</div><div>Total</div></div>
+</div>
+<table><thead><tr><th>ID</th><th>Comprador</th><th>Productos</th><th>Estado</th></tr></thead><tbody>`;
+
+  State.orders.forEach(o => {
+    const sc = o.status === 'ok' ? 'ok' : o.status === 'error' ? 'er' : 'pn';
+    const st = o.status === 'ok' ? '✓ OK' : o.status === 'error' ? '✕ Error' : 'Pendiente';
+    const pr = o.items.map(i => `${i.sku}${i.desc ? ' — ' + i.desc : ''} ×${i.qty}`).join('<br>');
+    html += `<tr><td style="font-family:monospace">${o.id}</td><td>${escHtml(o.buyer)}</td><td>${pr}</td><td class="${sc}">${st}</td></tr>`;
+  });
+  html += '</tbody></table>';
+
+  if (err.length) {
+    html += `<h2>⚠ Incidencias</h2>
+<table><thead><tr><th>Comprador</th><th>SKU</th><th>Descripción</th><th>EAN leído</th><th>EAN esperado</th></tr></thead><tbody>`;
+    err.forEach(o => o.items.filter(i => i.status === 'error' || i.lastError).forEach(i => {
+      const exp = State.catalog ? (State.catalog.get(i.sku)?.ean || '—') : '—';
+      html += `<tr><td>${escHtml(o.buyer)}</td><td>${i.sku}</td><td>${escHtml(i.desc||'')}</td><td style="color:#dc2626">${i.scannedEan||'—'}</td><td>${exp}</td></tr>`;
+    }));
+    html += '</tbody></table>';
+  }
+  html += '</body></html>';
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  a.download = `reporte-${(State.operario||'sin-nombre').replace(/\s+/g,'-')}-${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
+
+  setTimeout(() => {
+    if (confirm('¿Querés cerrar esta sesión y empezar una nueva?')) {
+      clearProgress();
+      showScreen('screen-home');
+    }
+  }, 500);
+});
+
+const btnNew = document.getElementById('btn-new-session');
+if (btnNew) btnNew.addEventListener('click', () => {
+  if (!confirm('¿Cerrar sesión y empezar nueva? Exportá el reporte antes si lo necesitás.')) return;
+  clearProgress();
+  showScreen('screen-home');
+});
+
+// ── AUDIO ────────────────────────────────────────────────────
+function playBeep(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.value = type === 'ok' ? 880 : 220;
+    g.gain.setValueAtTime(.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + (type === 'ok' ? .15 : .4));
+    o.start();
+    o.stop(ctx.currentTime + (type === 'ok' ? .15 : .4));
+  } catch {}
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+initApp();
