@@ -1,7 +1,5 @@
-/* Service Worker - Network First para archivos propios */
-const CACHE = 'vean-v20260405b';
-
-// Solo cachear librerías externas (no cambian)
+/* Service Worker - siempre red para archivos propios */
+const CACHE = 'vean-static-v1';
 const STATIC = [
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
@@ -10,39 +8,39 @@ const STATIC = [
 ];
 
 self.addEventListener('install', e => {
-  self.skipWaiting(); // Activar inmediatamente sin esperar
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(STATIC))
-  );
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)));
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    // Borrar todos los cachés viejos
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim()) // Tomar control inmediato
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+      ))
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', e => {
   const url = e.request.url;
 
-  // Archivos propios (HTML, JS, CSS, JSON) → siempre de la red
+  // Archivos propios de GitHub → SIEMPRE de la red, nunca del caché
   if (url.includes('gramabi.github.io')) {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
+      fetch(e.request, { cache: 'no-store' })
+        .catch(() => caches.match(e.request))
     );
     return;
   }
 
   // Google Sheets → siempre de la red
-  if (url.includes('docs.google.com') || url.includes('onedrive')) {
-    e.respondWith(fetch(e.request));
+  if (url.includes('docs.google.com')) {
+    e.respondWith(fetch(e.request, { cache: 'no-store' }));
     return;
   }
 
-  // Librerías externas → caché primero
+  // Librerías externas → caché (no cambian)
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
