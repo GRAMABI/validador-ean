@@ -3,7 +3,7 @@
  * Compatible con Android 5+ usando html5-qrcode.
  */
 
-const Scanner = (() => {
+const Scanner = window.Scanner = (() => {
 
   let activeScanner = null;
 
@@ -27,9 +27,12 @@ const Scanner = (() => {
       activeScanner = scanner;
 
       const config = {
-        fps: 10,
-        qrbox: { width: 240, height: 100 },
-        aspectRatio: 1.4,
+        fps: 15,                          // más frames = más chances de leer
+        qrbox: { width: 200, height: 80 }, // área más chica = más zoom en esa zona
+        aspectRatio: 1.5,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true  // usar API nativa del browser si está disponible
+        },
         formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
@@ -38,6 +41,15 @@ const Scanner = (() => {
           Html5QrcodeSupportedFormats.UPC_A,
           Html5QrcodeSupportedFormats.UPC_E,
         ]
+      };
+
+      // Pedir la mayor resolución disponible para mejor lectura de códigos pequeños
+      const videoConstraints = {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        focusMode: { ideal: 'continuous' },
+        zoom: { ideal: 2.0 }   // zoom 2x para códigos pequeños
       };
 
       // Capturar el track con reintentos hasta que esté disponible
@@ -66,7 +78,7 @@ const Scanner = (() => {
       }, 500);
 
       await scanner.start(
-        { facingMode: 'environment' },
+        { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
         config,
         (() => {
           let _lastEan = null;
@@ -177,40 +189,28 @@ const Scanner = (() => {
   return { start, stop, toggleTorch };
 })();
 
-/* Estilos extra para html5-qrcode — se inyectan en el head */
-(function injectStyles() {
+/* Estilos extra para html5-qrcode — se inyectan cuando el DOM está listo */
+document.addEventListener('DOMContentLoaded', function() {
   const style = document.createElement('style');
   style.textContent = `
-    #scanner-video, #scanner-video-free {
-      width: 100% !important;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    #scanner-video > *, #scanner-video-free > * {
-      border-radius: 12px !important;
-    }
+    #scanner-video > *, #scanner-video-free > * { border-radius: 12px !important; }
     #html5-qrcode-button-camera-permission {
-      background: #1a56db !important;
-      color: white !important;
-      border: none !important;
-      padding: 12px 24px !important;
-      border-radius: 8px !important;
-      font-size: 15px !important;
-      cursor: pointer !important;
-      margin: 16px auto !important;
-      display: block !important;
+      background: #1a56db !important; color: white !important;
+      border: none !important; padding: 12px 24px !important;
+      border-radius: 8px !important; font-size: 15px !important;
+      cursor: pointer !important; margin: 16px auto !important; display: block !important;
     }
     #html5-qrcode-anchor-scan-type-change { display: none !important; }
   `;
   document.head.appendChild(style);
-})();
+});
 
 
 // ═══════════════════════════════════════════════════════════
 // Scanner2: escáner directo con getUserMedia + BarcodeDetector
 // Usado en Consultar EAN para tener acceso al track de video
 // ═══════════════════════════════════════════════════════════
-const Scanner2 = (() => {
+const Scanner2 = window.Scanner2 = (() => {
   let _stream = null;
   let _track  = null;
   let _torchOn = false;
