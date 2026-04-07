@@ -79,44 +79,46 @@ const PdfParser = (() => {
     return items;
   }
 
-  // ── FORMATO ML (numérico y UUID): parser unificado línea por línea
-  function parseMlNumeric(text) { return parseMlLineByLine(text); }
-  function parseMlUuid(text)    { return parseMlLineByLine(text); }
+  // ── FORMATO ML (numérico y UUID): parser unificado
+  // Funciona tanto con texto multilínea (pypdf) como en una sola línea (pdf.js del browser)
+  function parseMlNumeric(text) { return parseMlUnified(text); }
+  function parseMlUuid(text)    { return parseMlUnified(text); }
 
-  function parseMlLineByLine(text) {
+  function parseMlUnified(text) {
     const orders = [];
 
-    // Normalizar artefactos del PDF de ML ("fi" → "f")
-    const normalized = text.replace(/fi/g, 'f').replace(/fia/g, 'fa');
-    const lines = normalized.split(/\n/).map(l => l.trim()).filter(l => l);
+    // Normalizar: quitar artefactos "fi" del PDF de ML, normalizar espacios
+    const norm = text.replace(/fi/g, 'f').replace(/fia/g, 'fa');
 
-    // Patrón de ID de envío: línea que sea SOLO un identificador
-    // Formatos: UUID, HC/HEnúmeroAR, numérico largo, alfanumérico corto/largo
-    const idRe = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Z]{2}\d{6,15}[A-Z0-9]{0,10}|\d{8,20}|[A-Z0-9]{5,25})$/i;
-    const skipRe = /^(SKU:|Cantidad:|Color:|Pack ID:|Venta:|Voltaje:|Nombre:|Frecuencia:|Acabado:|Despacha|Lista|Identificaci|Transportista|Nro\.)/i;
+    // Palabras a ignorar como falsos IDs
+    const SKIP = new Set(['DESPACHA','IDENTIFICACION','IDENTIFICACI','PRODUCTOS',
+      'AMARILLO','NARANJA','AZUL','NEGRO','BLANCO','GRIS','PLATEADO','TURQUESA',
+      'COBRE','VERDE','LISO','CROMADO','ESMALTADO','INCOLORA','CROMADA',
+      'IMPRESO','NATURAL','PLATEADA']);
 
-    // Encontrar posiciones de todos los IDs de pedido
+    // Buscar IDs por contexto: ID seguido de "Pack ID:" o "Venta:"
+    // Funciona en texto de una sola línea Y multilínea
+    const idPattern = /(?<![\w\-])([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Z]{2}\d{6,15}[A-Z0-9]{0,10}|\d{8,20}|[A-Z0-9]{6,25})(?![\w\-])\s+(?=Pack ID:|Venta:)/gi;
+
     const positions = [];
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (!idRe.test(line) || skipRe.test(line)) continue;
-      // Verificar que en las próximas líneas (o la misma) haya un SKU
-      // Algunos pedidos tienen "Nombre SKU: XXX" en la misma línea del siguiente texto
-      const ctx = lines.slice(i, i + 15).join(' ');
-      if (ctx.includes('SKU:') || ctx.includes('Venta:')) {
-        positions.push({ lineIdx: i, id: line });
-      }
+    let m;
+    while ((m = idPattern.exec(norm)) !== null) {
+      const id = m[1];
+      if (SKIP.has(id.toUpperCase())) continue;
+      if (id.length < 6) continue;
+      positions.push({ index: m.index, id });
     }
 
-    // Extraer bloque de cada pedido
+    // Extraer bloque de cada pedido y parsear
     for (let p = 0; p < positions.length; p++) {
-      const start = positions[p].lineIdx;
-      const end   = positions[p + 1] ? positions[p + 1].lineIdx : lines.length;
-      const block = lines.slice(start, end).join(' ');
+      const start = positions[p].index;
+      const end   = positions[p + 1] ? positions[p + 1].index : norm.length;
+      const block = norm.slice(start, end);
       const order = parseMlBlock(block, positions[p].id);
       if (order && order.items.length > 0) orders.push(order);
     }
 
+    console.log('[ML Parser] ' + orders.length + ' pedidos encontrados');
     return orders;
   }
 
