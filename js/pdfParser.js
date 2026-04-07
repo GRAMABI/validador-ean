@@ -79,54 +79,44 @@ const PdfParser = (() => {
     return items;
   }
 
-  // ── FORMATO ML NUMÉRICO: IDs de 11 dígitos
-  function parseMlNumeric(text) {
+  // ── FORMATO ML (numérico y UUID): parser unificado línea por línea
+  function parseMlNumeric(text) { return parseMlLineByLine(text); }
+  function parseMlUuid(text)    { return parseMlLineByLine(text); }
+
+  function parseMlLineByLine(text) {
     const orders = [];
-    const normalized = text.replace(/\s+/g, ' ');
-    const blockRegex = /(\b\d{11}\b)/g;
+
+    // Normalizar artefactos del PDF de ML ("fi" → "f")
+    const normalized = text.replace(/fi/g, 'f').replace(/fia/g, 'fa');
+    const lines = normalized.split(/\n/).map(l => l.trim()).filter(l => l);
+
+    // Patrón de ID de envío: línea que sea SOLO un identificador
+    // Formatos: UUID, HC/HEnúmeroAR, numérico largo, alfanumérico corto/largo
+    const idRe = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Z]{2}\d{6,15}[A-Z0-9]{0,10}|\d{8,20}|[A-Z0-9]{5,25})$/i;
+    const skipRe = /^(SKU:|Cantidad:|Color:|Pack ID:|Venta:|Voltaje:|Nombre:|Frecuencia:|Acabado:|Despacha|Lista|Identificaci|Transportista|Nro\.)/i;
+
+    // Encontrar posiciones de todos los IDs de pedido
     const positions = [];
-    let match;
-    while ((match = blockRegex.exec(normalized)) !== null) {
-      const before = normalized[match.index - 1];
-      const after  = normalized[match.index + 11];
-      if ((!before || /\s/.test(before)) && (!after || /\s/.test(after))) {
-        positions.push({ index: match.index, id: match[1] });
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!idRe.test(line) || skipRe.test(line)) continue;
+      // Verificar que en las próximas líneas (o la misma) haya un SKU
+      // Algunos pedidos tienen "Nombre SKU: XXX" en la misma línea del siguiente texto
+      const ctx = lines.slice(i, i + 15).join(' ');
+      if (ctx.includes('SKU:') || ctx.includes('Venta:')) {
+        positions.push({ lineIdx: i, id: line });
       }
     }
-    for (let i = 0; i < positions.length; i++) {
-      const start = positions[i].index;
-      const end   = positions[i + 1] ? positions[i + 1].index : normalized.length;
-      const block = normalized.slice(start, end);
-      const order = parseMlBlock(block, positions[i].id);
+
+    // Extraer bloque de cada pedido
+    for (let p = 0; p < positions.length; p++) {
+      const start = positions[p].lineIdx;
+      const end   = positions[p + 1] ? positions[p + 1].lineIdx : lines.length;
+      const block = lines.slice(start, end).join(' ');
+      const order = parseMlBlock(block, positions[p].id);
       if (order && order.items.length > 0) orders.push(order);
     }
-    return orders;
-  }
 
-  // ── FORMATO ML UUID: IDs tipo "f996ad7c-a59d-..." o "HC402989495AR"
-  function parseMlUuid(text) {
-    const orders = [];
-    const normalized = text.replace(/\s+/g, ' ');
-
-    // IDs pueden ser: UUID (con letras fi → f, i), alfanumérico con AR, etc.
-    // Normalizar "fi" → "f" + detectar patrón
-    const norm2 = normalized.replace(/fi/g, 'f').replace(/fia/g, 'fa');
-
-    // Detectar bloques por UUID o por código alfanumérico tipo HC402989495AR
-    const idPattern = /(?:^|\s)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Z]{2}\d{9,12}[A-Z]{2})\s/gi;
-    const positions = [];
-    let m;
-    while ((m = idPattern.exec(norm2)) !== null) {
-      positions.push({ index: m.index, id: m[1] });
-    }
-
-    for (let i = 0; i < positions.length; i++) {
-      const start = positions[i].index;
-      const end   = positions[i + 1] ? positions[i + 1].index : norm2.length;
-      const block = norm2.slice(start, end);
-      const order = parseMlBlock(block, positions[i].id);
-      if (order && order.items.length > 0) orders.push(order);
-    }
     return orders;
   }
 
@@ -136,18 +126,20 @@ const PdfParser = (() => {
     const ventaMatch = block.match(/Venta:\s*(\d+)/);
     const ventaId   = ventaMatch ? ventaMatch[1] : null;
 
-    // Nombre del comprador
+    // Nombre del comprador — puede estar en línea propia o junto al SKU
     let buyer = 'Comprador desconocido';
-    const buyerMatch = block.match(/(?:Venta:\s*\d+\s*)([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+?)(?=\s*SKU:)/);
+    // Intentar extraer entre Venta: y SKU:
+    const buyerMatch = block.match(/(?:Venta:\s*\d+\s*)([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+?)(?=\s*SKU:|\s*Pack ID:)/);
     if (buyerMatch) {
       buyer = buyerMatch[1].trim().replace(/\s+/g, ' ');
     } else {
-      const fallback = block.match(/(?:[a-f0-9\-]{8,}|[A-Z]{2}\d+[A-Z]{2})\s+(?:Pack ID:\s*\d+\s*)?(?:Venta:\s*\d+\s*)?([A-ZÁÉÍÓÚÜÑ][^\d]+?)(?=SKU:)/i);
+      // Fallback: texto entre el ID y el primer SKU
+      const fallback = block.match(/(?:[a-f0-9\-]{8,}|[A-Z]{2}\d+[A-Z0-9]*|\d{8,})\s+(?:Pack ID:\s*\d+\s*)?(?:Venta:\s*\d+\s*)?([A-ZÁÉÍÓÚÜÑ][^\d]+?)(?=SKU:)/i);
       if (fallback) buyer = fallback[1].trim().replace(/\s+/g, ' ');
     }
 
-    // SKUs y cantidades — FIX: incluir Ñ y caracteres especiales en SKU
-    const skuRegex  = /SKU:\s*([A-Z0-9ÁÉÍÓÚÜÑ_\-]+)/gi;
+    // SKUs y cantidades — incluir Ñ y caracteres especiales, minúsculas también
+    const skuRegex  = /SKU:\s*([A-Za-z0-9ÁÉÍÓÚÜÑ_\-]+)/gi;
     const qtyRegex  = /Cantidad:\s*(\d+)/g;
     const skus = [];
     const qtys = [];
