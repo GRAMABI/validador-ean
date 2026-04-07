@@ -268,14 +268,18 @@ function renderOrdersList() {
   marcas.forEach(marca => {
     const entries = byMarca[marca];
 
-    // Encabezado de marca
+    // Encabezado de marca — contar UNIDADES, no ítems
     const header = document.createElement('div');
     header.className = 'marca-header';
-    const totalItems = entries.length;
-    const doneItems  = entries.filter(e => e.item.status !== 'pending').length;
+    const totalUnits = entries.reduce((s, e) => s + e.item.qty, 0);
+    const doneUnits  = entries.reduce((s, e) => {
+      if (e.item.status === 'ok') return s + e.item.qty;
+      if (e.item.status === 'pending') return s + (e.item.scanned || 0);
+      return s;
+    }, 0);
     header.innerHTML = `
       <span class="marca-name">${escHtml(marca)}</span>
-      <span class="marca-count">${doneItems}/${totalItems}</span>`;
+      <span class="marca-count">${doneUnits}/${totalUnits}</span>`;
     list.appendChild(header);
 
     // Artículos de esa marca
