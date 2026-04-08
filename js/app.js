@@ -374,12 +374,19 @@ function renderDetail() {
 
 window.confirmManual = function(i) {
   const o = State.orders[State.currentOrderIdx]; if (!o) return;
-  o.items[i].status     = 'ok';
-  o.items[i].scannedEan = 'Confirmado manualmente';
+  const item = o.items[i];
+  item.scanned = (item.scanned || 0) + 1;
+  if (item.scanned >= item.qty) {
+    item.status     = 'ok';
+    item.scannedEan = 'Confirmado manualmente';
+    showToast('✓ Confirmado manualmente', 'ok');
+  } else {
+    showToast(`✓ ${item.scanned}/${item.qty} confirmadas — tocá de nuevo`, 'ok', 2000);
+  }
   updateOrderStatus(o);
+  saveProgress();
   renderDetail();
   renderOrdersList();
-  showToast('✓ Confirmado manualmente', 'ok');
 };
 
 function startDetailScanner() {
