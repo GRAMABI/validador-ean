@@ -43,14 +43,6 @@ const Scanner = window.Scanner = (() => {
         ]
       };
 
-      // Pedir la mayor resolución disponible para mejor lectura de códigos pequeños
-      const videoConstraints = {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        focusMode: { ideal: 'continuous' },
-        zoom: { ideal: 2.0 }   // zoom 2x para códigos pequeños
-      };
 
       // Capturar el track con reintentos hasta que esté disponible
       let _attempts = 0;
@@ -78,7 +70,7 @@ const Scanner = window.Scanner = (() => {
       }, 500);
 
       await scanner.start(
-        { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        { facingMode: 'environment' },
         config,
         (() => {
           let _lastEan = null;
