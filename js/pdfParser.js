@@ -1,19 +1,48 @@
 /**
- * pdfParser.js
- * Parsea PDFs de pedidos — soporta 3 formatos:
- * 1. Mercado Libre (IDs numéricos 11 dígitos)
- * 2. Mercado Libre nuevo (IDs UUID o alfanuméricos)
- * 3. Gramabi propio (Orden #XXXX)
+ * pdfParser.js — v20260415
+ * Fix Android 11 / Chrome viejo (Samsung SM-T510):
+ * Usa pdf.js 2.16.105 en AMBOS lugares (index.html y workerSrc).
+ * pdf.js 3.x requiere Chrome 79+ con módulos ES; en tablets viejas falla.
+ * Solución: bajar a 2.16.105 que soporta fake worker sin módulos.
  */
 
 const PdfParser = (() => {
 
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  // Worker de la MISMA versión que se carga en index.html
+  const PDFJS_VERSION = '2.16.105';
+  const WORKER_URL = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`;
+
+  // Configurar workerSrc al inicio — antes de cualquier llamada a getDocument
+  function setupWorker() {
+    try {
+      if (typeof pdfjsLib !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_URL;
+      }
+    } catch(e) {
+      console.warn('[pdfParser] setupWorker error:', e);
+    }
+  }
+  setupWorker();
 
   async function extractText(file) {
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    // Intento 1: con worker normal
+    let pdf;
+    try {
+      pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    } catch (e1) {
+      console.warn('[pdfParser] Worker falló, reintentando sin worker:', e1.message);
+      // Intento 2: workerSrc vacío → pdf.js usa FakeWorker inline (solo funciona en 2.x)
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      } catch (e2) {
+        console.warn('[pdfParser] FakeWorker falló también:', e2.message);
+        throw new Error('No se pudo leer el PDF en este dispositivo. Intentá con otro navegador o actualizá Chrome.');
+      }
+    }
+
     let fullText = '';
     for (let p = 1; p <= pdf.numPages; p++) {
       const page = await pdf.getPage(p);
@@ -36,20 +65,14 @@ const PdfParser = (() => {
   function parseGramabi(text) {
     const orders = [];
     const normalized = text.replace(/\s+/g, ' ');
-
-    // Dividir por "Orden #XXXX - Paquete"
     const blocks = normalized.split(/(?=Orden\s*#\d+\s*-\s*Paquete)/i);
-
     for (const block of blocks) {
       if (!block.trim()) continue;
-
       const ordenMatch = block.match(/Orden\s*#(\d+)\s*-\s*Paquete\s*#(\d+)/i);
       if (!ordenMatch) continue;
-
       const id    = ordenMatch[1];
       const buyer = extractBuyerGramabi(block);
       const items = extractItemsGramabi(block);
-
       if (items.length > 0) {
         orders.push({ id, packId: null, ventaId: null, buyer, items, status: 'pending', confirmedAt: null });
       }
@@ -65,12 +88,10 @@ const PdfParser = (() => {
 
   function extractItemsGramabi(block) {
     const items = [];
-    // Formato: "Nombre del producto\nSKU: XXXXX\nN" o "SKU: XXXXX\nN"
     const skuRegex = /SKU:\s*([A-Z0-9ÁÉÍÓÚÜÑ_\-]+)/gi;
     let sm;
     while ((sm = skuRegex.exec(block)) !== null) {
       const sku = sm[1].trim().toUpperCase();
-      // Buscar cantidad después del SKU
       const afterSku = block.slice(sm.index + sm[0].length, sm.index + sm[0].length + 50);
       const qtyMatch = afterSku.match(/^\s*(\d+)/);
       const qty = qtyMatch ? parseInt(qtyMatch[1]) : 1;
@@ -80,24 +101,18 @@ const PdfParser = (() => {
   }
 
   // ── FORMATO ML (numérico y UUID): parser unificado
-  // Funciona tanto con texto multilínea (pypdf) como en una sola línea (pdf.js del browser)
   function parseMlNumeric(text) { return parseMlUnified(text); }
   function parseMlUuid(text)    { return parseMlUnified(text); }
 
   function parseMlUnified(text) {
     const orders = [];
-
-    // Normalizar: quitar artefactos "fi" del PDF de ML, normalizar espacios
     const norm = text.replace(/fi/g, 'f').replace(/fia/g, 'fa');
 
-    // Palabras a ignorar como falsos IDs
     const SKIP = new Set(['DESPACHA','IDENTIFICACION','IDENTIFICACI','PRODUCTOS',
       'AMARILLO','NARANJA','AZUL','NEGRO','BLANCO','GRIS','PLATEADO','TURQUESA',
       'COBRE','VERDE','LISO','CROMADO','ESMALTADO','INCOLORA','CROMADA',
       'IMPRESO','NATURAL','PLATEADA']);
 
-    // Buscar IDs por contexto: ID seguido de "Pack ID:" o "Venta:"
-    // Funciona en texto de una sola línea Y multilínea
     const idPattern = /(?<![\w\-])([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Z]{2}\d{6,15}[A-Z0-9]{0,10}|\d{8,20}|[A-Z0-9]{6,25})(?![\w\-])\s+(?=Pack ID:|Venta:)/gi;
 
     const positions = [];
@@ -109,7 +124,6 @@ const PdfParser = (() => {
       positions.push({ index: m.index, id });
     }
 
-    // Extraer bloque de cada pedido y parsear
     for (let p = 0; p < positions.length; p++) {
       const start = positions[p].index;
       const end   = positions[p + 1] ? positions[p + 1].index : norm.length;
@@ -123,28 +137,23 @@ const PdfParser = (() => {
   }
 
   function parseMlBlock(block, id) {
-    const packMatch = block.match(/Pack ID:\s*(\d+)/);
-    const packId    = packMatch ? packMatch[1] : null;
+    const packMatch  = block.match(/Pack ID:\s*(\d+)/);
+    const packId     = packMatch ? packMatch[1] : null;
     const ventaMatch = block.match(/Venta:\s*(\d+)/);
-    const ventaId   = ventaMatch ? ventaMatch[1] : null;
+    const ventaId    = ventaMatch ? ventaMatch[1] : null;
 
-    // Nombre del comprador — puede estar en línea propia o junto al SKU
     let buyer = 'Comprador desconocido';
-    // Intentar extraer entre Venta: y SKU:
     const buyerMatch = block.match(/(?:Venta:\s*\d+\s*)([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+?)(?=\s*SKU:|\s*Pack ID:)/);
     if (buyerMatch) {
       buyer = buyerMatch[1].trim().replace(/\s+/g, ' ');
     } else {
-      // Fallback: texto entre el ID y el primer SKU
       const fallback = block.match(/(?:[a-f0-9\-]{8,}|[A-Z]{2}\d+[A-Z0-9]*|\d{8,})\s+(?:Pack ID:\s*\d+\s*)?(?:Venta:\s*\d+\s*)?([A-ZÁÉÍÓÚÜÑ][^\d]+?)(?=SKU:)/i);
       if (fallback) buyer = fallback[1].trim().replace(/\s+/g, ' ');
     }
 
-    // SKUs y cantidades — incluir Ñ y caracteres especiales, minúsculas también
-    const skuRegex  = /SKU:\s*([A-Za-z0-9ÁÉÍÓÚÜÑ_\-]+)/gi;
-    const qtyRegex  = /Cantidad:\s*(\d+)/g;
-    const skus = [];
-    const qtys = [];
+    const skuRegex = /SKU:\s*([A-Za-z0-9ÁÉÍÓÚÜÑ_\-]+)/gi;
+    const qtyRegex = /Cantidad:\s*(\d+)/g;
+    const skus = [], qtys = [];
     let sm, qm;
     while ((sm = skuRegex.exec(block)) !== null) skus.push(sm[1].trim().toUpperCase());
     while ((qm = qtyRegex.exec(block))  !== null) qtys.push(parseInt(qm[1], 10));
@@ -163,22 +172,14 @@ const PdfParser = (() => {
     return { id, packId, ventaId, buyer, items, status: 'pending', confirmedAt: null };
   }
 
-  // ── FORMATO ZIPNOVA ─────────────────────────────────────────
+  // ── FORMATO ZIPNOVA
   function parseZipnova(text) {
     const orders = [];
-
-    // Normalizar completamente: unir todo en una sola línea
     const normalized = text.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ');
-    console.log('[Zipnova] Texto normalizado (primeros 300 chars):', normalized.slice(0, 300));
 
-    // ESTRATEGIA 1: Parsear "Lista de preparación" con ID de paquete + etiqueta + SKU (qty)
     const listStart = normalized.search(/Lista de preparaci[oó]n/i);
     if (listStart !== -1) {
       const listText = normalized.slice(listStart);
-      console.log('[Zipnova] Sección preparación encontrada en pos', listStart);
-      console.log('[Zipnova] Primeros 400 chars:', listText.slice(0, 400));
-
-      // Patrón: XXXX-XXXXXXXX  XXXX-XXXXXXXX-XXXX  SKU (qty)
       const re1 = /(\d{4}-\d{8})\s+\d{4}-\d{8}-\d{4}\s+([A-Z0-9]+)\s*\((\d+)\)/g;
       let m;
       while ((m = re1.exec(listText)) !== null) {
@@ -196,23 +197,17 @@ const PdfParser = (() => {
       }
     }
 
-    // ESTRATEGIA 2 (fallback): Si no encontró nada, usar "Lista de pickeo"
-    // Formato: SKU  descripcion  cantidad (al final de la línea)
     if (orders.length === 0) {
-      console.log('[Zipnova] Estrategia 1 falló, intentando con Lista de pickeo...');
       const pickStart = normalized.search(/Lista de pickeo/i);
       const pickEnd   = normalized.search(/Fin del pickeo|Lista de preparaci/i);
       if (pickStart !== -1) {
         const pickText = normalized.slice(pickStart, pickEnd !== -1 ? pickEnd : undefined);
-        // Formato pickeo: SKU descripcion... cantidad
-        // El SKU es la primera palabra (mayúsculas/números), la cantidad es el último número antes del siguiente SKU
         const pickRe = /\b([A-Z][A-Z0-9]{2,})\b[^\d]*(\d+)(?=\s+[A-Z][A-Z0-9]{2,}|\s*Fin)/g;
         let pm;
         while ((pm = pickRe.exec(pickText)) !== null) {
           const sku = pm[1];
           const qty = parseInt(pm[2], 10);
           if (sku.length < 4) continue;
-          // En modo pickeo no tenemos ID de paquete, crear uno por SKU
           const fakeId = 'PICK-' + sku;
           orders.push({
             id: fakeId, packId: null, ventaId: null,
