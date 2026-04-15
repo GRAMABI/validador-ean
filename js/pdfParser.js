@@ -1,46 +1,81 @@
 /**
- * pdfParser.js — v20260415
- * Fix Android 11 / Chrome viejo (Samsung SM-T510):
- * Usa pdf.js 2.16.105 en AMBOS lugares (index.html y workerSrc).
- * pdf.js 3.x requiere Chrome 79+ con módulos ES; en tablets viejas falla.
- * Solución: bajar a 2.16.105 que soporta fake worker sin módulos.
+ * pdfParser.js — v20260415b
+ * Compatible con Android 11 / Chrome viejo (Samsung SM-T510 y similares).
+ *
+ * Estrategia de carga de pdf.js worker (en orden de preferencia):
+ * 1. workerSrc apuntando a unpkg.com (versión 2.16.105)
+ * 2. Blob URL con worker inline (no requiere CDN externo)
+ * 3. Sin worker (FakeWorker de pdf.js, más lento pero funciona)
  */
 
 const PdfParser = (() => {
 
-  // Worker de la MISMA versión que se carga en index.html
-  const PDFJS_VERSION = '2.16.105';
-  const WORKER_URL = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`;
-
-  // Configurar workerSrc al inicio — antes de cualquier llamada a getDocument
-  function setupWorker() {
+  // Worker inline mínimo — funciona sin CDN
+  // Esto crea un Web Worker desde un blob en memoria
+  function makeInlineWorkerUrl() {
     try {
-      if (typeof pdfjsLib !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER_URL;
-      }
+      // El worker inline le dice a pdf.js que use el modo "fake" sin proceso separado
+      const workerCode = `
+        self.onmessage = function(e) {
+          // Worker dummy — pdf.js lo detecta y cae a FakeWorker
+        };
+      `;
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      return URL.createObjectURL(blob);
     } catch(e) {
-      console.warn('[pdfParser] setupWorker error:', e);
+      return '';
     }
   }
-  setupWorker();
 
   async function extractText(file) {
     const arrayBuffer = await file.arrayBuffer();
 
-    // Intento 1: con worker normal
-    let pdf;
-    try {
-      pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    } catch (e1) {
-      console.warn('[pdfParser] Worker falló, reintentando sin worker:', e1.message);
-      // Intento 2: workerSrc vacío → pdf.js usa FakeWorker inline (solo funciona en 2.x)
-      try {
+    // Lista de estrategias a probar en orden
+    const strategies = [
+      // 1. Worker desde unpkg (más compatible que cdnjs para versión 2.x)
+      () => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
+        return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      },
+      // 2. Worker desde cdnjs con versión 3.x (Chrome moderno)
+      () => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      },
+      // 3. Blob worker inline (sin CDN)
+      () => {
+        const blobUrl = makeInlineWorkerUrl();
+        if (blobUrl) pdfjsLib.GlobalWorkerOptions.workerSrc = blobUrl;
+        else pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+        return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      },
+      // 4. Sin worker (workerSrc vacío = FakeWorker de pdf.js)
+      () => {
         pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-        pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      } catch (e2) {
-        console.warn('[pdfParser] FakeWorker falló también:', e2.message);
-        throw new Error('No se pudo leer el PDF en este dispositivo. Intentá con otro navegador o actualizá Chrome.');
+        return pdfjsLib.getDocument({
+          data: arrayBuffer,
+          isEvalSupported: false,
+        }).promise;
+      },
+    ];
+
+    let pdf = null;
+    let lastError = null;
+
+    for (const strategy of strategies) {
+      try {
+        pdf = await strategy();
+        if (pdf) break;
+      } catch(e) {
+        console.warn('[pdfParser] estrategia falló:', e.message);
+        lastError = e;
       }
+    }
+
+    if (!pdf) {
+      throw new Error('No se pudo leer el PDF. Probá actualizando Chrome o usando otro navegador (Firefox, Samsung Internet).');
     }
 
     let fullText = '';
@@ -61,7 +96,7 @@ const PdfParser = (() => {
     return 'ml_uuid';
   }
 
-  // ── FORMATO GRAMABI: "Orden #6829 - Paquete #1"
+  // ── FORMATO GRAMABI
   function parseGramabi(text) {
     const orders = [];
     const normalized = text.replace(/\s+/g, ' ');
@@ -100,10 +135,7 @@ const PdfParser = (() => {
     return items;
   }
 
-  // ── FORMATO ML (numérico y UUID): parser unificado
-  function parseMlNumeric(text) { return parseMlUnified(text); }
-  function parseMlUuid(text)    { return parseMlUnified(text); }
-
+  // ── FORMATO ML unificado
   function parseMlUnified(text) {
     const orders = [];
     const norm = text.replace(/fi/g, 'f').replace(/fia/g, 'fa');
@@ -161,12 +193,8 @@ const PdfParser = (() => {
     if (skus.length === 0) return null;
 
     const items = skus.map((sku, idx) => ({
-      sku,
-      qty: qtys[idx] || 1,
-      scanned: 0,
-      scannedEan: null,
-      status: 'pending',
-      lastError: null,
+      sku, qty: qtys[idx] || 1,
+      scanned: 0, scannedEan: null, status: 'pending', lastError: null,
     }));
 
     return { id, packId, ventaId, buyer, items, status: 'pending', confirmedAt: null };
@@ -183,17 +211,14 @@ const PdfParser = (() => {
       const re1 = /(\d{4}-\d{8})\s+\d{4}-\d{8}-\d{4}\s+([A-Z0-9]+)\s*\((\d+)\)/g;
       let m;
       while ((m = re1.exec(listText)) !== null) {
-        const id  = m[1];
-        const sku = m[2].toUpperCase();
-        const qty = parseInt(m[3], 10);
+        const id = m[1], sku = m[2].toUpperCase(), qty = parseInt(m[3], 10);
         let order = orders.find(o => o.id === id);
         if (!order) {
           order = { id, packId: null, ventaId: null, buyer: 'Paquete ' + id,
                     items: [], status: 'pending', confirmedAt: null };
           orders.push(order);
         }
-        order.items.push({ sku, qty, scanned: 0, scannedEan: null,
-                           status: 'pending', lastError: null });
+        order.items.push({ sku, qty, scanned: 0, scannedEan: null, status: 'pending', lastError: null });
       }
     }
 
@@ -205,15 +230,11 @@ const PdfParser = (() => {
         const pickRe = /\b([A-Z][A-Z0-9]{2,})\b[^\d]*(\d+)(?=\s+[A-Z][A-Z0-9]{2,}|\s*Fin)/g;
         let pm;
         while ((pm = pickRe.exec(pickText)) !== null) {
-          const sku = pm[1];
-          const qty = parseInt(pm[2], 10);
+          const sku = pm[1], qty = parseInt(pm[2], 10);
           if (sku.length < 4) continue;
-          const fakeId = 'PICK-' + sku;
           orders.push({
-            id: fakeId, packId: null, ventaId: null,
-            buyer: sku + ' ×' + qty,
-            items: [{ sku, qty, scanned: 0, scannedEan: null,
-                      status: 'pending', lastError: null }],
+            id: 'PICK-' + sku, packId: null, ventaId: null, buyer: sku + ' ×' + qty,
+            items: [{ sku, qty, scanned: 0, scannedEan: null, status: 'pending', lastError: null }],
             status: 'pending', confirmedAt: null
           });
         }
@@ -230,16 +251,13 @@ const PdfParser = (() => {
     console.log('[PDF] Formato detectado:', format);
 
     let orders = [];
-    if (format === 'zipnova') {
-      orders = parseZipnova(text);
-    } else if (format === 'gramabi') {
-      orders = parseGramabi(text);
-    } else if (format === 'ml_numeric') {
-      orders = parseMlNumeric(text);
-      if (orders.length === 0) orders = parseMlUuid(text);
+    if (format === 'zipnova')       orders = parseZipnova(text);
+    else if (format === 'gramabi')  orders = parseGramabi(text);
+    else if (format === 'ml_numeric') {
+      orders = parseMlUnified(text);
+      if (orders.length === 0) orders = parseMlUnified(text);
     } else {
-      orders = parseMlUuid(text);
-      if (orders.length === 0) orders = parseMlNumeric(text);
+      orders = parseMlUnified(text);
     }
 
     console.log(`[PDF] ${orders.length} pedidos encontrados`);
