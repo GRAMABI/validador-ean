@@ -1,12 +1,15 @@
-/* v20260405 */
+/* v20260415 — modo consolidado por SKU */
 /**
- * app.js — versión limpia y funcional
+ * app.js — versión con agrupación consolidada por SKU
+ * Cambios: vista de pedidos agrupa por marca → SKU (sin comprador ni ID pedido)
+ * Al escanear un SKU se muestra solo ese artículo y se requieren N escaneos
  */
 
 const State = {
   catalog: null,
   orders: [],
-  currentOrderIdx: -1,
+  currentOrderIdx: -1,   // legacy — ya no se usa en modo detalle
+  currentSkuKey: null,   // { sku, marca } — SKU actualmente en escaneo
   pdfLoaded: false,
   catalogLoaded: false,
   operario: localStorage.getItem('vean_operario') || '',
@@ -56,13 +59,11 @@ function showToast(msg, type, duration) {
 // ── INICIO ───────────────────────────────────────────────────
 async function initApp() {
   showScreen('screen-home');
-  // Cargar catálogo en segundo plano silenciosamente
   try {
     State.catalog = await CatalogService.getCatalog(false);
     State.catalogLoaded = true;
   } catch(e) { console.warn('[Catálogo]', e.message); }
 
-  // Verificar si hay progreso guardado y mostrar dialog
   const prog = loadProgress();
   if (prog && prog.orders && prog.orders.length > 0) {
     const pending = prog.orders.filter(o => o.status === 'pending').length;
@@ -135,10 +136,8 @@ function updateConfigUI() {
     }
   }
 
-  // Mostrar nombre del operario
   const oi = document.getElementById('input-operario');
   if (oi && State.operario) oi.value = State.operario;
-
   checkCanGoOrders();
 }
 
@@ -147,7 +146,6 @@ function checkCanGoOrders() {
   document.getElementById('btn-go-orders').disabled = !(catOk && State.pdfLoaded);
 }
 
-// Guardar nombre del operario cuando escribe en config
 document.getElementById('input-operario').addEventListener('input', e => {
   State.operario = e.target.value.trim();
   localStorage.setItem('vean_operario', State.operario);
@@ -176,7 +174,6 @@ document.getElementById('input-pdf').addEventListener('change', async e => {
     const orders = await PdfParser.parse(file);
     if (!orders.length) throw new Error('No se encontraron pedidos en el PDF.');
 
-    // Enriquecer con info del catálogo
     if (State.catalog) {
       orders.forEach(o => o.items.forEach(item => {
         const info = CatalogService.getInfo(item.sku, State.catalog);
@@ -190,7 +187,6 @@ document.getElementById('input-pdf').addEventListener('change', async e => {
     State.pdfLoaded = true;
     saveProgress();
 
-    // Calcular estadísticas
     const totalItems   = orders.reduce((s, o) => s + o.items.length, 0);
     const totalUnits   = orders.reduce((s, o) => s + o.items.reduce((ss, i) => ss + i.qty, 0), 0);
     const uniqueSkus   = new Set(orders.flatMap(o => o.items.map(i => i.sku))).size;
@@ -213,7 +209,6 @@ document.getElementById('btn-go-orders').addEventListener('click', async () => {
     try { State.catalog = await CatalogService.getCatalog(false); State.catalogLoaded = true; }
     catch(e) {} finally { hideLoader(); }
   }
-  // Enriquecer ítems que aún no tienen desc/hasEan/marca
   State.orders.forEach(o => o.items.forEach(item => {
     if (item.desc === undefined && State.catalog) {
       const info = CatalogService.getInfo(item.sku, State.catalog);
@@ -235,30 +230,71 @@ document.getElementById('back-to-config').addEventListener('click', () => {
   showScreen('screen-config');
 });
 
-// ── LISTA PEDIDOS ────────────────────────────────────────────
+// ── HELPERS — CONSOLIDAR SKUs ────────────────────────────────
+/**
+ * Construye un mapa consolidado de SKUs a partir de todos los pedidos.
+ * Estructura: Map<sku, { sku, desc, marca, hasEan, totalQty, scannedQty, allDone, hasError, items[] }>
+ * items[] = referencias a los {order, item} originales, para poder actualizar el estado.
+ */
+function buildSkuMap() {
+  const map = new Map(); // key = sku
+  State.orders.forEach((order, orderIdx) => {
+    order.items.forEach((item, itemIdx) => {
+      const key = item.sku;
+      if (!map.has(key)) {
+        map.set(key, {
+          sku:      item.sku,
+          desc:     item.desc     || '',
+          marca:    item.marca    || 'Varios',
+          hasEan:   item.hasEan,
+          totalQty:   0,
+          scannedQty: 0,
+          allDone:  false,
+          hasError: false,
+          refs: [],  // { order, orderIdx, item, itemIdx }
+        });
+      }
+      const entry = map.get(key);
+      entry.totalQty   += item.qty;
+      entry.scannedQty += (item.scanned || 0);
+      entry.refs.push({ order, orderIdx, item, itemIdx });
+    });
+  });
+
+  // Calcular estado consolidado
+  map.forEach(entry => {
+    entry.allDone  = entry.refs.every(r => r.item.status !== 'pending');
+    entry.hasError = entry.refs.some(r => r.item.status === 'error' || r.item.lastError);
+  });
+
+  return map;
+}
+
+// ── LISTA PEDIDOS (consolidada por marca → SKU) ──────────────
 function renderOrdersList() {
-  const list  = document.getElementById('orders-list');
+  const list = document.getElementById('orders-list');
   list.innerHTML = '';
+
+  // Progreso global: pedidos (no SKUs)
   const total = State.orders.length;
   const done  = State.orders.filter(o => o.status !== 'pending').length;
-
   document.getElementById('progress-fill').style.width = (total ? done / total * 100 : 0) + '%';
   document.getElementById('progress-label').textContent = `${done} de ${total} pedidos procesados`;
   const ol = document.getElementById('operario-label');
   if (ol) ol.textContent = State.operario ? 'Operario: ' + State.operario : '';
 
-  // Agrupar por marca
-  // Estructura: { marca: [ { orderIdx, item, itemIdx } ] }
+  // Construir mapa consolidado
+  const skuMap = buildSkuMap();
+
+  // Agrupar SKUs por marca
   const byMarca = {};
-  State.orders.forEach((order, orderIdx) => {
-    order.items.forEach((item, itemIdx) => {
-      const marca = (item.marca || 'Varios').trim();
-      if (!byMarca[marca]) byMarca[marca] = [];
-      byMarca[marca].push({ orderIdx, itemIdx, item, order });
-    });
+  skuMap.forEach((entry, sku) => {
+    const marca = (entry.marca || 'Varios').trim();
+    if (!byMarca[marca]) byMarca[marca] = [];
+    byMarca[marca].push(entry);
   });
 
-  // Ordenar marcas: alfabético, 'Varios' al final
+  // Ordenar marcas
   const marcas = Object.keys(byMarca).sort((a, b) => {
     if (a === 'Varios') return 1;
     if (b === 'Varios') return -1;
@@ -268,42 +304,43 @@ function renderOrdersList() {
   marcas.forEach(marca => {
     const entries = byMarca[marca];
 
-    // Encabezado de marca — contar UNIDADES, no ítems
+    // Encabezado de marca — totales de unidades
+    const totalUnits  = entries.reduce((s, e) => s + e.totalQty, 0);
+    const scannedUnits = entries.reduce((s, e) => s + e.scannedQty, 0);
+
     const header = document.createElement('div');
     header.className = 'marca-header';
-    const totalUnits = entries.reduce((s, e) => s + e.item.qty, 0);
-    const doneUnits  = entries.reduce((s, e) => {
-      if (e.item.status === 'ok') return s + e.item.qty;
-      if (e.item.status === 'pending') return s + (e.item.scanned || 0);
-      return s;
-    }, 0);
     header.innerHTML = `
       <span class="marca-name">${escHtml(marca)}</span>
-      <span class="marca-count">${doneUnits}/${totalUnits}</span>`;
+      <span class="marca-count">${scannedUnits}/${totalUnits}</span>`;
     list.appendChild(header);
 
-    // Artículos de esa marca
-    entries.forEach(({ orderIdx, itemIdx, item, order }) => {
+    // Un ítem por SKU (consolidado, sin comprador ni ID)
+    entries.forEach(entry => {
       const div = document.createElement('div');
       div.className = 'marca-item';
 
-      const stIcon = item.status === 'ok' ? '✓'
-                   : item.status === 'error' || item.lastError ? '✕'
-                   : item.hasEan === false ? '—' : '○';
-      const stCls  = item.status === 'ok' ? 'check-ok'
-                   : item.status === 'error' || item.lastError ? 'check-error'
-                   : item.hasEan === false ? 'check-warn' : 'check-gray';
-      const scanned = item.scanned || 0;
-      const progress = item.qty > 1 ? ` (${scanned}/${item.qty})` : '';
+      const allOk  = entry.allDone && !entry.hasError;
+      const hasErr = entry.hasError;
+      const noEan  = entry.hasEan === false;
+
+      const stIcon = allOk  ? '✓'
+                   : hasErr ? '✕'
+                   : noEan  ? '—' : '○';
+      const stCls  = allOk  ? 'check-ok'
+                   : hasErr ? 'check-error'
+                   : noEan  ? 'check-warn' : 'check-gray';
+
+      const progress = `${entry.scannedQty}/${entry.totalQty}`;
 
       div.innerHTML = `
         <div class="sku-check ${stCls}" style="flex-shrink:0">${stIcon}</div>
         <div class="marca-item-info">
-          <div class="marca-item-sku">${escHtml(item.sku)}${progress} <span style="font-weight:400;color:var(--gray-text)">×${item.qty}</span></div>
-          <div class="marca-item-desc">${escHtml(item.desc || '')}</div>
-          <div class="marca-item-buyer">📦 ${escHtml(order.buyer)} <span style="font-family:monospace;font-size:10px;color:#bbb">${order.id}</span></div>
+          <div class="marca-item-sku">${escHtml(entry.sku)} <span style="font-weight:400;color:var(--gray-text)">×${entry.totalQty}</span></div>
+          <div class="marca-item-desc">${escHtml(entry.desc)}</div>
+          <div class="marca-item-buyer" style="font-size:11px;color:#aaa">${progress} unidades escaneadas</div>
         </div>
-        <button class="marca-item-btn" onclick="openOrder(${orderIdx})">Escanear →</button>`;
+        <button class="marca-item-btn" onclick="openSku('${escHtml(entry.sku)}')">Escanear →</button>`;
       list.appendChild(div);
     });
   });
@@ -311,108 +348,157 @@ function renderOrdersList() {
   saveProgress();
 }
 
-// ── DETALLE PEDIDO ───────────────────────────────────────────
-function openOrder(idx) {
-  State.currentOrderIdx = idx;
+// ── DETALLE SKU (modo consolidado) ───────────────────────────
+/**
+ * Abre la pantalla de escaneo para un SKU específico.
+ * Muestra solo ese SKU con la cantidad total consolidada.
+ */
+window.openSku = function(sku) {
+  State.currentSkuKey = sku;
   Scanner.stop();
   _scanning = false;
   document.getElementById('retry-scan-wrap')?.remove();
-  renderDetail();
+  renderSkuDetail();
   showScreen('screen-detail');
-  startDetailScanner();
+  startSkuScanner();
+};
+
+function getSkuEntry(sku) {
+  const skuMap = buildSkuMap();
+  return skuMap.get(sku) || null;
 }
 
-function renderDetail() {
-  const order = State.orders[State.currentOrderIdx];
-  if (!order) return;
+function renderSkuDetail() {
+  const sku = State.currentSkuKey;
+  const entry = getSkuEntry(sku);
+  if (!entry) return;
 
-  document.getElementById('detail-buyer-name').textContent = order.buyer;
-  document.getElementById('detail-order-id').textContent   = order.id;
+  // Reutilizamos la pantalla screen-detail pero mostramos solo el SKU
+  document.getElementById('detail-buyer-name').textContent = entry.desc || entry.sku;
+  document.getElementById('detail-order-id').textContent   = entry.sku;
 
-  const badge = document.getElementById('detail-status-badge');
-  badge.textContent = order.status === 'ok' ? 'OK' : order.status === 'error' ? 'Error' : 'Pendiente';
-  badge.className   = 'badge ' + (order.status === 'ok' ? 'badge-ok' : order.status === 'error' ? 'badge-error' : 'badge-warn');
+  const allOk  = entry.allDone && !entry.hasError;
+  const hasErr = entry.hasError;
+  const badge  = document.getElementById('detail-status-badge');
+  badge.textContent = allOk ? 'OK' : hasErr ? 'Error' : 'Pendiente';
+  badge.className   = 'badge ' + (allOk ? 'badge-ok' : hasErr ? 'badge-error' : 'badge-warn');
 
   const container = document.getElementById('detail-skus');
   container.innerHTML = '';
 
-  order.items.forEach((item, i) => {
-    const div      = document.createElement('div');
-    div.className  = 'sku-item';
-    const scanned  = item.scanned || 0;
-    const hasErr   = item.lastError && item.status === 'pending';
-    const icon = item.status === 'ok' ? '✓'
-               : item.status === 'no_ean' ? '—'
-               : item.status === 'not_in_catalog' ? '?'
-               : hasErr ? '✕' : '○';
-    const cls  = item.status === 'ok' ? 'check-ok'
-               : item.status === 'no_ean' ? 'check-warn'
-               : item.status === 'not_in_catalog' ? 'check-warn'
-               : hasErr ? 'check-error' : 'check-gray';
-    const progress = item.qty > 1 ? ` (${scanned}/${item.qty})` : '';
-    const eanTxt   = item.status === 'ok' ? (item.scannedEan || '')
-                   : item.hasEan === false ? 'Sin código de barras'
-                   : hasErr ? `✕ ${item.lastError} — reescaneá`
-                   : scanned > 0 ? `${scanned}/${item.qty} escaneados` : '—';
-    const desc   = item.desc ? `<div class="sku-desc">${escHtml(item.desc)}</div>` : '';
-    const manBtn = (item.status === 'pending' && item.hasEan === false)
-      ? `<button class="btn-manual" onclick="confirmManual(${i})">Confirmar manual</button>` : '';
+  // Un único bloque para el SKU consolidado
+  const div = document.createElement('div');
+  div.className = 'sku-item';
 
-    div.innerHTML = `
-      <div class="sku-check ${cls}">${icon}</div>
-      <div class="sku-info">
-        <div class="sku-code">${escHtml(item.sku)}${progress}</div>
-        ${desc}<div class="sku-ean">${eanTxt}</div>${manBtn}
-      </div>
-      <div class="sku-qty">×${item.qty}</div>`;
-    container.appendChild(div);
-  });
+  const scanned  = entry.scannedQty;
+  const total    = entry.totalQty;
+  const hasErr2  = entry.hasError;
+  const noEan    = entry.hasEan === false;
 
-  document.getElementById('btn-confirm-order').disabled =
-    !order.items.every(i => i.status !== 'pending');
+  const icon = allOk  ? '✓'
+             : noEan  ? '—'
+             : hasErr2 ? '✕' : '○';
+  const cls  = allOk  ? 'check-ok'
+             : noEan  ? 'check-warn'
+             : hasErr2 ? 'check-error' : 'check-gray';
+
+  const progressTxt = `${scanned} de ${total} unidades escaneadas`;
+  const eanTxt = allOk        ? '✓ Completo'
+               : noEan        ? 'Sin código de barras'
+               : hasErr2      ? '✕ EAN incorrecto — reescaneá'
+               : scanned > 0  ? progressTxt
+               : '—';
+
+  const desc = entry.desc ? `<div class="sku-desc">${escHtml(entry.desc)}</div>` : '';
+  const manBtn = (!allOk && noEan)
+    ? `<button class="btn-manual" onclick="confirmManualSku()">Confirmar manual (${scanned}/${total})</button>` : '';
+
+  div.innerHTML = `
+    <div class="sku-check ${cls}">${icon}</div>
+    <div class="sku-info">
+      <div class="sku-code">${escHtml(sku)} — ${scanned}/${total}</div>
+      ${desc}
+      <div class="sku-ean">${eanTxt}</div>
+      ${manBtn}
+    </div>
+    <div class="sku-qty">×${total}</div>`;
+  container.appendChild(div);
+
+  // Botón confirmar solo si todo está OK
+  document.getElementById('btn-confirm-order').disabled = !allOk;
 }
 
-window.confirmManual = function(i) {
-  const o = State.orders[State.currentOrderIdx]; if (!o) return;
-  const item = o.items[i];
-  item.scanned = (item.scanned || 0) + 1;
-  if (item.scanned >= item.qty) {
-    item.status     = 'ok';
-    item.scannedEan = 'Confirmado manualmente';
-    showToast('✓ Confirmado manualmente', 'ok');
-  } else {
-    showToast(`✓ ${item.scanned}/${item.qty} confirmadas — tocá de nuevo`, 'ok', 2000);
+window.confirmManualSku = function() {
+  const sku = State.currentSkuKey;
+  const entry = getSkuEntry(sku);
+  if (!entry) return;
+
+  // Buscar el primer ítem pendiente sin EAN y confirmar una unidad
+  let confirmed = false;
+  for (const ref of entry.refs) {
+    if (ref.item.status === 'pending' && ref.item.hasEan === false) {
+      ref.item.scanned = (ref.item.scanned || 0) + 1;
+      if (ref.item.scanned >= ref.item.qty) {
+        ref.item.status     = 'ok';
+        ref.item.scannedEan = 'Confirmado manualmente';
+        updateOrderStatus(ref.order);
+      }
+      confirmed = true;
+      break;
+    }
   }
-  updateOrderStatus(o);
+
+  if (confirmed) {
+    const newEntry = getSkuEntry(sku);
+    if (newEntry && newEntry.scannedQty >= newEntry.totalQty) {
+      showToast(`✓ ${sku} — ${newEntry.totalQty} unidades confirmadas`, 'ok');
+    } else if (newEntry) {
+      showToast(`✓ ${newEntry.scannedQty}/${newEntry.totalQty} confirmadas — tocá de nuevo`, 'ok', 2000);
+    }
+  }
+
   saveProgress();
-  renderDetail();
+  renderSkuDetail();
   renderOrdersList();
 };
 
-function startDetailScanner() {
+function startSkuScanner() {
   document.getElementById('scanner-error').style.display = 'none';
-  const order = State.orders[State.currentOrderIdx];
-  if (order && order.items.every(i => i.hasEan === false)) {
+  const sku = State.currentSkuKey;
+  const entry = getSkuEntry(sku);
+
+  // Si todos los ítems no tienen EAN, ocultar escáner
+  if (entry && entry.refs.every(r => r.item.hasEan === false)) {
     document.getElementById('scanner-wrap').style.display = 'none';
     return;
   }
   document.getElementById('scanner-wrap').style.display = 'block';
-  Scanner.start('scanner-video', onEanScanned, err => {
+  Scanner.start('scanner-video', onEanScannedSku, err => {
     document.getElementById('scanner-error').textContent = err;
     document.getElementById('scanner-error').style.display = 'block';
   });
 }
 
-function onEanScanned(ean) {
+/**
+ * Al escanear en modo SKU consolidado:
+ * - Busca el primer ítem pendiente de ese SKU (en cualquier pedido)
+ * - Valida el EAN contra el SKU
+ * - Acumula unidades hasta completar la cantidad total
+ */
+function onEanScannedSku(ean) {
   if (_scanning) return;
   _scanning = true;
-  const order = State.orders[State.currentOrderIdx];
-  if (!order) { _scanning = false; return; }
 
-  const itemIdx = order.items.findIndex(i => i.status === 'pending' && i.hasEan !== false);
-  if (itemIdx === -1) { _scanning = false; return; }
+  const sku = State.currentSkuKey;
+  const entry = getSkuEntry(sku);
+  if (!entry) { _scanning = false; return; }
 
-  const item   = order.items[itemIdx];
+  // Buscar primer ref pendiente con EAN
+  const pendingRef = entry.refs.find(r => r.item.status === 'pending' && r.item.hasEan !== false);
+  if (!pendingRef) { _scanning = false; return; }
+
+  const item   = pendingRef.item;
+  const order  = pendingRef.order;
   const result = CatalogService.validate(item.sku, ean, State.catalog);
   item.scannedEan = ean;
 
@@ -420,14 +506,23 @@ function onEanScanned(ean) {
     item.scanned = (item.scanned || 0) + 1;
     if (item.scanned >= item.qty) {
       item.status = 'ok';
-      showToast(`✓ ${item.sku} — ${item.qty > 1 ? item.qty + ' unidades OK' : 'correcto'}`, 'ok');
-    } else {
-      showToast(`✓ Unidad ${item.scanned}/${item.qty} — escaneá la siguiente`, 'ok', 2000);
     }
+
+    // Recalcular estado consolidado
+    const newEntry = getSkuEntry(sku);
+    const newScanned = newEntry ? newEntry.scannedQty : 0;
+    const newTotal   = newEntry ? newEntry.totalQty   : 0;
+
+    if (newScanned >= newTotal) {
+      showToast(`✓ ${sku} — ${newTotal} unidades OK`, 'ok');
+    } else {
+      showToast(`✓ Unidad ${newScanned}/${newTotal} — escaneá la siguiente`, 'ok', 2000);
+    }
+
     playBeep('ok');
     setTimeout(() => { _scanning = false; }, 800);
     updateOrderStatus(order);
-    renderDetail();
+    renderSkuDetail();
     renderOrdersList();
 
   } else if (result.status === 'error') {
@@ -436,12 +531,12 @@ function onEanScanned(ean) {
     Scanner.stop();
     _scanning = false;
     showToast('✕ EAN incorrecto. Tocá "Reintentar".', 'error', 4000);
-    renderDetail();
+    renderSkuDetail();
     document.getElementById('retry-scan-wrap')?.remove();
     const retryDiv = document.createElement('div');
     retryDiv.id = 'retry-scan-wrap';
     retryDiv.style.cssText = 'padding:10px 0';
-    retryDiv.innerHTML = '<button class="btn-secondary" onclick="retryScan()" style="border-color:#dc2626;color:#dc2626">↺ Reintentar escaneo</button>';
+    retryDiv.innerHTML = '<button class="btn-secondary" onclick="retryScanSku()" style="border-color:#dc2626;color:#dc2626">↺ Reintentar escaneo</button>';
     document.getElementById('scanner-wrap').insertAdjacentElement('afterend', retryDiv);
 
   } else {
@@ -454,29 +549,31 @@ function onEanScanned(ean) {
     }
     setTimeout(() => { _scanning = false; }, 800);
     updateOrderStatus(order);
-    renderDetail();
+    renderSkuDetail();
     renderOrdersList();
   }
 }
 
-window.retryScan = function() {
+window.retryScanSku = function() {
   document.getElementById('retry-scan-wrap')?.remove();
   _scanning = false;
-  const o = State.orders[State.currentOrderIdx];
-  if (o) o.items.forEach(i => { if (i.lastError) { delete i.lastError; } });
-  renderDetail();
-  startDetailScanner();
+  const sku = State.currentSkuKey;
+  // Limpiar lastError en todos los refs de este SKU
+  const entry = getSkuEntry(sku);
+  if (entry) entry.refs.forEach(r => { if (r.item.lastError) delete r.item.lastError; });
+  renderSkuDetail();
+  startSkuScanner();
 };
 
-function updateOrderStatus(order) {
-  const hasError = order.items.some(i => i.status === 'error');
-  const allDone  = order.items.every(i => i.status !== 'pending');
-  order.status   = !allDone ? 'pending' : hasError ? 'error' : 'ok';
-}
-
+// ── Confirmar SKU completo y volver ─────────────────────────
 document.getElementById('btn-confirm-order').addEventListener('click', () => {
-  const o = State.orders[State.currentOrderIdx]; if (!o) return;
-  o.confirmedAt = new Date().toLocaleTimeString('es-AR');
+  const sku = State.currentSkuKey;
+  const entry = getSkuEntry(sku);
+  if (entry) {
+    entry.refs.forEach(r => {
+      if (!r.order.confirmedAt) r.order.confirmedAt = new Date().toLocaleTimeString('es-AR');
+    });
+  }
   Scanner.stop();
   renderOrdersList();
   showScreen('screen-orders');
@@ -489,6 +586,13 @@ document.getElementById('back-to-orders').addEventListener('click', () => {
   renderOrdersList();
   showScreen('screen-orders');
 });
+
+// ── HELPERS ──────────────────────────────────────────────────
+function updateOrderStatus(order) {
+  const hasError = order.items.some(i => i.status === 'error');
+  const allDone  = order.items.every(i => i.status !== 'pending');
+  order.status   = !allDone ? 'pending' : hasError ? 'error' : 'ok';
+}
 
 // ── VALIDADOR EAN ────────────────────────────────────────────
 function startValidator() {
@@ -509,7 +613,6 @@ function startValidator() {
     res.style.display    = 'block';
     res.style.borderColor = foundSku ? '#1D9E75' : '#dc2626';
   }, err => {
-    // BarcodeDetector no disponible — usar html5-qrcode como fallback
     console.warn('[Validador] BarcodeDetector no disponible, usando fallback:', err);
     Scanner.start('scanner-video-validator', ean => {
       let foundSku = '', foundDesc = '';
@@ -553,17 +656,22 @@ function renderSummary() {
   const so = document.getElementById('sum-operario');
   if (so) so.textContent = State.operario ? 'Operario: ' + State.operario : '';
 
+  // Resumen por SKU consolidado (sin comprador)
   const list = document.getElementById('summary-list');
   list.innerHTML = '';
-  State.orders.forEach(o => {
+  const skuMap = buildSkuMap();
+
+  skuMap.forEach((entry, sku) => {
     const div = document.createElement('div');
     div.className = 'summary-item';
-    const bc = o.status === 'ok' ? 'badge-ok' : o.status === 'error' ? 'badge-error' : 'badge-warn';
-    const bt = o.status === 'ok' ? '✓ OK' : o.status === 'error' ? '✕ Error' : 'Pendiente';
+    const allOk  = entry.allDone && !entry.hasError;
+    const hasErr = entry.hasError;
+    const bc = allOk ? 'badge-ok' : hasErr ? 'badge-error' : 'badge-warn';
+    const bt = allOk ? '✓ OK' : hasErr ? '✕ Error' : 'Pendiente';
     div.innerHTML = `
       <div>
-        <div class="summary-name">${escHtml(o.buyer)}</div>
-        <div class="summary-sub">${o.id}</div>
+        <div class="summary-name">${escHtml(sku)}</div>
+        <div class="summary-sub">${escHtml(entry.desc)} — ${entry.scannedQty}/${entry.totalQty} uds</div>
       </div>
       <span class="badge ${bc}">${bt}</span>`;
     list.appendChild(div);
@@ -576,6 +684,22 @@ document.getElementById('btn-export').addEventListener('click', () => {
   const ok   = State.orders.filter(o => o.status === 'ok');
   const err  = State.orders.filter(o => o.status === 'error');
   const pend = State.orders.filter(o => o.status === 'pending');
+
+  const skuMap = buildSkuMap();
+  let skuRows = '';
+  skuMap.forEach((entry, sku) => {
+    const allOk  = entry.allDone && !entry.hasError;
+    const hasErr = entry.hasError;
+    const sc = allOk ? 'ok' : hasErr ? 'er' : 'pn';
+    const st = allOk ? '✓ OK' : hasErr ? '✕ Error' : 'Pendiente';
+    skuRows += `<tr>
+      <td style="font-family:monospace">${sku}</td>
+      <td>${escHtml(entry.desc)}</td>
+      <td>${escHtml(entry.marca)}</td>
+      <td>${entry.scannedQty}/${entry.totalQty}</td>
+      <td class="${sc}">${st}</td>
+    </tr>`;
+  });
 
   let html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
 <style>
@@ -593,27 +717,21 @@ tr:nth-child(even) td{background:#f9fafb}
 <h1>📦 Reporte de despacho</h1>
 <div class="meta">Operario: <strong>${escHtml(State.operario || 'Sin identificar')}</strong> · Generado: ${now}</div>
 <div class="metrics">
-  <div class="metric"><div class="val green">${ok.length}</div><div>Validados</div></div>
+  <div class="metric"><div class="val green">${ok.length}</div><div>Pedidos OK</div></div>
   <div class="metric"><div class="val amber">${pend.length}</div><div>Pendientes</div></div>
   <div class="metric"><div class="val red">${err.length}</div><div>Con error</div></div>
-  <div class="metric"><div class="val">${State.orders.length}</div><div>Total</div></div>
+  <div class="metric"><div class="val">${State.orders.length}</div><div>Total pedidos</div></div>
 </div>
-<table><thead><tr><th>ID</th><th>Comprador</th><th>Productos</th><th>Estado</th></tr></thead><tbody>`;
-
-  State.orders.forEach(o => {
-    const sc = o.status === 'ok' ? 'ok' : o.status === 'error' ? 'er' : 'pn';
-    const st = o.status === 'ok' ? '✓ OK' : o.status === 'error' ? '✕ Error' : 'Pendiente';
-    const pr = o.items.map(i => `${i.sku}${i.desc ? ' — ' + i.desc : ''} ×${i.qty}`).join('<br>');
-    html += `<tr><td style="font-family:monospace">${o.id}</td><td>${escHtml(o.buyer)}</td><td>${pr}</td><td class="${sc}">${st}</td></tr>`;
-  });
-  html += '</tbody></table>';
+<h2>SKUs procesados</h2>
+<table><thead><tr><th>SKU</th><th>Descripción</th><th>Marca</th><th>Uds</th><th>Estado</th></tr></thead>
+<tbody>${skuRows}</tbody></table>`;
 
   if (err.length) {
     html += `<h2>⚠ Incidencias</h2>
-<table><thead><tr><th>Comprador</th><th>SKU</th><th>Descripción</th><th>EAN leído</th><th>EAN esperado</th></tr></thead><tbody>`;
+<table><thead><tr><th>SKU</th><th>Descripción</th><th>EAN leído</th><th>EAN esperado</th></tr></thead><tbody>`;
     err.forEach(o => o.items.filter(i => i.status === 'error' || i.lastError).forEach(i => {
       const exp = State.catalog ? (State.catalog.get(i.sku)?.ean || '—') : '—';
-      html += `<tr><td>${escHtml(o.buyer)}</td><td>${i.sku}</td><td>${escHtml(i.desc||'')}</td><td style="color:#dc2626">${i.scannedEan||'—'}</td><td>${exp}</td></tr>`;
+      html += `<tr><td>${i.sku}</td><td>${escHtml(i.desc||'')}</td><td style="color:#dc2626">${i.scannedEan||'—'}</td><td>${exp}</td></tr>`;
     }));
     html += '</tbody></table>';
   }
