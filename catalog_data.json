@@ -147,17 +147,17 @@
   "ALAMIGE080X5": {
     "ean": "7791160316594",
     "desc": "Alambre Soldar Mig Mag Autorod Esab Conarco Weld 0.80 Mm Rollo X 5kg - Código: 309840",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ALAMIGE090": {
     "ean": "",
     "desc": "Alambre Soldar Mig Esab Conarco Autrod de Ø 0,90 Mm Hh Rollo x 18kg",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ALAMIGE125": {
     "ean": "",
     "desc": "Alambre Soldar Mig Esab Conarco Autrod de Ø 1,25 Mm Hh Rollo x 18kg",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ALAMIGL090": {
     "ean": "7799108046210",
@@ -902,7 +902,7 @@
   "APSTOR160": {
     "ean": "",
     "desc": "Torcha Esab Tig Et17v 4 Mt Soldadora Lhn Bantam Conarco Mig 732271",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "APSTOT250": {
     "ean": "4065401000178",
@@ -917,7 +917,7 @@
   "ARESAVAGE": {
     "ean": "7330725066344",
     "desc": "Arnés Careta Mascara Fotosensible Esab Savage A40 Conarco Negro - Código: 742756",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ARRCARL150L": {
     "ean": "7798225229636",
@@ -2197,7 +2197,7 @@
   "CAFA20": {
     "ean": "7330725055980",
     "desc": "Careta Máscara Soldar Fotosensible Esab A20 Conarco - Código: 0735620",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "CAFA30": {
     "ean": "7330725056031",
@@ -2207,12 +2207,12 @@
   "CAFA40A": {
     "ean": "7330725066368",
     "desc": "Careta Máscara Soldar Fotosensible Esab Savage Amarilla A40 Conarco - Código: 0742754",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "CAFA40N": {
     "ean": "7330725066351",
     "desc": "Careta Máscara Soldar Fotosensible Esab Savage Negra A40 Conarco - Código: 0742753",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "CAFA41A": {
     "ean": "7330725089091",
@@ -2232,17 +2232,17 @@
   "CAFAR30": {
     "ean": "7330725056048",
     "desc": "Arnés Careta Mascara Fotosensible Esab Conarco A 30 Gramabi",
-    "marca": "Esab"
+    "marca": "Gramabi"
   },
   "CAFAS10": {
     "ean": "7895678903875",
     "desc": "Careta Máscara Soldar Fotosensible Esab Conarco Swarm A-10 A10 Color Negro Swarm A 10 747778",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "CAFAS20": {
     "ean": "7895678903868",
     "desc": "Careta Máscara Soldar Fotosensible Esab SWARM A20 A-20 A 20 Conarco - Código: 747779",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "CAFB121": {
     "ean": "7796072750563",
@@ -2292,12 +2292,12 @@
   "CAFEA50": {
     "ean": "7330725051739",
     "desc": "Careta Máscara Soldar Fotosensible Esab Sentinel A50 Conarco - Código: 0735017",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "CAFEA60": {
     "ean": "7330725068591",
     "desc": "Careta Máscara Soldar Fotosensible Esab Sentinel A60 Conarco - Código: 748385",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "CAFG3480": {
     "ean": "7797506015623",
@@ -2392,7 +2392,7 @@
   "CAFPEA20": {
     "ean": "7330725056024",
     "desc": "Protector Externo Careta Fotosensible Esab A-20 A-30 Gramabi",
-    "marca": "Esab"
+    "marca": "Gramabi"
   },
   "CAFPESA20P5": {
     "ean": "7895678903905",
@@ -2412,7 +2412,7 @@
   "CAFPIA30": {
     "ean": "",
     "desc": "Protector Interno Careta Fotosensible Esab A30 X10un Gramabi",
-    "marca": "Esab"
+    "marca": "Gramabi"
   },
   "CAFPIA40P10": {
     "ean": "7330725066337",
@@ -4525,7 +4525,7 @@
     "marca": "Lüsqtoff"
   },
   "CRCLC27": {
-    "ean": "7799108054222",
+    "ean": "7799108062869",
     "desc": "Criquet Hidráulico Gato Carrito Lusqtoff 2tn Racing Giro 360 LQC2-7",
     "marca": "Lüsqtoff"
   },
@@ -6372,22 +6372,22 @@
   "ELCE3206761P5": {
     "ean": "",
     "desc": "Electrodos Soldar Esab Ok Conarco 67.61 3.25mm Pack X 5 Kg",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ELCE3206761": {
     "ean": "",
     "desc": "Electrodos Soldar Esab Ok Conarco 67.61 3.25mm X 1 Kg 729202",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ELCE3206884P5": {
     "ean": "",
     "desc": "Electrodos Soldar Esab Ok Conarco 68.84 3.25mm Pack X 5 Kg",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ELCE3206884": {
     "ean": "",
     "desc": "Electrodos Soldar Esab Ok Conarco 68.84 3.25mm X 1 Kg. 729205",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ELCL200P25": {
     "ean": "",
@@ -6527,7 +6527,7 @@
   "ENGD2540": {
     "ean": "6942431464690",
     "desc": "Engrasadora Manual 400cc Dyllu By Total DMTAEN400",
-    "marca": "Dyllu"
+    "marca": "Total"
   },
   "ENGD": {
     "ean": "7796072750938",
@@ -6682,7 +6682,7 @@
   "ESM3P4": {
     "ean": "7798147568684",
     "desc": "4 Escuadras Soporte Magnético 3 Pu 11 Kg Soldar Dogo Gramabi",
-    "marca": "Dogo"
+    "marca": "Gramabi"
   },
   "ESM3": {
     "ean": "7798147568684",
@@ -6692,7 +6692,7 @@
   "ESM4P4": {
     "ean": "",
     "desc": "4 Escuadras Soporte Magnético 4 22 Kg Soldar Dogo Gramabi F",
-    "marca": "Dogo"
+    "marca": "Gramabi"
   },
   "ESM4": {
     "ean": "",
@@ -6737,7 +6737,7 @@
   "ESME3P4": {
     "ean": "",
     "desc": "4 Escuadras Soporte Magnético 3'' Soldar Esab Conarco 20 Kg.",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "ESME3": {
     "ean": "",
@@ -7897,12 +7897,12 @@
   "GRIP10007": {
     "ean": "7799100103478",
     "desc": "Grifería Ducha Piazza Emblem Monocomando Embutir Cromado Baño 10007",
-    "marca": "Piazza"
+    "marca": "Emblem"
   },
   "GRIP10012": {
     "ean": "7798159576769",
     "desc": "Grifería Cocina Mesada Monocomando Piazza Canilla Emblem Cro 10012",
-    "marca": "Piazza"
+    "marca": "Emblem"
   },
   "GRIP10013": {
     "ean": "7798159573706",
@@ -7912,17 +7912,17 @@
   "GRIP10014": {
     "ean": "7798159573690",
     "desc": "Grifería Emblem Piazza Monocomando Cocina Pico Bar Canilla 10014",
-    "marca": "Piazza"
+    "marca": "Emblem"
   },
   "GRIP10016BL": {
     "ean": "7798305347618",
     "desc": "Grifería Cocina Mesada Monocomando Piazza Canilla Blanco Emblem 10016BL",
-    "marca": "Piazza"
+    "marca": "Emblem"
   },
   "GRIP10016GR": {
     "ean": "7799100103591",
     "desc": "Grifería Cocina Mesada Monocomando Piazza - 10016gr - Canilla Emblem Gris Manguera Con Flexible",
-    "marca": "Piazza"
+    "marca": "Emblem"
   },
   "GRIP10016NE": {
     "ean": "7798305347601",
@@ -7932,12 +7932,12 @@
   "GRIP10017NE": {
     "ean": "7799100103577",
     "desc": "Grifería Cocina Mesada Monocomando Piazza - 10017ne - Emblem Canilla Negro",
-    "marca": "Piazza"
+    "marca": "Emblem"
   },
   "GRIP10017": {
     "ean": "7799100104178",
     "desc": "Grifería Cocina Mesada Monocomando Piazza - 10017 - Canilla Emblem",
-    "marca": "Piazza"
+    "marca": "Emblem"
   },
   "GRIP10300NE": {
     "ean": "7799100001408",
@@ -8812,7 +8812,7 @@
   "KIDD1206": {
     "ean": "6942431479564",
     "desc": "Juego De 6 Destornilladores Phillips Plano Dyllu By Total DMDS06D0C",
-    "marca": "Dyllu"
+    "marca": "Total"
   },
   "KIDD2B06": {
     "ean": "6942431464492",
@@ -9007,7 +9007,7 @@
   "KIPIND0633": {
     "ean": "6942431475498",
     "desc": "Kit De Tres Pinzas Aisladas 6 Y 7 Dyllu By Total DMPIK3A66",
-    "marca": "Dyllu"
+    "marca": "Total"
   },
   "KIPINT0301S": {
     "ean": "",
@@ -10427,7 +10427,7 @@
   "MOTL52BLANCA": {
     "ean": "7799108040270",
     "desc": "Motosierra A Nafta Lusqtoff Garden Plus 52cc Prom-52 Prom-52G2.5hp + Aceite",
-    "marca": "Lüsqtoff"
+    "marca": "Garden Plus"
   },
   "MOTL52GC": {
     "ean": "7798225228547",
@@ -10992,7 +10992,7 @@
   "PIND3937": {
     "ean": "6942431474507",
     "desc": "Pinza Alicate Alta Tensión 180mm Dyllu By Total Color Rojo DMPIAA180",
-    "marca": "Dyllu"
+    "marca": "Total"
   },
   "PINL4510": {
     "ean": "",
@@ -11822,7 +11822,7 @@
   "MOTCD1A75": {
     "ean": "6942431476846",
     "desc": "Motocultivador 6.5hp 750mm Autopropulsado Dyllu By Total Rot DXMEMO650 DTTL1A75",
-    "marca": "Dyllu"
+    "marca": "Total"
   },
   "AMOL24009": {
     "ean": "7799108056738",
@@ -12795,7 +12795,7 @@
     "marca": "Lüsqtoff"
   },
   "SCIL305": {
-    "ean": "07798225222743",
+    "ean": "7798225222743",
     "desc": "Sierra Ingletadora Industrial 305 Mm 2000w Lüsqtoff Circular - Código: LQI-2000",
     "marca": "Lüsqtoff"
   },
@@ -12915,17 +12915,17 @@
     "marca": "Wanke"
   },
   "SECW150PB2026": {
-    "ean": "",
+    "ean": "7890052002175",
     "desc": "Secarropas Centrífugo Wanke Premiun 15kg Negro 300w Carga Su CWAT150PB2026",
     "marca": "Wanke"
   },
   "SECW150PS2026": {
-    "ean": "",
+    "ean": "7890052002472",
     "desc": "Secarropas Centrífugo Wanke Premiun 15kg Gris 300w Carga Su CWAT150PS2026",
     "marca": "Wanke"
   },
   "SECW150PW2026": {
-    "ean": "",
+    "ean": "7890052002465",
     "desc": "Secarropas Centrífugo Wanke Premium 15kg Blanco 300w Carga S CWAT150PW2026",
     "marca": "Wanke"
   },
@@ -13447,7 +13447,7 @@
   "SOLE202I": {
     "ean": "7895678985130",
     "desc": "Soldadora Esab Inverter Conarco LHN 202i de 200A - Código: 742917",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "SOLE210": {
     "ean": "7895678086929",
@@ -13577,27 +13577,27 @@
   "SOLHA142": {
     "ean": "7791160037601",
     "desc": "Soldadora Esab Inverter Conarco Handyarc 142i de 140A - Código: 409615",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "SOLHA160C3": {
     "ean": "",
     "desc": "Soldadora Inverter Esab Conarco Handy Arc 160i + Careta Amarillo",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "SOLHA160CB1": {
     "ean": "",
     "desc": "Soldadora Esab Inverter Conarco Handyarc 162i de 160A - Código: 409616 + 1 Careta BTA 121",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "SOLHA160CE1": {
     "ean": "",
     "desc": "Soldadora Esab Inverter Conarco Handyarc 162i de 160A - Código: 409616",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "SOLHA160": {
     "ean": "7791160037618",
     "desc": "Soldadora Esab Inverter Conarco Handyarc 162i de 160A - Código: 409616",
-    "marca": "Esab"
+    "marca": "Conarco"
   },
   "SOLL1208DK": {
     "ean": "7799108053539",
@@ -14267,7 +14267,7 @@
   "TALGP199BK": {
     "ean": "7799108053560",
     "desc": "Taladro Brushless Atornillador Gp Garden Plus De Lusqtoff Lh-199bk Bateria Inalambrico 18v Mandril 10mm Metalico Con Reg",
-    "marca": "Lüsqtoff"
+    "marca": "Garden Plus"
   },
   "TALGP199": {
     "ean": "7798225224839",
@@ -14277,7 +14277,7 @@
   "TALGP457BK": {
     "ean": "7799108059326",
     "desc": "Taladro Atornillador Brushless 18v Garden Plus Lusqtoff 10mm GPT45-7BK",
-    "marca": "Lüsqtoff"
+    "marca": "Garden Plus"
   },
   "TALK1321": {
     "ean": "7798363393435",
