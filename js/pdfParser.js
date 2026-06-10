@@ -1,5 +1,5 @@
 /**
- * pdfParser.js — v20260610b
+ * pdfParser.js — v20260610c
  * Compatible con Android 11 / Chrome viejo (Samsung SM-T510 y similares).
  *
  * Estrategia de carga de pdf.js worker (en orden de preferencia):
@@ -152,8 +152,10 @@ const PdfParser = (() => {
     const envioMatch = text.match(/Envío\s*#(\d+)/i);
     const envioId = envioMatch ? envioMatch[1] : 'FULL';
 
-    // Split usando el header de tabla como separador.
-    const TABLE_HEADER = /PRODUCTO\s+UNIDADES\s+ETIQUETA\s*#?\s*INSTRUCCIONES\s+DE\s+PREPARACI[OÓ]N/i;
+    // Split usando el header de tabla como separador. Acepta dos variantes:
+    //  - "PRODUCTO UNIDADES ETIQUETA # INSTRUCCIONES DE PREPARACIÓN"   (Full v1)
+    //  - "PRODUCTO UNIDADES IDENTIFICACIÓN INSTRUCCIONES DE PREPARACIÓN" (Full v2)
+    const TABLE_HEADER = /PRODUCTO\s+UNIDADES\s+(?:ETIQUETA\s*#?|IDENTIFICACI[OÓ]N)\s+INSTRUCCIONES\s+DE\s+PREPARACI[OÓ]N/i;
     const parts = text.split(TABLE_HEADER);
 
     const products = [];   // [{sku, ean}] en orden de aparición
@@ -208,21 +210,29 @@ const PdfParser = (() => {
       if (!/^Código\s*ML:/i.test(block.trim())) continue;
       const skuMatch = block.match(/SKU:\s*([A-Za-z0-9ÁÉÍÓÚÜÑ_\-./]+)/i);
       if (!skuMatch) continue;
-      const eanMatch = block.match(/Código\s*universal:\s*(\d{13})/i)
-                    || block.match(/\b(\d{13})\b/);
+      // EAN: "Código universal:" puede ser 12-14 dígitos (EAN-13, EAN-14, UPC-12)
+      // o "N/A" cuando el producto no tiene código asignado.
+      let ean = null;
+      const eanMatch = block.match(/Código\s*universal:\s*(\d{12,14})/i);
+      if (eanMatch) ean = eanMatch[1];
       into.push({
         sku: skuMatch[1].trim().toUpperCase(),
-        ean: eanMatch ? eanMatch[1] : null
+        ean
       });
     }
   }
   function extractFullQuantities(text, into) {
     if (!text) return;
-    // Enteros aislados de 1-3 dígitos. Las instrucciones ("Envolvelos con papel
-    // burbuja...") no contienen números, así que el filtro es seguro.
+    // Algunas variantes del PDF tienen texto de instrucciones con números
+    // ("Cada producto debe pesar menos de 30 kg... 120 cm... 260 cm").
+    // Eliminamos cada bullet "•" y su texto hasta el siguiente bullet o fin,
+    // para que solo queden los números de la columna UNIDADES.
+    const cleaned = text.replace(/•[\s\S]*?(?=•|$)/g, ' ');
+    // Enteros aislados de 1-3 dígitos. El cleanup anterior garantiza que ya
+    // no queden números embebidos en las instrucciones.
     const re = /(?:^|\s)(\d{1,3})(?=\s|$)/g;
     let m;
-    while ((m = re.exec(text)) !== null) {
+    while ((m = re.exec(cleaned)) !== null) {
       into.push(parseInt(m[1], 10));
     }
   }
