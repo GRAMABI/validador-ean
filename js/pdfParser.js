@@ -1,15 +1,22 @@
 /**
- * pdfParser.js — v20260415b
+ * pdfParser.js — v20260610a
  * Compatible con Android 11 / Chrome viejo (Samsung SM-T510 y similares).
  *
  * Estrategia de carga de pdf.js worker (en orden de preferencia):
  * 1. workerSrc apuntando a unpkg.com (versión 2.16.105)
- * 2. Blob URL con worker inline (no requiere CDN externo)
- * 3. Sin worker (FakeWorker de pdf.js, más lento pero funciona)
+ * 2. workerSrc apuntando a cdnjs (versión 3.11.174)
+ * 3. Blob URL con worker inline (no requiere CDN externo)
+ * 4. Sin worker (FakeWorker de pdf.js, más lento pero funciona)
+ *
+ * Formatos de PDF soportados:
+ * - zipnova        → Lista de pickeo / preparación de Zipnova
+ * - gramabi        → TiendaNube/Gramabi con "Orden #N - Paquete #N"
+ * - full           → Envíos a Full de Mercado Libre (inbound al centro de distribución)
+ * - ml_uuid        → Mercado Libre con ID tipo UUID
+ * - ml_numeric     → Mercado Libre con ID numérico
+ * - ml (default)   → Mercado Libre alfanumérico u otros (vía parseMlUnified)
  */
-
 const PdfParser = (() => {
-
   // Worker inline mínimo — funciona sin CDN
   // Esto crea un Web Worker desde un blob en memoria
   function makeInlineWorkerUrl() {
@@ -26,10 +33,8 @@ const PdfParser = (() => {
       return '';
     }
   }
-
   async function extractText(file) {
     const arrayBuffer = await file.arrayBuffer();
-
     // Lista de estrategias a probar en orden
     const strategies = [
       // 1. Worker desde unpkg (más compatible que cdnjs para versión 2.x)
@@ -60,10 +65,8 @@ const PdfParser = (() => {
         }).promise;
       },
     ];
-
     let pdf = null;
     let lastError = null;
-
     for (const strategy of strategies) {
       try {
         pdf = await strategy();
@@ -73,11 +76,9 @@ const PdfParser = (() => {
         lastError = e;
       }
     }
-
     if (!pdf) {
       throw new Error('No se pudo leer el PDF. Probá actualizando Chrome o usando otro navegador (Firefox, Samsung Internet).');
     }
-
     let fullText = '';
     for (let p = 1; p <= pdf.numPages; p++) {
       const page = await pdf.getPage(p);
@@ -87,15 +88,28 @@ const PdfParser = (() => {
     }
     return fullText;
   }
-
   function detectFormat(text) {
+    // Zipnova
     if (/zipnova|Lista de pickeo|Lista de preparaci/i.test(text)) return 'zipnova';
+    // TiendaNube / Gramabi
     if (/Orden\s*#\d+\s*-\s*Paquete/i.test(text)) return 'gramabi';
+    // Envíos a Full (Mercado Libre inbound)
+    // Se chequea ANTES que los formatos ML porque los PDFs Full también contienen
+    // códigos alfanuméricos tipo "Código ML: CPSM88354" que podrían confundirse
+    // con identificadores de pedido. La firma "Envío#" + "Listado de productos
+    // e instrucciones de preparación" es exclusiva del inbound a Full.
+    if (/Envío\s*#\d{6,}/i.test(text)
+        || /Listado de productos e instrucciones de preparaci/i.test(text)
+        || /Productos del envío:\s*\d+\s*\|\s*Total de unidades:\s*\d+/i.test(text)) {
+      return 'full';
+    }
+    // ML UUID
     if (/[0-9a-f]{8}-[0-9a-f]{4}/i.test(text)) return 'ml_uuid';
+    // ML numérico
     if (/\b\d{11}\b/.test(text)) return 'ml_numeric';
+    // Default → ML alfanumérico (parseMlUnified cubre todos los ML)
     return 'ml_uuid';
   }
-
   // ── FORMATO GRAMABI
   function parseGramabi(text) {
     const orders = [];
@@ -114,13 +128,11 @@ const PdfParser = (() => {
     }
     return orders;
   }
-
   function extractBuyerGramabi(block) {
     const match = block.match(/Enviar a:\s*([A-ZÁÉÍÓÚÜÑ][^\n]+?)(?:\s*Teléfono|$)/i);
     if (match) return match[1].trim().replace(/\s+/g, ' ');
     return 'Comprador desconocido';
   }
-
   function extractItemsGramabi(block) {
     const items = [];
     const skuRegex = /SKU:\s*([A-Z0-9ÁÉÍÓÚÜÑ_\-]+)/gi;
@@ -134,19 +146,93 @@ const PdfParser = (() => {
     }
     return items;
   }
-
+  // ── FORMATO ENVÍOS A FULL (Mercado Libre inbound)
+  // Estructura del PDF:
+  //   Envío#68734163
+  //   Productos del envío:18 | Total de unidades:119
+  //   Listado de productos e instrucciones de preparación
+  //   ... y para cada ítem ...
+  //   Código ML: CPSM88354 Código universal: 12 Etiquetado
+  //   7790368019129 SKU: MICROU8020              recomendado:
+  //   Microondas Horno 700w Ultracomb 20lt...   #CPSM88354
+  //
+  // Notas de layout:
+  //  - El EAN puede aparecer en la misma línea que "Código universal:" o saltar
+  //    a la línea siguiente (depende de cómo pdf.js wrappee el texto).
+  //  - La cantidad siempre antecede a la palabra "Etiquetado".
+  //  - Se genera UN solo "order" con todos los items, porque el inbound a Full
+  //    no tiene comprador final — es un envío consolidado al CD de Mercado Libre.
+  //    El buyer se rellena como "Envío Full #<envioNumber>" para que el modo
+  //    consolidado por SKU del app.js los agrupe naturalmente.
+  function parseEnviosFull(text) {
+    const orders = [];
+    const items = [];
+ 
+    // Número de envío para usar como id del "pedido" virtual
+    const envioMatch = text.match(/Envío\s*#(\d+)/i);
+    const envioId = envioMatch ? envioMatch[1] : 'FULL';
+ 
+    // Cortamos el texto en bloques: cada bloque empieza con "Código ML:"
+    // y va hasta el siguiente "Código ML:" o el fin del texto.
+    const blocks = text.split(/(?=Código\s*ML:)/i);
+ 
+    for (const block of blocks) {
+      if (!/^Código\s*ML:/i.test(block.trim())) continue;
+ 
+      // 1) Código ML (alfanumérico, siempre presente)
+      const mlMatch = block.match(/Código\s*ML:\s*([A-Z0-9]+)/i);
+      if (!mlMatch) continue;
+      const mlCode = mlMatch[1].toUpperCase();
+ 
+      // 2) SKU (siempre presente)
+      const skuMatch = block.match(/SKU:\s*([A-Za-z0-9ÁÉÍÓÚÜÑ_\-./]+)/i);
+      if (!skuMatch) continue;
+      const sku = skuMatch[1].trim().toUpperCase();
+ 
+      // 3) EAN — primer número de 13 dígitos en el bloque.
+      //    El código ML empieza con letras, así que no se confunde.
+      const eanMatch = block.match(/\b(\d{13})\b/);
+      const ean = eanMatch ? eanMatch[1] : null;
+ 
+      // 4) Cantidad — el entero que precede a "Etiquetado".
+      //    Ej: "...12 Etiquetado" → 12. Fallback a 1 si no se encuentra.
+      const qtyMatch = block.match(/(\d+)\s+Etiquetado/i);
+      const qty = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
+ 
+      items.push({
+        sku,
+        qty,
+        scanned: 0,
+        scannedEan: ean,   // pista para el flujo de "sin EAN registrado"
+        status: 'pending',
+        lastError: null
+      });
+    }
+ 
+    if (items.length > 0) {
+      orders.push({
+        id: 'FULL-' + envioId,
+        packId: null,
+        ventaId: null,
+        buyer: 'Envío Full #' + envioId,
+        items,
+        status: 'pending',
+        confirmedAt: null
+      });
+    }
+ 
+    console.log('[PDF Full] Envío #' + envioId + ' — ' + items.length + ' productos');
+    return orders;
+  }
   // ── FORMATO ML unificado
   function parseMlUnified(text) {
     const orders = [];
     const norm = text.replace(/fi/g, 'f').replace(/fia/g, 'fa');
-
     const SKIP = new Set(['DESPACHA','IDENTIFICACION','IDENTIFICACI','PRODUCTOS',
       'AMARILLO','NARANJA','AZUL','NEGRO','BLANCO','GRIS','PLATEADO','TURQUESA',
       'COBRE','VERDE','LISO','CROMADO','ESMALTADO','INCOLORA','CROMADA',
       'IMPRESO','NATURAL','PLATEADA']);
-
     const idPattern = /(?<![\w\-])([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Z]{2}\d{6,15}[A-Z0-9]{0,10}|\d{8,20}|[A-Z0-9]{6,25})(?![\w\-])\s+(?=Pack ID:|Venta:)/gi;
-
     const positions = [];
     let m;
     while ((m = idPattern.exec(norm)) !== null) {
@@ -155,7 +241,6 @@ const PdfParser = (() => {
       if (id.length < 6) continue;
       positions.push({ index: m.index, id });
     }
-
     for (let p = 0; p < positions.length; p++) {
       const start = positions[p].index;
       const end   = positions[p + 1] ? positions[p + 1].index : norm.length;
@@ -163,17 +248,14 @@ const PdfParser = (() => {
       const order = parseMlBlock(block, positions[p].id);
       if (order && order.items.length > 0) orders.push(order);
     }
-
     console.log('[ML Parser] ' + orders.length + ' pedidos encontrados');
     return orders;
   }
-
   function parseMlBlock(block, id) {
     const packMatch  = block.match(/Pack ID:\s*(\d+)/);
     const packId     = packMatch ? packMatch[1] : null;
     const ventaMatch = block.match(/Venta:\s*(\d+)/);
     const ventaId    = ventaMatch ? ventaMatch[1] : null;
-
     let buyer = 'Comprador desconocido';
     const buyerMatch = block.match(/(?:Venta:\s*\d+\s*)([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñA-ZÁÉÍÓÚÜÑ\s]+?)(?=\s*SKU:|\s*Pack ID:)/);
     if (buyerMatch) {
@@ -182,29 +264,23 @@ const PdfParser = (() => {
       const fallback = block.match(/(?:[a-f0-9\-]{8,}|[A-Z]{2}\d+[A-Z0-9]*|\d{8,})\s+(?:Pack ID:\s*\d+\s*)?(?:Venta:\s*\d+\s*)?([A-ZÁÉÍÓÚÜÑ][^\d]+?)(?=SKU:)/i);
       if (fallback) buyer = fallback[1].trim().replace(/\s+/g, ' ');
     }
-
     const skuRegex = /SKU:\s*([A-Za-z0-9ÁÉÍÓÚÜÑ_\-]+)/gi;
     const qtyRegex = /Cantidad:\s*(\d+)/g;
     const skus = [], qtys = [];
     let sm, qm;
     while ((sm = skuRegex.exec(block)) !== null) skus.push(sm[1].trim().toUpperCase());
     while ((qm = qtyRegex.exec(block))  !== null) qtys.push(parseInt(qm[1], 10));
-
     if (skus.length === 0) return null;
-
     const items = skus.map((sku, idx) => ({
       sku, qty: qtys[idx] || 1,
       scanned: 0, scannedEan: null, status: 'pending', lastError: null,
     }));
-
     return { id, packId, ventaId, buyer, items, status: 'pending', confirmedAt: null };
   }
-
   // ── FORMATO ZIPNOVA
   function parseZipnova(text) {
     const orders = [];
     const normalized = text.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ');
-
     const listStart = normalized.search(/Lista de preparaci[oó]n/i);
     if (listStart !== -1) {
       const listText = normalized.slice(listStart);
@@ -221,7 +297,6 @@ const PdfParser = (() => {
         order.items.push({ sku, qty, scanned: 0, scannedEan: null, status: 'pending', lastError: null });
       }
     }
-
     if (orders.length === 0) {
       const pickStart = normalized.search(/Lista de pickeo/i);
       const pickEnd   = normalized.search(/Fin del pickeo|Lista de preparaci/i);
@@ -240,29 +315,25 @@ const PdfParser = (() => {
         }
       }
     }
-
     console.log('[PDF Zipnova] ' + orders.length + ' paquetes/items encontrados');
     return orders;
   }
-
   async function parse(file) {
     const text   = await extractText(file);
     const format = detectFormat(text);
     console.log('[PDF] Formato detectado:', format);
-
     let orders = [];
     if (format === 'zipnova')       orders = parseZipnova(text);
     else if (format === 'gramabi')  orders = parseGramabi(text);
+    else if (format === 'full')     orders = parseEnviosFull(text);
     else if (format === 'ml_numeric') {
       orders = parseMlUnified(text);
       if (orders.length === 0) orders = parseMlUnified(text);
     } else {
       orders = parseMlUnified(text);
     }
-
     console.log(`[PDF] ${orders.length} pedidos encontrados`);
     return orders;
   }
-
   return { parse };
 })();
