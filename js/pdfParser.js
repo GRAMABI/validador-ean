@@ -1,5 +1,5 @@
 /**
- * pdfParser.js — v20260610a
+ * pdfParser.js — v20260610b
  * Compatible con Android 11 / Chrome viejo (Samsung SM-T510 y similares).
  *
  * Estrategia de carga de pdf.js worker (en orden de preferencia):
@@ -17,11 +17,8 @@
  * - ml (default)   → Mercado Libre alfanumérico u otros (vía parseMlUnified)
  */
 const PdfParser = (() => {
-  // Worker inline mínimo — funciona sin CDN
-  // Esto crea un Web Worker desde un blob en memoria
   function makeInlineWorkerUrl() {
     try {
-      // El worker inline le dice a pdf.js que use el modo "fake" sin proceso separado
       const workerCode = `
         self.onmessage = function(e) {
           // Worker dummy — pdf.js lo detecta y cae a FakeWorker
@@ -35,28 +32,23 @@ const PdfParser = (() => {
   }
   async function extractText(file) {
     const arrayBuffer = await file.arrayBuffer();
-    // Lista de estrategias a probar en orden
     const strategies = [
-      // 1. Worker desde unpkg (más compatible que cdnjs para versión 2.x)
       () => {
         pdfjsLib.GlobalWorkerOptions.workerSrc =
           'https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
         return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       },
-      // 2. Worker desde cdnjs con versión 3.x (Chrome moderno)
       () => {
         pdfjsLib.GlobalWorkerOptions.workerSrc =
           'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       },
-      // 3. Blob worker inline (sin CDN)
       () => {
         const blobUrl = makeInlineWorkerUrl();
         if (blobUrl) pdfjsLib.GlobalWorkerOptions.workerSrc = blobUrl;
         else pdfjsLib.GlobalWorkerOptions.workerSrc = '';
         return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       },
-      // 4. Sin worker (workerSrc vacío = FakeWorker de pdf.js)
       () => {
         pdfjsLib.GlobalWorkerOptions.workerSrc = '';
         return pdfjsLib.getDocument({
@@ -89,25 +81,16 @@ const PdfParser = (() => {
     return fullText;
   }
   function detectFormat(text) {
-    // Zipnova
     if (/zipnova|Lista de pickeo|Lista de preparaci/i.test(text)) return 'zipnova';
-    // TiendaNube / Gramabi
     if (/Orden\s*#\d+\s*-\s*Paquete/i.test(text)) return 'gramabi';
-    // Envíos a Full (Mercado Libre inbound)
-    // Se chequea ANTES que los formatos ML porque los PDFs Full también contienen
-    // códigos alfanuméricos tipo "Código ML: CPSM88354" que podrían confundirse
-    // con identificadores de pedido. La firma "Envío#" + "Listado de productos
-    // e instrucciones de preparación" es exclusiva del inbound a Full.
+    // Envíos a Full — chequear ANTES que ML porque comparte el código alfanumérico
     if (/Envío\s*#\d{6,}/i.test(text)
         || /Listado de productos e instrucciones de preparaci/i.test(text)
         || /Productos del envío:\s*\d+\s*\|\s*Total de unidades:\s*\d+/i.test(text)) {
       return 'full';
     }
-    // ML UUID
     if (/[0-9a-f]{8}-[0-9a-f]{4}/i.test(text)) return 'ml_uuid';
-    // ML numérico
     if (/\b\d{11}\b/.test(text)) return 'ml_numeric';
-    // Default → ML alfanumérico (parseMlUnified cubre todos los ML)
     return 'ml_uuid';
   }
   // ── FORMATO GRAMABI
@@ -147,82 +130,101 @@ const PdfParser = (() => {
     return items;
   }
   // ── FORMATO ENVÍOS A FULL (Mercado Libre inbound)
-  // Estructura del PDF:
-  //   Envío#68734163
-  //   Productos del envío:18 | Total de unidades:119
-  //   Listado de productos e instrucciones de preparación
-  //   ... y para cada ítem ...
-  //   Código ML: CPSM88354 Código universal: 12 Etiquetado
-  //   7790368019129 SKU: MICROU8020              recomendado:
-  //   Microondas Horno 700w Ultracomb 20lt...   #CPSM88354
+  // Estructura del PDF: tabla con columnas PRODUCTO | UNIDADES | ETIQUETA # | INSTRUCCIONES.
+  // pdf.js extrae el texto leyendo la columna PRODUCTO completa primero, después
+  // el header de la tabla, y RECIÉN AL FINAL los números de la columna UNIDADES.
+  // Por eso no se puede asociar la cantidad parseando solo el bloque de cada
+  // producto — hay que extraerlas por separado y matchearlas por orden de aparición.
   //
-  // Notas de layout:
-  //  - El EAN puede aparecer en la misma línea que "Código universal:" o saltar
-  //    a la línea siguiente (depende de cómo pdf.js wrappee el texto).
-  //  - La cantidad siempre antecede a la palabra "Etiquetado".
-  //  - Se genera UN solo "order" con todos los items, porque el inbound a Full
-  //    no tiene comprador final — es un envío consolidado al CD de Mercado Libre.
-  //    El buyer se rellena como "Envío Full #<envioNumber>" para que el modo
-  //    consolidado por SKU del app.js los agrupe naturalmente.
+  // El texto extraído queda así (para 2 páginas, 18 productos):
+  //   [header documento] [producto1] ... [producto9]
+  //   PRODUCTO UNIDADES ETIQUETA # INSTRUCCIONES DE PREPARACIÓN
+  //   12 4 • Envolvelos... 6 2 6 • Envolvelos... 2 ... 14 4
+  //   [producto10] ... [producto18]
+  //   PRODUCTO UNIDADES ETIQUETA # INSTRUCCIONES DE PREPARACIÓN
+  //   10 6 • Envolvelos... 6 2 4 3 6 18 ... 8
+  //
+  // Se genera UN solo "order" con todos los items: el inbound a Full no tiene
+  // comprador final, es un envío consolidado al CD de Mercado Libre. El buyer
+  // queda como "Envío Full #<envioNumber>" para que el modo consolidado por SKU
+  // del app.js los agrupe naturalmente.
   function parseEnviosFull(text) {
-    const orders = [];
-    const items = [];
- 
-    // Número de envío para usar como id del "pedido" virtual
     const envioMatch = text.match(/Envío\s*#(\d+)/i);
     const envioId = envioMatch ? envioMatch[1] : 'FULL';
- 
-    // Cortamos el texto en bloques: cada bloque empieza con "Código ML:"
-    // y va hasta el siguiente "Código ML:" o el fin del texto.
+
+    // Split usando el header de tabla como separador.
+    const TABLE_HEADER = /PRODUCTO\s+UNIDADES\s+ETIQUETA\s*#?\s*INSTRUCCIONES\s+DE\s+PREPARACI[OÓ]N/i;
+    const parts = text.split(TABLE_HEADER);
+
+    const products = [];   // [{sku, ean}] en orden de aparición
+    const qtys = [];       // [12, 4, ...] en orden de aparición
+
+    // parts[0] solo tiene productos (página 1, antes del primer header)
+    extractFullProducts(parts[0], products);
+
+    // Cada chunk posterior arranca con cantidades de la página anterior y, si
+    // hay más páginas, sigue con los productos de la siguiente.
+    for (let i = 1; i < parts.length; i++) {
+      const firstMl = parts[i].search(/Código\s*ML:/i);
+      const qtyText  = firstMl >= 0 ? parts[i].slice(0, firstMl) : parts[i];
+      const prodText = firstMl >= 0 ? parts[i].slice(firstMl)    : '';
+      extractFullQuantities(qtyText, qtys);
+      extractFullProducts(prodText, products);
+    }
+
+    if (products.length === 0) return [];
+
+    if (qtys.length !== products.length) {
+      console.warn('[PDF Full] Desalineación: ' + products.length + ' productos vs '
+                 + qtys.length + ' cantidades. Faltantes se asumen como 1.');
+    }
+
+    const items = products.map((p, i) => ({
+      sku: p.sku,
+      qty: qtys[i] || 1,
+      scanned: 0,
+      scannedEan: p.ean,
+      status: 'pending',
+      lastError: null
+    }));
+
+    console.log('[PDF Full] Envío #' + envioId + ' — ' + items.length + ' productos, '
+              + items.reduce((s, it) => s + it.qty, 0) + ' unidades');
+
+    return [{
+      id: 'FULL-' + envioId,
+      packId: null,
+      ventaId: null,
+      buyer: 'Envío Full #' + envioId,
+      items,
+      status: 'pending',
+      confirmedAt: null
+    }];
+  }
+  function extractFullProducts(text, into) {
+    if (!text) return;
     const blocks = text.split(/(?=Código\s*ML:)/i);
- 
     for (const block of blocks) {
       if (!/^Código\s*ML:/i.test(block.trim())) continue;
- 
-      // 1) Código ML (alfanumérico, siempre presente)
-      const mlMatch = block.match(/Código\s*ML:\s*([A-Z0-9]+)/i);
-      if (!mlMatch) continue;
-      const mlCode = mlMatch[1].toUpperCase();
- 
-      // 2) SKU (siempre presente)
       const skuMatch = block.match(/SKU:\s*([A-Za-z0-9ÁÉÍÓÚÜÑ_\-./]+)/i);
       if (!skuMatch) continue;
-      const sku = skuMatch[1].trim().toUpperCase();
- 
-      // 3) EAN — primer número de 13 dígitos en el bloque.
-      //    El código ML empieza con letras, así que no se confunde.
-      const eanMatch = block.match(/\b(\d{13})\b/);
-      const ean = eanMatch ? eanMatch[1] : null;
- 
-      // 4) Cantidad — el entero que precede a "Etiquetado".
-      //    Ej: "...12 Etiquetado" → 12. Fallback a 1 si no se encuentra.
-      const qtyMatch = block.match(/(\d+)\s+Etiquetado/i);
-      const qty = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
- 
-      items.push({
-        sku,
-        qty,
-        scanned: 0,
-        scannedEan: ean,   // pista para el flujo de "sin EAN registrado"
-        status: 'pending',
-        lastError: null
+      const eanMatch = block.match(/Código\s*universal:\s*(\d{13})/i)
+                    || block.match(/\b(\d{13})\b/);
+      into.push({
+        sku: skuMatch[1].trim().toUpperCase(),
+        ean: eanMatch ? eanMatch[1] : null
       });
     }
- 
-    if (items.length > 0) {
-      orders.push({
-        id: 'FULL-' + envioId,
-        packId: null,
-        ventaId: null,
-        buyer: 'Envío Full #' + envioId,
-        items,
-        status: 'pending',
-        confirmedAt: null
-      });
+  }
+  function extractFullQuantities(text, into) {
+    if (!text) return;
+    // Enteros aislados de 1-3 dígitos. Las instrucciones ("Envolvelos con papel
+    // burbuja...") no contienen números, así que el filtro es seguro.
+    const re = /(?:^|\s)(\d{1,3})(?=\s|$)/g;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      into.push(parseInt(m[1], 10));
     }
- 
-    console.log('[PDF Full] Envío #' + envioId + ' — ' + items.length + ' productos');
-    return orders;
   }
   // ── FORMATO ML unificado
   function parseMlUnified(text) {
@@ -332,7 +334,7 @@ const PdfParser = (() => {
     } else {
       orders = parseMlUnified(text);
     }
-    console.log(`[PDF] ${orders.length} pedidos encontrados`);
+     console.log(`[PDF] ${orders.length} pedidos encontrados`);
     return orders;
   }
   return { parse };
