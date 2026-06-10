@@ -147,17 +147,17 @@
   "ALAMIGE080X5": {
     "ean": "7791160316594",
     "desc": "Alambre Soldar Mig Mag Autorod Esab Conarco Weld 0.80 Mm Rollo X 5kg - Código: 309840",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ALAMIGE090": {
     "ean": "",
     "desc": "Alambre Soldar Mig Esab Conarco Autrod de Ø 0,90 Mm Hh Rollo x 18kg",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ALAMIGE125": {
     "ean": "",
     "desc": "Alambre Soldar Mig Esab Conarco Autrod de Ø 1,25 Mm Hh Rollo x 18kg",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ALAMIGL090": {
     "ean": "7799108046210",
@@ -276,7 +276,7 @@
   },
   "ALSGF100X5": {
     "ean": "7895678088572",
-    "desc": "Alambre De Soldadura Mig Para Uso Sin Gas, 1,0 Mm Y 5 Kg - Esab Gas Free",
+    "desc": "Alambre De Soldadura Mig Para Uso Sin Gas, 1,0 Mm Y 5 Kg - Esab Gas Free 751430",
     "marca": "Esab"
   },
   "ALSL060X5": {
@@ -669,6 +669,21 @@
     "desc": "Aparejo Eléctrico Trifásico Malacate 1 Tn Bta Industrial 6mt 903005",
     "marca": "BTA"
   },
+  "APEB903006": {
+    "ean": "7796072991508",
+    "desc": "Aparejo Eléctrico Trifásico Malacate 2 Tn Bta 6mt Industrial 903006",
+    "marca": "BTA"
+  },
+  "APEB903008": {
+    "ean": "7796072991515",
+    "desc": "Aparejo Eléctrico Trifásico Malacate 5 Tn Bta 9mt Industrial 903008",
+    "marca": "BTA"
+  },
+  "APEB903010": {
+    "ean": "7796072991522",
+    "desc": "Aparejo Eléctrico Trifásico Malacate 10tn Bta 12mt Industria 903010",
+    "marca": "BTA"
+  },
   "APED1000": {
     "ean": "7799034000287",
     "desc": "Aparejo Malacate Eléctrico Daewoo 1000kg 1800w 12 Metros DAHST500/1000",
@@ -902,7 +917,7 @@
   "APSTOR160": {
     "ean": "",
     "desc": "Torcha Esab Tig Et17v 4 Mt Soldadora Lhn Bantam Conarco Mig 732271",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "APSTOT250": {
     "ean": "4065401000178",
@@ -917,7 +932,7 @@
   "ARESAVAGE": {
     "ean": "7330725066344",
     "desc": "Arnés Careta Mascara Fotosensible Esab Savage A40 Conarco Negro - Código: 742756",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ARRCARL150L": {
     "ean": "7798225229636",
@@ -1669,6 +1684,11 @@
     "desc": "Batidora De Mano Yelmo 500w 5 Velocidades Bm-1608c BM1608C Celeste",
     "marca": "Yelmo"
   },
+  "BCCC9980374": {
+    "ean": "190349803742",
+    "desc": "Bidón Combustible Plástico 20l Con Pico Vertedor Crossmaster 9980374",
+    "marca": "Crossmaster"
+  },
   "BCCL02N": {
     "ean": "7799108043752",
     "desc": "Bidón Lüsqtoff Combustible Extrachato Con Pico Botella 2 Lts BP02-N",
@@ -2197,7 +2217,7 @@
   "CAFA20": {
     "ean": "7330725055980",
     "desc": "Careta Máscara Soldar Fotosensible Esab A20 Conarco - Código: 0735620",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "CAFA30": {
     "ean": "7330725056031",
@@ -2207,12 +2227,12 @@
   "CAFA40A": {
     "ean": "7330725066368",
     "desc": "Careta Máscara Soldar Fotosensible Esab Savage Amarilla A40 Conarco - Código: 0742754",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "CAFA40N": {
     "ean": "7330725066351",
     "desc": "Careta Máscara Soldar Fotosensible Esab Savage Negra A40 Conarco - Código: 0742753",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "CAFA41A": {
     "ean": "7330725089091",
@@ -2232,17 +2252,17 @@
   "CAFAR30": {
     "ean": "7330725056048",
     "desc": "Arnés Careta Mascara Fotosensible Esab Conarco A 30 Gramabi",
-    "marca": "Gramabi"
+    "marca": "Esab"
   },
   "CAFAS10": {
     "ean": "7895678903875",
     "desc": "Careta Máscara Soldar Fotosensible Esab Conarco Swarm A-10 A10 Color Negro Swarm A 10 747778",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "CAFAS20": {
     "ean": "7895678903868",
     "desc": "Careta Máscara Soldar Fotosensible Esab SWARM A20 A-20 A 20 Conarco - Código: 747779",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "CAFB121": {
     "ean": "7796072750563",
@@ -2292,12 +2312,12 @@
   "CAFEA50": {
     "ean": "7330725051739",
     "desc": "Careta Máscara Soldar Fotosensible Esab Sentinel A50 Conarco - Código: 0735017",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "CAFEA60": {
     "ean": "7330725068591",
     "desc": "Careta Máscara Soldar Fotosensible Esab Sentinel A60 Conarco - Código: 748385",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "CAFG3480": {
     "ean": "7797506015623",
@@ -2392,7 +2412,7 @@
   "CAFPEA20": {
     "ean": "7330725056024",
     "desc": "Protector Externo Careta Fotosensible Esab A-20 A-30 Gramabi",
-    "marca": "Gramabi"
+    "marca": "Esab"
   },
   "CAFPESA20P5": {
     "ean": "7895678903905",
@@ -2412,7 +2432,7 @@
   "CAFPIA30": {
     "ean": "",
     "desc": "Protector Interno Careta Fotosensible Esab A30 X10un Gramabi",
-    "marca": "Gramabi"
+    "marca": "Esab"
   },
   "CAFPIA40P10": {
     "ean": "7330725066337",
@@ -3429,6 +3449,11 @@
     "desc": "Cinta Métrica Amarilla 10m X 25mm Bta Metro C/freno Profesio 335023",
     "marca": "BTA"
   },
+  "CINEE101A": {
+    "ean": "7798008937086",
+    "desc": "Cinta Métrica Llavero Evel 1 Metro 101 Argentina 3 Estrellas 101A",
+    "marca": "Evel"
+  },
   "CINEE2": {
     "ean": "7798008931022",
     "desc": "Cinta Métrica Evel Ecoflex Art. 102 de 2 Metros S/freno",
@@ -3437,6 +3462,21 @@
   "CINEE3": {
     "ean": "7798008931039",
     "desc": "Cinta Métrica Evel Ecoflex Art. 103 de 3 Metros S/freno",
+    "marca": "Evel"
+  },
+  "CINEE505A": {
+    "ean": "7798008935051",
+    "desc": "Cinta Métrica Evel 5 Metros 505 Argentina 3 Estrellas 505A",
+    "marca": "Evel"
+  },
+  "CINEE508A": {
+    "ean": "7798008935082",
+    "desc": "Cinta Métrica Llavero Evel 8 Metros 508 Argentina 3 Estrella 508A",
+    "marca": "Evel"
+  },
+  "CINEE525A": {
+    "ean": "7798008937154",
+    "desc": "Cinta Métrica Llavero Evel 5 Metros 525 Argentina 3 Estrella 525A",
     "marca": "Evel"
   },
   "CINEL1": {
@@ -3616,7 +3656,7 @@
   },
   "CLAPP15": {
     "ean": "",
-    "desc": "Clavos Punta Paris Acindar De 1 1/2\" Bolsa x 1 kg.",
+    "desc": "Clavos Punta Paris Acindar De 1 1/2\" Bolsa x 1 kg. 281848",
     "marca": "Acindar"
   },
   "CLAPP2510": {
@@ -4288,6 +4328,31 @@
     "ean": "7797506013131",
     "desc": "Cortadora Cesped Elect.gamma Elite G4946ar 1800w Color Rojo",
     "marca": "Gamma"
+  },
+  "CORHORB9933441": {
+    "ean": "7796072005465",
+    "desc": "Cortadora De Hormigon Asfalto Bta 350mm 6.5hp Corte 350mm 993344.1",
+    "marca": "BTA"
+  },
+  "CORHORB9933442": {
+    "ean": "7796072005472",
+    "desc": "Cortadora De Hormigon Asfalto Bta 350mm 5.5hp Honda Gx 160 993344.2",
+    "marca": "BTA"
+  },
+  "CORHORB9933482": {
+    "ean": "7796072005496",
+    "desc": "Cortadora De Hormigon Asfalto Bta 9.0hp Motor Honda Gx 270 993348.2",
+    "marca": "BTA"
+  },
+  "CORHORB9933501": {
+    "ean": "7796072005502",
+    "desc": "Cortadora De Hormigon Asfalto Bta 13hp Motor 170mm 993350.1",
+    "marca": "BTA"
+  },
+  "CORHORB9933502": {
+    "ean": "7796072005519",
+    "desc": "Cortadora De Hormigon Asfalto Bta 13hp Motor Honda Gx 390 993350.2",
+    "marca": "BTA"
   },
   "CORL1032B": {
     "ean": "7798225222507",
@@ -6372,22 +6437,22 @@
   "ELCE3206761P5": {
     "ean": "",
     "desc": "Electrodos Soldar Esab Ok Conarco 67.61 3.25mm Pack X 5 Kg",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ELCE3206761": {
     "ean": "",
     "desc": "Electrodos Soldar Esab Ok Conarco 67.61 3.25mm X 1 Kg 729202",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ELCE3206884P5": {
     "ean": "",
     "desc": "Electrodos Soldar Esab Ok Conarco 68.84 3.25mm Pack X 5 Kg",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ELCE3206884": {
     "ean": "",
     "desc": "Electrodos Soldar Esab Ok Conarco 68.84 3.25mm X 1 Kg. 729205",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ELCL200P25": {
     "ean": "",
@@ -6527,7 +6592,7 @@
   "ENGD2540": {
     "ean": "6942431464690",
     "desc": "Engrasadora Manual 400cc Dyllu By Total DMTAEN400",
-    "marca": "Total"
+    "marca": "Dyllu"
   },
   "ENGD": {
     "ean": "7796072750938",
@@ -6682,17 +6747,17 @@
   "ESM3P4": {
     "ean": "7798147568684",
     "desc": "4 Escuadras Soporte Magnético 3 Pu 11 Kg Soldar Dogo Gramabi",
-    "marca": "Gramabi"
+    "marca": "Dogo"
   },
   "ESM3": {
     "ean": "7798147568684",
-    "desc": "Escuadra Soporte Magnético DOGO de 3",
+    "desc": "Escuadra Soporte Magnético DOGO de 3 DOG15570",
     "marca": "Dogo"
   },
   "ESM4P4": {
     "ean": "",
     "desc": "4 Escuadras Soporte Magnético 4 22 Kg Soldar Dogo Gramabi F",
-    "marca": "Gramabi"
+    "marca": "Dogo"
   },
   "ESM4": {
     "ean": "",
@@ -6720,7 +6785,7 @@
     "marca": "Crossmaster"
   },
   "ESMC4P4": {
-    "ean": "190349322649",
+    "ean": "",
     "desc": "4 Escuadras Soporte Magnético 4'' 23 Kg Soldar Cros Sim Dogo",
     "marca": "Dogo"
   },
@@ -6737,7 +6802,7 @@
   "ESME3P4": {
     "ean": "",
     "desc": "4 Escuadras Soporte Magnético 3'' Soldar Esab Conarco 20 Kg.",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "ESME3": {
     "ean": "",
@@ -7081,7 +7146,7 @@
   },
   "GABL129": {
     "ean": "7799108053492",
-    "desc": "Gabinete Organizador Bandeja Lusqtoff 12 Cajones Desmontable GML12-9",
+    "desc": "Gabinete Organizador Bandeja Lusqtoff 12 Cajones Desmontable GML12-9 GML12165-9",
     "marca": "Lüsqtoff"
   },
   "GABL132": {
@@ -7320,7 +7385,7 @@
     "marca": "Daihatsu"
   },
   "GELDA3500IA": {
-    "ean": "0714604497509",
+    "ean": "714604497509",
     "desc": "Grupo Electrógeno Generador Eléctrico Inverter 3500w Monofásico GE3500IA",
     "marca": "Otros"
   },
@@ -7410,7 +7475,7 @@
     "marca": "Daewoo"
   },
   "GELDW8000AE": {
-    "ean": "",
+    "ean": "7799034127236",
     "desc": "Generador Eléctrico Grupo Electrógeno Nafta Daewoo 8000w GDA8000E",
     "marca": "Daewoo"
   },
@@ -7897,12 +7962,12 @@
   "GRIP10007": {
     "ean": "7799100103478",
     "desc": "Grifería Ducha Piazza Emblem Monocomando Embutir Cromado Baño 10007",
-    "marca": "Emblem"
+    "marca": "Piazza"
   },
   "GRIP10012": {
     "ean": "7798159576769",
     "desc": "Grifería Cocina Mesada Monocomando Piazza Canilla Emblem Cro 10012",
-    "marca": "Emblem"
+    "marca": "Piazza"
   },
   "GRIP10013": {
     "ean": "7798159573706",
@@ -7912,17 +7977,17 @@
   "GRIP10014": {
     "ean": "7798159573690",
     "desc": "Grifería Emblem Piazza Monocomando Cocina Pico Bar Canilla 10014",
-    "marca": "Emblem"
+    "marca": "Piazza"
   },
   "GRIP10016BL": {
     "ean": "7798305347618",
     "desc": "Grifería Cocina Mesada Monocomando Piazza Canilla Blanco Emblem 10016BL",
-    "marca": "Emblem"
+    "marca": "Piazza"
   },
   "GRIP10016GR": {
     "ean": "7799100103591",
     "desc": "Grifería Cocina Mesada Monocomando Piazza - 10016gr - Canilla Emblem Gris Manguera Con Flexible",
-    "marca": "Emblem"
+    "marca": "Piazza"
   },
   "GRIP10016NE": {
     "ean": "7798305347601",
@@ -7932,12 +7997,12 @@
   "GRIP10017NE": {
     "ean": "7799100103577",
     "desc": "Grifería Cocina Mesada Monocomando Piazza - 10017ne - Emblem Canilla Negro",
-    "marca": "Emblem"
+    "marca": "Piazza"
   },
   "GRIP10017": {
     "ean": "7799100104178",
     "desc": "Grifería Cocina Mesada Monocomando Piazza - 10017 - Canilla Emblem",
-    "marca": "Emblem"
+    "marca": "Piazza"
   },
   "GRIP10300NE": {
     "ean": "7799100001408",
@@ -8143,6 +8208,11 @@
     "ean": "7798305347861",
     "desc": "Válvula De Baño Cromado Descarga Inodoro Botón Manual 43036",
     "marca": "Otros"
+  },
+  "GRIPD2002": {
+    "ean": "7798305340763",
+    "desc": "Grifería De Baño Flor De Ducha Duchador Redonda Piazza D2002",
+    "marca": "Piazza"
   },
   "GUD702GR09": {
     "ean": "",
@@ -8812,7 +8882,7 @@
   "KIDD1206": {
     "ean": "6942431479564",
     "desc": "Juego De 6 Destornilladores Phillips Plano Dyllu By Total DMDS06D0C",
-    "marca": "Total"
+    "marca": "Dyllu"
   },
   "KIDD2B06": {
     "ean": "6942431464492",
@@ -9007,7 +9077,7 @@
   "KIPIND0633": {
     "ean": "6942431475498",
     "desc": "Kit De Tres Pinzas Aisladas 6 Y 7 Dyllu By Total DMPIK3A66",
-    "marca": "Total"
+    "marca": "Dyllu"
   },
   "KIPINT0301S": {
     "ean": "",
@@ -9949,6 +10019,11 @@
     "desc": "Minitorno Dowen Pagio con Flexible de 160W Incluye 250 Accesorios - Código: 9990561",
     "marca": "Dowen Pagio"
   },
+  "MIND9990561": {
+    "ean": "7796072905611",
+    "desc": "Minitorno Eléctrico De Mano 130w Dowen Pagio Rosa 250 Acces 9990561",
+    "marca": "Dowen Pagio"
+  },
   "MINE4419158": {
     "ean": "",
     "desc": "Minitorno Einhell Th-mg 135 Soporte 189 Accesorios Maletin 135w - Código: 4419158",
@@ -10250,7 +10325,7 @@
     "marca": "Otros"
   },
   "MOTB8771551": {
-    "ean": "7796072991980",
+    "ean": "7796072992017",
     "desc": "Motosierra A Explosión 52cc Bta Espada 50cm Jardín 2,99 Hp 877155.1",
     "marca": "BTA"
   },
@@ -10427,7 +10502,7 @@
   "MOTL52BLANCA": {
     "ean": "7799108040270",
     "desc": "Motosierra A Nafta Lusqtoff Garden Plus 52cc Prom-52 Prom-52G2.5hp + Aceite",
-    "marca": "Garden Plus"
+    "marca": "Lüsqtoff"
   },
   "MOTL52GC": {
     "ean": "7798225228547",
@@ -10737,10 +10812,10 @@
   "PALKBVULCAN": {
     "ean": "7790368299224",
     "desc": "Parlante Bafle Potenciado Ken Brown Woofer Luz Bluetooth Torre VULCAN",
-    "marca": "Otros"
+    "marca": "Ken Brown"
   },
   "PALL011": {
-    "ean": "",
+    "ean": "7799108059289",
     "desc": "Pala Plegable Para Camping Lusqtof Negro Pico Sierra Llave H LOD011",
     "marca": "Otros"
   },
@@ -10772,12 +10847,12 @@
   "PARC6500BT": {
     "ean": "7790368295219",
     "desc": "Parlante Portátil Bluetooth Sbl-6500bt Crown Mustang 8500w Color Negro",
-    "marca": "Otros"
+    "marca": "Crown Mustang"
   },
   "PARCM1002BT": {
     "ean": "7790368293901",
     "desc": "Parlante Potenciado Portatil Crown Mustang 25000w Bluetooth DJS1002BT",
-    "marca": "Otros"
+    "marca": "Crown Mustang"
   },
   "PARE4514150": {
     "ean": "4006825644531",
@@ -10787,12 +10862,12 @@
   "PARKBMONSTERBOX": {
     "ean": "7790368297626",
     "desc": "Parlante Bafle Potenciado Ken Brown 3 Vias Woofer Torre Luz",
-    "marca": "Otros"
+    "marca": "Ken Brown"
   },
   "PARKBOOM10": {
     "ean": "7790368296490",
     "desc": "Parlante Portátil Ken Brown Boom 10 Con Bluetooth, Karaoke Y Led, Negro, 40000w Rms, 12v",
-    "marca": "Otros"
+    "marca": "Ken Brown"
   },
   "PARRPG321": {
     "ean": "7799034289378",
@@ -10992,7 +11067,7 @@
   "PIND3937": {
     "ean": "6942431474507",
     "desc": "Pinza Alicate Alta Tensión 180mm Dyllu By Total Color Rojo DMPIAA180",
-    "marca": "Total"
+    "marca": "Dyllu"
   },
   "PINL4510": {
     "ean": "",
@@ -11714,6 +11789,31 @@
     "desc": "Pistola Aplicadora Para Cartucho Silicona 280ml Truper 17558",
     "marca": "Truper"
   },
+  "PLACOMB9934101": {
+    "ean": "7796072005540",
+    "desc": "Placa Compactadora 500 X 530 Bta 6,5hp Alisa Suelo 13kn 993410.1",
+    "marca": "BTA"
+  },
+  "PLACOMB9934102": {
+    "ean": "7796072005557",
+    "desc": "Placa Compactadora 500 X 530 Honda 160 Bta 5,5hp Alisa Suelo 993410.2",
+    "marca": "BTA"
+  },
+  "PLACOMB9934142": {
+    "ean": "7796072005571",
+    "desc": "Placa Compactadora 460 X 610 Honda 160 Bta 5,5hp Alisa Suelo 993414.2",
+    "marca": "BTA"
+  },
+  "PLACOMB9934181": {
+    "ean": "7796072005588",
+    "desc": "Placa Compactadora Bta 6,5hp 370 Mm X 730mm 30,5 Kn 993418.1",
+    "marca": "BTA"
+  },
+  "PLACOMB9934182": {
+    "ean": "7796072005588",
+    "desc": "Placa Compactadora Bta 5,5hp 370 X 730mm Motor Honda Gx 160 993418.2",
+    "marca": "BTA"
+  },
   "PLACOML55": {
     "ean": "",
     "desc": "Placa Compactadora Motor 5.5 Hp 5500vpm Lusqtoff Hrz-90 + Aceite LQ",
@@ -11822,7 +11922,12 @@
   "MOTCD1A75": {
     "ean": "6942431476846",
     "desc": "Motocultivador 6.5hp 750mm Autopropulsado Dyllu By Total Rot DXMEMO650 DTTL1A75",
-    "marca": "Total"
+    "marca": "Dyllu"
+  },
+  "PLACOMB9934062": {
+    "ean": "7796072005533",
+    "desc": "Placa Compactadora 500 X 360 Honda 160 Bta 5,5hp Alisa Suelo 993406.2",
+    "marca": "BTA"
   },
   "AMOL24009": {
     "ean": "7799108056738",
@@ -11872,6 +11977,11 @@
   "AMALSOP749": {
     "ean": "7799108046692",
     "desc": "Soporte Base Pie Para Amoladora Banco Metal Agarre Lusqtoff Negro SABL74-9",
+    "marca": "Lüsqtoff"
+  },
+  "GELBTA521302": {
+    "ean": "7796072992178",
+    "desc": "Generador Eléctrico Inverter Lusqtoff 800w 2t Grupo Electróg 521302",
     "marca": "Lüsqtoff"
   },
   "DUCPD4002": {
@@ -12709,6 +12819,11 @@
     "desc": "Sierra Caladora De Banco Eléctrica 410mm Lusqtoff 125w Luz SCB-16AV",
     "marca": "Lüsqtoff"
   },
+  "SCBB6460621": {
+    "ean": "7796072750587",
+    "desc": "Sierra Caladora Banco Bta 406mm Velocidad Variable 1700rpm 646062.1",
+    "marca": "BTA"
+  },
   "SCBE4340450": {
     "ean": "4006825647365",
     "desc": "Sierra Circular Banco 210mm Inalámbrica Einhell Te-ts Sola - Código: 4340450",
@@ -12915,7 +13030,7 @@
     "marca": "Wanke"
   },
   "SECW150PB2026": {
-    "ean": "7890052002175",
+    "ean": "7890052002489",
     "desc": "Secarropas Centrífugo Wanke Premiun 15kg Negro 300w Carga Su CWAT150PB2026",
     "marca": "Wanke"
   },
@@ -13224,6 +13339,16 @@
     "desc": "Sierra Sin Fin Para Metal Eléctrica Bta Industrial 370w 646003",
     "marca": "BTA"
   },
+  "SIESINFINB6460342": {
+    "ean": "7796072006332",
+    "desc": "Sierra Circular De Pie Eléctrica 254mm Bta 5700rpm 45° 1500w 646034.2",
+    "marca": "BTA"
+  },
+  "SIESINFINB6460664": {
+    "ean": "7796072991317",
+    "desc": "Sierra Sin Fin De Banco Eléctrica Bta Para Madera 245mm 370w 646066.4",
+    "marca": "BTA"
+  },
   "SIESINFINL11009": {
     "ean": "7799108046739",
     "desc": "Sierra Sin Fin Banco Madera Lusqtoff 2360mm 1100w Profesional SFL1100-9",
@@ -13447,7 +13572,7 @@
   "SOLE202I": {
     "ean": "7895678985130",
     "desc": "Soldadora Esab Inverter Conarco LHN 202i de 200A - Código: 742917",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "SOLE210": {
     "ean": "7895678086929",
@@ -13461,7 +13586,7 @@
   },
   "SOLE240I": {
     "ean": "7791160037588",
-    "desc": "Máquina De Soldar Soldadora Inverter Esab Rogue 200A LHN ES245i LHN242 411011",
+    "desc": "Máquina De Soldar Soldadora Inverter Esab Rogue 200A LHN LHN242 411011",
     "marca": "Esab"
   },
   "SOLEES245I": {
@@ -13577,27 +13702,27 @@
   "SOLHA142": {
     "ean": "7791160037601",
     "desc": "Soldadora Esab Inverter Conarco Handyarc 142i de 140A - Código: 409615",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "SOLHA160C3": {
     "ean": "",
     "desc": "Soldadora Inverter Esab Conarco Handy Arc 160i + Careta Amarillo",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "SOLHA160CB1": {
     "ean": "",
     "desc": "Soldadora Esab Inverter Conarco Handyarc 162i de 160A - Código: 409616 + 1 Careta BTA 121",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "SOLHA160CE1": {
     "ean": "",
     "desc": "Soldadora Esab Inverter Conarco Handyarc 162i de 160A - Código: 409616",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "SOLHA160": {
     "ean": "7791160037618",
     "desc": "Soldadora Esab Inverter Conarco Handyarc 162i de 160A - Código: 409616",
-    "marca": "Conarco"
+    "marca": "Esab"
   },
   "SOLL1208DK": {
     "ean": "7799108053539",
@@ -14267,7 +14392,7 @@
   "TALGP199BK": {
     "ean": "7799108053560",
     "desc": "Taladro Brushless Atornillador Gp Garden Plus De Lusqtoff Lh-199bk Bateria Inalambrico 18v Mandril 10mm Metalico Con Reg",
-    "marca": "Garden Plus"
+    "marca": "Lüsqtoff"
   },
   "TALGP199": {
     "ean": "7798225224839",
@@ -14277,7 +14402,7 @@
   "TALGP457BK": {
     "ean": "7799108059326",
     "desc": "Taladro Atornillador Brushless 18v Garden Plus Lusqtoff 10mm GPT45-7BK",
-    "marca": "Garden Plus"
+    "marca": "Lüsqtoff"
   },
   "TALK1321": {
     "ean": "7798363393435",
@@ -14958,6 +15083,11 @@
     "ean": "7805738022248",
     "desc": "Tope Con Base Portón Abatible Hd 2h 43mm Acero Ducasse 4010045088",
     "marca": "Ducasse"
+  },
+  "TORMB647020": {
+    "ean": "7796072700384",
+    "desc": "Torno Mecánico Metal Paralelo Bta 560w 1820 Rpm 500 Mm 647020",
+    "marca": "BTA"
   },
   "TORML1000M": {
     "ean": "7798225223238",
@@ -16748,5 +16878,1080 @@
     "ean": "6925582172294",
     "desc": "Zorra Hidráulica Para Palets Pallets Total Industrial 2500kg YZH025000 THT301251",
     "marca": "Total"
+  },
+  "ANCBP": {
+    "ean": "7898664631790",
+    "desc": "Caminador Bebé Piloto",
+    "marca": "Otros"
+  },
+  "ANCBPR": {
+    "ean": "7898664631790",
+    "desc": "Caminador Bebé Piloto",
+    "marca": "Otros"
+  },
+  "ANCCAM": {
+    "ean": "7898179821075",
+    "desc": "Caminador Cachorro",
+    "marca": "Otros"
+  },
+  "ANCCAR": {
+    "ean": "7898179821075",
+    "desc": "Caminador Cachorro",
+    "marca": "Otros"
+  },
+  "ANCFSR": {
+    "ean": "7797161030313",
+    "desc": "Caminador Andador Encastre Bebe Didáctico First Steps Rondi",
+    "marca": "Rondi"
+  },
+  "ANCHI": {
+    "ean": "7898179821068",
+    "desc": "Caminador Hipopótamo",
+    "marca": "Otros"
+  },
+  "ANCHIA": {
+    "ean": "7898179821068",
+    "desc": "Caminador Hipopótamo",
+    "marca": "Otros"
+  },
+  "ANCHIN": {
+    "ean": "7898179821068",
+    "desc": "Caminador Hipopótamo",
+    "marca": "Otros"
+  },
+  "ANDPP": {
+    "ean": "7898664630441",
+    "desc": "Caminador Primeros Pasos",
+    "marca": "Otros"
+  },
+  "BATBBA": {
+    "ean": "7898664632193",
+    "desc": "Bateria Musical Baby Batera Con Luz Y Sonido Ta Te Ti 825",
+    "marca": "Otros"
+  },
+  "BATJAZZ": {
+    "ean": "6991206532850",
+    "desc": "Bateria Jazz Drum",
+    "marca": "Otros"
+  },
+  "BURVAR": {
+    "ean": "6991209959098",
+    "desc": "Burbujero Varita Mágica Princesa Luz Sonido Automático",
+    "marca": "Otros"
+  },
+  "BYCMAG46": {
+    "ean": "6991200676161",
+    "desc": "Bloques Magnéticos 46 Piezas",
+    "marca": "Otros"
+  },
+  "BYCMAG58": {
+    "ean": "6991207456858",
+    "desc": "Bloques Magnéticos 58 Piezas",
+    "marca": "Otros"
+  },
+  "COCMCP": {
+    "ean": "7797161054005",
+    "desc": "Cocina Rondi Maxi Cheff Plateada Con Luz Sonido Y Accesorios",
+    "marca": "Rondi"
+  },
+  "CRTBIA": {
+    "ean": "7798326067175",
+    "desc": "Cartuchera Bia Pvc Libreta Lápices Y Accesorios Disney",
+    "marca": "Disney"
+  },
+  "DEPADF": {
+    "ean": "6991202317734",
+    "desc": "Arco Futbol Juguete Con Red",
+    "marca": "Otros"
+  },
+  "ENCBCA": {
+    "ean": "7796784007047",
+    "desc": "Auto Juguete Didactico Encastre Baby Car",
+    "marca": "Otros"
+  },
+  "ENCCAR": {
+    "ean": "7796784007214",
+    "desc": "Casita Alegre Juguete Encastre",
+    "marca": "Otros"
+  },
+  "ENCCARS": {
+    "ean": "7796784007214",
+    "desc": "Casita Alegre Juguete Encastre",
+    "marca": "Otros"
+  },
+  "ENCGRD": {
+    "ean": "7898664631806",
+    "desc": "Granja Didáctica - Calesita Ta Te Ti Art 894 Color Blanco/rojo",
+    "marca": "Otros"
+  },
+  "ENCTRV": {
+    "ean": "7796784007115",
+    "desc": "Locomotora Con Vagon Juguete Encastre",
+    "marca": "Otros"
+  },
+  "GUI76AP": {
+    "ean": "4895006030412",
+    "desc": "GUITARRA 76CM",
+    "marca": "Otros"
+  },
+  "GUI76GT": {
+    "ean": "4895006030412",
+    "desc": "GUITARRA 76CM",
+    "marca": "Otros"
+  },
+  "GUI76RFL": {
+    "ean": "4895006030412",
+    "desc": "GUITARRA 76CM",
+    "marca": "Otros"
+  },
+  "GUI76VFL": {
+    "ean": "4895006030412",
+    "desc": "GUITARRA 76CM",
+    "marca": "Otros"
+  },
+  "GUI76VH": {
+    "ean": "4895006030412",
+    "desc": "GUITARRA 76CM",
+    "marca": "Otros"
+  },
+  "GUICHAZ": {
+    "ean": "6991279276590",
+    "desc": "Guitarra Juguete Musical Con Micrófono Melodías Y Luz Niños",
+    "marca": "Otros"
+  },
+  "GUICHRJ": {
+    "ean": "6991279276590",
+    "desc": "Guitarra Juguete Musical Con Micrófono Melodías Y Luz Niños",
+    "marca": "Otros"
+  },
+  "GUIERA": {
+    "ean": "6991208437016",
+    "desc": "Guitarra Electrica Juguete Musical A Pilas Cuerdas Y Correa",
+    "marca": "Otros"
+  },
+  "GUIERN": {
+    "ean": "6991208437016",
+    "desc": "Guitarra Electrica Juguete Musical A Pilas Cuerdas Y Correa",
+    "marca": "Otros"
+  },
+  "GUIERR": {
+    "ean": "6991208437016",
+    "desc": "Guitarra Electrica Juguete Musical A Pilas Cuerdas Y Correa",
+    "marca": "Otros"
+  },
+  "JDCJDM": {
+    "ean": "6991203688741",
+    "desc": "Juego Set De Mate Grande",
+    "marca": "Otros"
+  },
+  "JDMCHC": {
+    "ean": "7794635004887",
+    "desc": "Juego De Mesa Los Chanchitos Constructores Ruibal H488",
+    "marca": "Ruibal"
+  },
+  "JDMDLA": {
+    "ean": "7794635061187",
+    "desc": "Damas Linea Azul Ruibal",
+    "marca": "Ruibal"
+  },
+  "JDMLLA": {
+    "ean": "7794635061170",
+    "desc": "Ludo Linea Azul",
+    "marca": "Otros"
+  },
+  "JDMML": {
+    "ean": "6991202924154",
+    "desc": "Juego De Mesa Tumbling Monkey",
+    "marca": "Otros"
+  },
+  "JDODRC": {
+    "ean": "6991205307398",
+    "desc": "Juego De Doctor Doctora Grande",
+    "marca": "Otros"
+  },
+  "JDODRR": {
+    "ean": "6991205311357",
+    "desc": "Juego De Doctor Doctora Grande",
+    "marca": "Otros"
+  },
+  "JDOMICR": {
+    "ean": "7898179822034",
+    "desc": "Microondas",
+    "marca": "Otros"
+  },
+  "JDOMICV": {
+    "ean": "7898179822034",
+    "desc": "Microondas",
+    "marca": "Otros"
+  },
+  "MFATAA": {
+    "ean": "6991207612360",
+    "desc": "Transformers Robot Auto",
+    "marca": "Transformers"
+  },
+  "MFATAR": {
+    "ean": "6991207612360",
+    "desc": "Transformers Robot Auto",
+    "marca": "Transformers"
+  },
+  "MFATCA": {
+    "ean": "6991207612360",
+    "desc": "Transformers Robot Auto",
+    "marca": "Transformers"
+  },
+  "MFATCG": {
+    "ean": "6991207612360",
+    "desc": "Transformers Robot Auto",
+    "marca": "Transformers"
+  },
+  "MFATPB": {
+    "ean": "6991207612360",
+    "desc": "Transformers Robot Auto",
+    "marca": "Transformers"
+  },
+  "MFATPN": {
+    "ean": "6991207612360",
+    "desc": "Transformers Robot Auto",
+    "marca": "Transformers"
+  },
+  "MONCLCE": {
+    "ean": "6991204891201",
+    "desc": "Monopatin con luz 4 ruedas",
+    "marca": "Otros"
+  },
+  "MONCLN": {
+    "ean": "6991204891201",
+    "desc": "Monopatin con luz 4 ruedas",
+    "marca": "Otros"
+  },
+  "MONCLRJ": {
+    "ean": "6991204891201",
+    "desc": "Monopatin con luz 4 ruedas",
+    "marca": "Otros"
+  },
+  "MONCLRS": {
+    "ean": "6991204891201",
+    "desc": "Monopatin con luz 4 ruedas",
+    "marca": "Otros"
+  },
+  "MONCLVE": {
+    "ean": "6991204891201",
+    "desc": "Monopatin con luz 4 ruedas",
+    "marca": "Otros"
+  },
+  "MOUBAT": {
+    "ean": "7790368296889",
+    "desc": "Mouse Inalambrico Batou Crown Wirelees 2,4 Ghz Plug And Play",
+    "marca": "Crown"
+  },
+  "MTANNA": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTARIC": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTAUR": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTBELA": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTBELC": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTCENC": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTCENR": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTELSA": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTRAPU": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTSVEN": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MTTIA": {
+    "ean": "7798158209095",
+    "desc": "Muñecas Mini Toddler",
+    "marca": "Otros"
+  },
+  "MUBCP124": {
+    "ean": "7793602001249",
+    "desc": "Mi Bebé Con Pelela Yoly Bell Art 124",
+    "marca": "Yoly Bell"
+  },
+  "MUBME206": {
+    "ean": "7793602002062",
+    "desc": "Mi Bebe De Yoly Bell Mediano 206",
+    "marca": "Yoly Bell"
+  },
+  "MUMUEKR": {
+    "ean": "4895006799159",
+    "desc": "Muñeca Muekitas Lalelu",
+    "marca": "Lalelu"
+  },
+  "MUNABR": {
+    "ean": "7798293841525",
+    "desc": "Bebote Abril Santi 118b",
+    "marca": "Santi"
+  },
+  "MUNSAN": {
+    "ean": "7798293841525",
+    "desc": "Bebote Abril Santi 118b",
+    "marca": "Santi"
+  },
+  "MUNAGU": {
+    "ean": "7798293840504",
+    "desc": "Bebote Camila Agustin 104b",
+    "marca": "Otros"
+  },
+  "MUNCAM": {
+    "ean": "7798293840504",
+    "desc": "Bebote Camila Agustin 104b",
+    "marca": "Otros"
+  },
+  "MUNAST": {
+    "ean": "7798293841440",
+    "desc": "Bebote Mia Astor 126",
+    "marca": "Astor"
+  },
+  "MUNMIA": {
+    "ean": "7798293841440",
+    "desc": "Bebote Mia Astor 126",
+    "marca": "Astor"
+  },
+  "MUPIKL": {
+    "ean": "4895006789983",
+    "desc": "Muñeca Piky Se Esconde Interactiva Lalelu",
+    "marca": "Lalelu"
+  },
+  "MUPIKR": {
+    "ean": "4895006789983",
+    "desc": "Muñeca Piky Se Esconde Interactiva Lalelu",
+    "marca": "Lalelu"
+  },
+  "MUVIC": {
+    "ean": "4895006789242",
+    "desc": "La Le Lu Vicky Camina",
+    "marca": "Lalelu"
+  },
+  "MYBMMMB": {
+    "ean": "6991203926744",
+    "desc": "Mamadera Magica De Juguete",
+    "marca": "Otros"
+  },
+  "MYBMMMN": {
+    "ean": "6991203926744",
+    "desc": "Mamadera Magica De Juguete",
+    "marca": "Otros"
+  },
+  "OELDRC": {
+    "ean": "7798326060435",
+    "desc": "Drone Aircraft Avengers Hulk Capitan America Marvel Luz Led",
+    "marca": "Otros"
+  },
+  "OELDRH": {
+    "ean": "7798326060435",
+    "desc": "Drone Aircraft Avengers Hulk Capitan America Marvel Luz Led",
+    "marca": "Otros"
+  },
+  "PDECVD": {
+    "ean": "7797898970951",
+    "desc": "Cuenta Vueltas Digital Universal Sk Pista Scalextric 1:32",
+    "marca": "Otros"
+  },
+  "PELHIP60": {
+    "ean": "7798036085414",
+    "desc": "Animales Patas Largas Peluche Mono Panda Perro Hipo Oso 1601d",
+    "marca": "Otros"
+  },
+  "PELMON60": {
+    "ean": "7798036085414",
+    "desc": "Animales Patas Largas Peluche Mono Panda Perro Hipo Oso 1601d",
+    "marca": "Otros"
+  },
+  "PELOM60": {
+    "ean": "7798036085414",
+    "desc": "Animales Patas Largas Peluche Mono Panda Perro Hipo Oso 1601d",
+    "marca": "Otros"
+  },
+  "PELOP60": {
+    "ean": "7798036085414",
+    "desc": "Animales Patas Largas Peluche Mono Panda Perro Hipo Oso 1601d",
+    "marca": "Otros"
+  },
+  "PELPER60": {
+    "ean": "7798036085414",
+    "desc": "Animales Patas Largas Peluche Mono Panda Perro Hipo Oso 1601d",
+    "marca": "Otros"
+  },
+  "PELPBAGS": {
+    "ean": "6991207373377",
+    "desc": "Perrito Cachorro Siberiano Peluche En Cartera Porta Mascota",
+    "marca": "Otros"
+  },
+  "PELBGA": {
+    "ean": "7798326069421",
+    "desc": "Peluche Baby Gemmy Sorpresa",
+    "marca": "Otros"
+  },
+  "PELBGR": {
+    "ean": "7798326069421",
+    "desc": "Peluche Baby Gemmy Sorpresa",
+    "marca": "Otros"
+  },
+  "PELBGV": {
+    "ean": "7798326069421",
+    "desc": "Peluche Baby Gemmy Sorpresa",
+    "marca": "Otros"
+  },
+  "PELBSA": {
+    "ean": "7798326068462",
+    "desc": "Pelota Baby Shark De Goma",
+    "marca": "Baby Shark"
+  },
+  "PELBSAZ": {
+    "ean": "7798326068462",
+    "desc": "Pelota Baby Shark De Goma",
+    "marca": "Baby Shark"
+  },
+  "PELBSR": {
+    "ean": "7798326068462",
+    "desc": "Pelota Baby Shark De Goma",
+    "marca": "Baby Shark"
+  },
+  "PELBSA30M": {
+    "ean": "7798326068387",
+    "desc": "Peluche Musical Juguete Original Baby Shark 30 Cm Bebé Niño",
+    "marca": "Baby Shark"
+  },
+  "PELBSAZ30M": {
+    "ean": "7798326068387",
+    "desc": "Peluche Musical Juguete Original Baby Shark 30 Cm Bebé Niño",
+    "marca": "Baby Shark"
+  },
+  "PELBSR30M": {
+    "ean": "7798326068387",
+    "desc": "Peluche Musical Juguete Original Baby Shark 30 Cm Bebé Niño",
+    "marca": "Baby Shark"
+  },
+  "PELOMC160": {
+    "ean": "7798036089634",
+    "desc": "Oso de peluche 160cm Gigante",
+    "marca": "Otros"
+  },
+  "PELOMO160": {
+    "ean": "7798036089634",
+    "desc": "Oso de peluche 160cm Gigante",
+    "marca": "Otros"
+  },
+  "PELORS160": {
+    "ean": "7798036089634",
+    "desc": "Oso de peluche 160cm Gigante",
+    "marca": "Otros"
+  },
+  "PELOMC25": {
+    "ean": "7798036085957",
+    "desc": "Oso De Peluche Beige Con Moño 25 CM 18017",
+    "marca": "Otros"
+  },
+  "PELOMR25": {
+    "ean": "7798036085957",
+    "desc": "Oso De Peluche Beige Con Moño 25 CM 18017",
+    "marca": "Otros"
+  },
+  "PELOCR80": {
+    "ean": "7798036089597",
+    "desc": "Oso Peluche Grande Gigante Enorme Super Relleno Ys050062 1,3",
+    "marca": "Otros"
+  },
+  "PELORS80": {
+    "ean": "7798036089627",
+    "desc": "Oso Peluche Grande Gigante Enorme Super Relleno Ys050062 1,3",
+    "marca": "Otros"
+  },
+  "PELOBBE": {
+    "ean": "7798036089597",
+    "desc": "Oso Polar Peluche Gigante 1m Corazón Bordado Super Relleno YS040060",
+    "marca": "Otros"
+  },
+  "PELOBBL": {
+    "ean": "7798036089597",
+    "desc": "Oso Polar Peluche Gigante 1m Corazón Bordado Super Relleno YS040060",
+    "marca": "Otros"
+  },
+  "PELOC60BL": {
+    "ean": "7798036085650",
+    "desc": "Oso De Peluche Corazón Te Amo",
+    "marca": "Otros"
+  },
+  "PELOC60RS": {
+    "ean": "7798036085650",
+    "desc": "Oso De Peluche Corazón Rosa",
+    "marca": "Otros"
+  },
+  "PELOC60RSTA": {
+    "ean": "7798036085650",
+    "desc": "Oso De Peluche Corazón Rosa",
+    "marca": "Otros"
+  },
+  "PELOCB": {
+    "ean": "7798036089207",
+    "desc": "Oso De Peluche Gigante 1,1m Grande Marron Claro Con Huella Ys050066",
+    "marca": "Otros"
+  },
+  "PELOHMC": {
+    "ean": "7798036089191",
+    "desc": "Oso De Peluche Gigante 1m YS050065",
+    "marca": "Otros"
+  },
+  "PELOHMO": {
+    "ean": "7798036089191",
+    "desc": "Oso De Peluche Gigante 1m YS050065",
+    "marca": "Otros"
+  },
+  "PELOMA1M": {
+    "ean": "7798036088842",
+    "desc": "PELUCHE OSO MARRÓN 1 MT",
+    "marca": "Otros"
+  },
+  "PELOPA1M": {
+    "ean": "7798036088842",
+    "desc": "Oso panda peluche 1M",
+    "marca": "Otros"
+  },
+  "PELOPS60": {
+    "ean": "7798036089177",
+    "desc": "Oso Panda Sentado",
+    "marca": "Otros"
+  },
+  "PELORS120": {
+    "ean": "7798036088835",
+    "desc": "Oso De Peluche Gigante Rosa 1,3m",
+    "marca": "Otros"
+  },
+  "PELPER1M": {
+    "ean": "7798036088842",
+    "desc": "PELUCHE PERRO 1 MT",
+    "marca": "Otros"
+  },
+  "PNACHA": {
+    "ean": "849537012960",
+    "desc": "Skate Patineta Infantil De Madera 60 Cm Reforzado Nene Nena",
+    "marca": "Otros"
+  },
+  "PNACHB": {
+    "ean": "849537012960",
+    "desc": "Skate Patineta Infantil De Madera 60 Cm Reforzado Nene Nena",
+    "marca": "Otros"
+  },
+  "PNACHL": {
+    "ean": "849537012960",
+    "desc": "Skate Patineta Infantil De Madera 60 Cm Reforzado Nene Nena",
+    "marca": "Otros"
+  },
+  "PNASGBN": {
+    "ean": "4864158220057",
+    "desc": "Skate Infantil De Madera 80 Cm",
+    "marca": "Otros"
+  },
+  "PNASGC": {
+    "ean": "4864158220057",
+    "desc": "Skate Infantil De Madera 80 Cm",
+    "marca": "Otros"
+  },
+  "PNASGV": {
+    "ean": "4864158220057",
+    "desc": "Skate Infantil De Madera 80 Cm",
+    "marca": "Otros"
+  },
+  "PNSROL28AZ": {
+    "ean": "705105404356",
+    "desc": "Rollers Extensibles Patines 2 En 1 Base Metálica Niños",
+    "marca": "Otros"
+  },
+  "PNSROL28RJ": {
+    "ean": "705105404356",
+    "desc": "Rollers Extensibles Patines 2 En 1 Base Metálica Niños",
+    "marca": "Otros"
+  },
+  "PNSROL28RS": {
+    "ean": "705105404356",
+    "desc": "Rollers Extensibles Patines 2 En 1 Base Metálica Niños",
+    "marca": "Otros"
+  },
+  "PNSROL34AZ": {
+    "ean": "705105404356",
+    "desc": "Rollers Extensibles Patines 2 En 1 Base Metálica Niños",
+    "marca": "Otros"
+  },
+  "PNSROL34RJ": {
+    "ean": "705105404356",
+    "desc": "Rollers Extensibles Patines 2 En 1 Base Metálica Niños",
+    "marca": "Otros"
+  },
+  "PNSROL34RS": {
+    "ean": "705105404356",
+    "desc": "Rollers Extensibles Patines 2 En 1 Base Metálica Niños",
+    "marca": "Otros"
+  },
+  "MUARGJJ": {
+    "ean": "4895131421895",
+    "desc": "Muñeco Jugador De Futbol Pateador Pelota Argentina Mundial 9",
+    "marca": "Otros"
+  },
+  "MUARGJM": {
+    "ean": "4895131421895",
+    "desc": "Muñeco Jugador Futbol Pateador Pelota Argentina Mundial 10",
+    "marca": "Otros"
+  },
+  "BYCMS48": {
+    "ean": "6991207965480",
+    "desc": "Figuras Magnéticas Bloques Imanes Magnetic Sticks 38 Piezas",
+    "marca": "Otros"
+  },
+  "BYCMS38": {
+    "ean": "6991207965480",
+    "desc": "Figuras Magnéticas Bloques Imanes Magnetic Sticks 38 Piezas",
+    "marca": "Otros"
+  },
+  "MUNMINC": {
+    "ean": "7798293840078",
+    "desc": "Bebote Apariencia Real Bebe Juguete Nene Nena 23cm Mini 105",
+    "marca": "Otros"
+  },
+  "MUNMINR": {
+    "ean": "7798293840078",
+    "desc": "Bebote Apariencia Real Bebe Juguete Nene Nena 23cm Mini 105",
+    "marca": "Otros"
+  },
+  "MAGSM72": {
+    "ean": "7796904323040",
+    "desc": "Bloques Magneticos Magnetic Sticks 72 Piezas Imantadas Niños",
+    "marca": "Otros"
+  },
+  "JDMPESN": {
+    "ean": "6991206970232",
+    "desc": "Juego De Pesca A Pila Juguete Peces Cañas De Pescar Sonido",
+    "marca": "Otros"
+  },
+  "VSCT3V": {
+    "ean": "6019100082933",
+    "desc": "Tren Vintage Expreso Retro Locomotora Vagones Vía Luz A Pila",
+    "marca": "Otros"
+  },
+  "MAGS64": {
+    "ean": "7796906652056",
+    "desc": "Bloques Magneticos Imanes Magnetic Sticks 64 Piezas Infantil",
+    "marca": "Otros"
+  },
+  "JDMMA1": {
+    "ean": "7794635045200",
+    "desc": "Magia 1 Ruibal",
+    "marca": "Ruibal"
+  },
+  "MUBPA": {
+    "ean": "6991200126116",
+    "desc": "Bebote Con Sonido Movimiento Accesorios Bebe Juguete Muñeca",
+    "marca": "Otros"
+  },
+  "MAGSM182": {
+    "ean": "7796906892506",
+    "desc": "Bloques Magneticos 182 Piezas Imagnetic Sticks Metal Imanes",
+    "marca": "Otros"
+  },
+  "JDMLYN": {
+    "ean": "7794635017351",
+    "desc": "Juego De Mesa Letras Y Numeros Original Ruibal",
+    "marca": "Ruibal"
+  },
+  "MUBHP": {
+    "ean": "6991208954353",
+    "desc": "Bebote Con Accesorios Toma Mamadera Y Hace Pipi Juguete Niña",
+    "marca": "Otros"
+  },
+  "MAGSLAB78": {
+    "ean": "7796913433556",
+    "desc": "Bloques Magneticos Laberinto Bolitas Imanes 78 Piezas",
+    "marca": "Otros"
+  },
+  "JDMDOC": {
+    "ean": "7794635011083",
+    "desc": "Domino Cristal Ruibal",
+    "marca": "Ruibal"
+  },
+  "BURUNI": {
+    "ean": "6991204095050",
+    "desc": "}burbujero Automatico Unicornio A Pilas Luz Burbujas Juguete",
+    "marca": "Otros"
+  },
+  "MOCH205G": {
+    "ean": "7798293841280",
+    "desc": "Mochila Porta Bebote Juguete Ropa Muñeca Pañal Mamadera Gris",
+    "marca": "Otros"
+  },
+  "JDMMA2": {
+    "ean": "7794635045224",
+    "desc": "Magia 2 Ruibal Juego De Mesa Magia Trucos Infantil Niños",
+    "marca": "Ruibal"
+  },
+  "JDMBUS": {
+    "ean": "7794635004832",
+    "desc": "Juego De Mesa Buscando Letras Bingo Infantil Ruibal Niños",
+    "marca": "Ruibal"
+  },
+  "JDMMA4": {
+    "ean": "7794635045286",
+    "desc": "Juego De Mesa Magia 4 Ruibal Set Infantil Trucos Mago Niños",
+    "marca": "Ruibal"
+  },
+  "VSCRAVI": {
+    "ean": "6991299645932",
+    "desc": "Avion Grande De Juguete A Friccion Luz Y Sonido Regalo Niños",
+    "marca": "Otros"
+  },
+  "MAGSLAB47": {
+    "ean": "7796913433549",
+    "desc": "Bloques Laberinto De Bolitas Magnetico Imanes 47 Piezas Niño",
+    "marca": "Otros"
+  },
+  "CAMREC": {
+    "ean": "2580920947077",
+    "desc": "Camion De Basura Control Remoto Juguete Recolector Residuos",
+    "marca": "Otros"
+  },
+  "JDMAJC": {
+    "ean": "7794635020504",
+    "desc": "Juego De Mesa Ajedrez Ruibal Línea Clasica Tradicional",
+    "marca": "Ruibal"
+  },
+  "JDMBAA": {
+    "ean": "7794635011458",
+    "desc": "Juego De Mesa Batalla Aerea Ruibal Estrategia Tablero Fichas",
+    "marca": "Ruibal"
+  },
+  "VSCT9V": {
+    "ean": "6022200085018",
+    "desc": "Tren Juguete Retro Grande Locomotora 9 Vagones Luz A Pilas",
+    "marca": "Otros"
+  },
+  "CAMEXC": {
+    "ean": "2580919721374",
+    "desc": "Vehiculo Excavadora A Radio Control Remoto Camión Juguete",
+    "marca": "Otros"
+  },
+  "JDMDES": {
+    "ean": "7794635004788",
+    "desc": "Juego De Mesa Didáctico Descubriendo Palabras",
+    "marca": "Otros"
+  },
+  "CAMELER": {
+    "ean": "7796904466525",
+    "desc": "Andador Caminador Didactico Bebe Luz Sonido Actividades Niña",
+    "marca": "Otros"
+  },
+  "CAMELEC": {
+    "ean": "7796904466525",
+    "desc": "Andador Caminador Bebe Luz Sonido Actividades Celeste Niño",
+    "marca": "Otros"
+  },
+  "JDMNAI40": {
+    "ean": "7792783005404",
+    "desc": "Naipes Españoles Victoria 40 Cartas Truco Calidad Ruibal",
+    "marca": "Ruibal"
+  },
+  "MAGSM87": {
+    "ean": "7796904324122",
+    "desc": "Bloques Magneticos 87 Piezas Magnetic Sticks Metal Imanes",
+    "marca": "Otros"
+  },
+  "KDHMOT": {
+    "ean": "6991201705983",
+    "desc": "Juguete Motosierra Herramienta Sonido Y Movimiento Real Niño",
+    "marca": "Otros"
+  },
+  "MUBBSE": {
+    "ean": "6991208065677",
+    "desc": "Bebote Soft Baby Animales Jirafa Elefante Sonido Bebe Suave",
+    "marca": "Otros"
+  },
+  "MUBBSJ": {
+    "ean": "6991208065585",
+    "desc": "Bebote Soft Baby Animales Jirafa Elefante Sonido Bebe Suave",
+    "marca": "Otros"
+  },
+  "PELMO30": {
+    "ean": "7798036082543",
+    "desc": "Peluche Mono Punch 30cm Sentado Yani Toys",
+    "marca": "Yani Toys"
+  },
+  "CDAPOC": {
+    "ean": "6991201375797",
+    "desc": "Gimnasio Bebe Alfombra Didactica Piano Musical Luz Sonajeros",
+    "marca": "Otros"
+  },
+  "CDAPOR": {
+    "ean": "6991201375797",
+    "desc": "Gimnasio Bebe Alfombra Didactica Piano Musical Luz Sonajeros",
+    "marca": "Otros"
+  },
+  "CDAPSR": {
+    "ean": "6991201375070",
+    "desc": "Gimnasio Bebe Alfombra Didactica Piano Musical Luz Sonajeros",
+    "marca": "Otros"
+  },
+  "CDAPSV": {
+    "ean": "6991201375070",
+    "desc": "Gimnasio Bebe Alfombra Didactica Piano Musical Luz Sonajeros",
+    "marca": "Otros"
+  },
+  "SDMPFF": {
+    "ean": "6991204303025",
+    "desc": "Set 8 Mascotas Pet Friends Perritos De Juguete En Caja Niños",
+    "marca": "Otros"
+  },
+  "PELOCR60BCI": {
+    "ean": "7798036080570",
+    "desc": "Oso De Peluche 60cm Blanco Y Celeste Corazón I Love You 2160",
+    "marca": "Otros"
+  },
+  "HERCCA": {
+    "ean": "6991202319264",
+    "desc": "Valija De Herramientas Juguete Rol Constructor Con Amoladora",
+    "marca": "Otros"
+  },
+  "CANSO": {
+    "ean": "6991202604360",
+    "desc": "Cangrejo De Gateo Interactivo Sensor De Obstáculos Sonido",
+    "marca": "Otros"
+  },
+  "JDMMEG": {
+    "ean": "7794635004900",
+    "desc": "Juego De Mesa Memotest De La Granja Don Rastrillo Ruibal",
+    "marca": "Ruibal"
+  },
+  "JDMDOM": {
+    "ean": "7794635005914",
+    "desc": "Juego De Mesa Dominó Multicolor Ruibal Clasico Infantil Niño",
+    "marca": "Ruibal"
+  },
+  "MUARGJDP": {
+    "ean": "4895131421895",
+    "desc": "Muñeco Jugador De Futbol Pateador Pelota Argentina Mundial 7",
+    "marca": "Otros"
+  },
+  "MUMCHEF": {
+    "ean": "6991200219313",
+    "desc": "Muñeca Molly Cocinera Chef Accesorios Luz Sonido Bebote Niña",
+    "marca": "Otros"
+  },
+  "MUARGJD": {
+    "ean": "4895131421895",
+    "desc": "Muñeco Jugador Futbol Pateador Pelota Argentina Mundial 23",
+    "marca": "Otros"
+  },
+  "JDMMA3": {
+    "ean": "7794635045248",
+    "desc": "Juego De Magia 3 Ruibal",
+    "marca": "Ruibal"
+  },
+  "CAMVOL": {
+    "ean": "2580920945264",
+    "desc": "Camión Volcador De Juguete Control Remoto A Pilas 4 Comandos",
+    "marca": "Otros"
+  },
+  "JDMAGM": {
+    "ean": "7794635010123",
+    "desc": "Ajedrez Grandes Maestros Juego De Mesa Estrategia Ruibal",
+    "marca": "Ruibal"
+  },
+  "JDMMAG30": {
+    "ean": "7794635044807",
+    "desc": "Juego De Mesa Magia Por 30 Trucos Infantil Ruibal Mago Niños",
+    "marca": "Ruibal"
+  },
+  "PYBA65": {
+    "ean": "7790368293741",
+    "desc": "Parlante Potenciado Portatil Crown Mustang Atomic 6.5",
+    "marca": "Crown Mustang"
+  },
+  "PYBAT8": {
+    "ean": "7790368293772",
+    "desc": "Parlante Portatil Bluetooth Luces Led Crown Mustang Atomic 8",
+    "marca": "Crown Mustang"
+  },
+  "PYBDJS": {
+    "ean": "7790368293789",
+    "desc": "Parlante Portatil Bluetooth Led Crown Mustang Djs-820 2500w Negro",
+    "marca": "Crown Mustang"
+  },
+  "PYBHAL": {
+    "ean": "7790368297619",
+    "desc": "Parlante Ken Brown Halo 8",
+    "marca": "Ken Brown"
+  },
+  "PYBMON": {
+    "ean": "7790368297626",
+    "desc": "Parlante Bafle Ken Brown Monsterbox",
+    "marca": "Ken Brown"
+  },
+  "PYOOAA": {
+    "ean": "3851822257335",
+    "desc": "Piano Infantil De Animales L",
+    "marca": "Otros"
+  },
+  "PYOOAR": {
+    "ean": "3851822257335",
+    "desc": "Piano Infantil De Animales L",
+    "marca": "Otros"
+  },
+  "PYOPCM": {
+    "ean": "6991206839461",
+    "desc": "Teclado Musical Piano",
+    "marca": "Otros"
+  },
+  "PYPCRM": {
+    "ean": "8410779100184",
+    "desc": "PIN Y PON CASA ROSA MALETIN",
+    "marca": "Pin y Pon"
+  },
+  "PYPS12A": {
+    "ean": "8410779102935",
+    "desc": "PIN Y PON SERIE 12",
+    "marca": "Pin y Pon"
+  },
+  "PYPS12N": {
+    "ean": "8410779102935",
+    "desc": "PIN Y PON SERIE 12",
+    "marca": "Pin y Pon"
+  },
+  "PYPS12R": {
+    "ean": "8410779102935",
+    "desc": "PIN Y PON SERIE 12",
+    "marca": "Pin y Pon"
+  },
+  "PYPS12V": {
+    "ean": "8410779102935",
+    "desc": "PIN Y PON SERIE 12",
+    "marca": "Pin y Pon"
+  },
+  "ROBBSA": {
+    "ean": "7798326068578",
+    "desc": "Robot baby shark",
+    "marca": "Baby Shark"
+  },
+  "ROBBSB": {
+    "ean": "7798326068578",
+    "desc": "Robot baby shark",
+    "marca": "Baby Shark"
+  },
+  "ROBBSM": {
+    "ean": "7798326068578",
+    "desc": "Robot baby shark",
+    "marca": "Baby Shark"
+  },
+  "ROMCBD12": {
+    "ean": "7798326068264",
+    "desc": "Rompecabezas Bebés Llorones Juego De Mesa Puzzle Cry Babies",
+    "marca": "Cry Babies"
+  },
+  "ROMCBd6": {
+    "ean": "7798326068264",
+    "desc": "Rompecabezas Bebés Llorones Juego De Mesa Puzzle Cry Babies",
+    "marca": "Cry Babies"
+  },
+  "ROMCBL12": {
+    "ean": "7798326068264",
+    "desc": "Rompecabezas Bebés Llorones Juego De Mesa Puzzle Cry Babies",
+    "marca": "Cry Babies"
+  },
+  "ROMCBL6": {
+    "ean": "7798326068264",
+    "desc": "Rompecabezas Bebés Llorones Juego De Mesa Puzzle Cry Babies",
+    "marca": "Cry Babies"
+  },
+  "SLIA": {
+    "ean": "7798326067328",
+    "desc": "Slime Jumbo Grande Masa En Pote 425 Grs Nuevos Colores Niño",
+    "marca": "Otros"
+  },
+  "SLIR": {
+    "ean": "7798326067328",
+    "desc": "Slime Jumbo Grande Masa En Pote 425 Grs Nuevos Colores Niño",
+    "marca": "Otros"
+  },
+  "VALPBC": {
+    "ean": "7898664632148",
+    "desc": "Valija Pet Box 843",
+    "marca": "Pet Box"
+  },
+  "VALPBRS": {
+    "ean": "7898664632148",
+    "desc": "Valija Pet Box 843",
+    "marca": "Pet Box"
+  },
+  "VALPBV": {
+    "ean": "7898664632148",
+    "desc": "Valija Pet Box 843",
+    "marca": "Pet Box"
+  },
+  "VSCLVP": {
+    "ean": "7796784001304",
+    "desc": "Locomotora con vagón de pasajeros",
+    "marca": "Otros"
+  },
+  "VSCRACA": {
+    "ean": "6991202560451",
+    "desc": "Auto De Carrera Formula 1 A Fricción Luz Sonido Pilas",
+    "marca": "Otros"
+  },
+  "VSCRACAM": {
+    "ean": "6991202560451",
+    "desc": "Auto De Carrera Formula 1 A Fricción Luz Sonido Pilas",
+    "marca": "Otros"
+  },
+  "VSCRACN": {
+    "ean": "6991202560451",
+    "desc": "Auto De Carrera Formula 1 A Fricción Luz Sonido Pilas",
+    "marca": "Otros"
+  },
+  "VSCRACR": {
+    "ean": "6991202560451",
+    "desc": "Auto De Carrera Formula 1 A Fricción Luz Sonido Pilas",
+    "marca": "Otros"
+  },
+  "VSCTBC": {
+    "ean": "4892172840005",
+    "desc": "Tren De Juguete A Pilas Lalelu",
+    "marca": "Lalelu"
+  },
+  "VSCTR1": {
+    "ean": "7798326069636",
+    "desc": "Auto T Racer Serie 1",
+    "marca": "Otros"
   }
 }
