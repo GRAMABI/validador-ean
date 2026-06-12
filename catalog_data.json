@@ -17953,5 +17953,945 @@
     "ean": "7798326069636",
     "desc": "Auto T Racer Serie 1",
     "marca": "Otros"
+  },
+  "CANSOA": {
+    "ean": "6991202604360",
+    "desc": "Cangrejo A Pila Salva Obstaculo P/Bebe Azul",
+    "marca": "Andicar"
+  },
+  "CANSON": {
+    "ean": "6991202604360",
+    "desc": "Cangrejo A Pila Salva Obstaculo P/Bebe Naranja",
+    "marca": "Andicar"
+  },
+  "JDMBLO": {
+    "ean": "6991227120876",
+    "desc": "Bingo Lotto",
+    "marca": "Andicar"
+  },
+  "JDMPIR": {
+    "ean": "6991201940223",
+    "desc": "Barril Pirata",
+    "marca": "Andicar"
+  },
+  "MUDENM": {
+    "ean": "6991204800401",
+    "desc": "Barbie Dentista Morocha",
+    "marca": "Andicar"
+  },
+  "SETMAM": {
+    "ean": "6991206155684",
+    "desc": "Set Mamadera Leche Y Jugo + Babero",
+    "marca": "Andicar"
+  },
+  "PELPBAG": {
+    "ean": "6991207373377",
+    "desc": "Pet Bag Siberiano",
+    "marca": "Andicar"
+  },
+  "PETBAGB": {
+    "ean": "6991207373377",
+    "desc": "Pet Bag Beagle",
+    "marca": "Andicar"
+  },
+  "PYPPDA": {
+    "ean": "8410779076212",
+    "desc": "Pin Y Pon Parque De Agua",
+    "marca": "Caffaro"
+  },
+  "PYPHIN": {
+    "ean": "8410779080165",
+    "desc": "Pin Y Pon Hotel De Invierno",
+    "marca": "Caffaro"
+  },
+  "CMMGAB": {
+    "ean": "778988364345",
+    "desc": "Casa De Gabby",
+    "marca": "Caffaro"
+  },
+  "PYPMOT": {
+    "ean": "8410779087393",
+    "desc": "Pin Y Pon Moto Con Carrito",
+    "marca": "Caffaro"
+  },
+  "PYPCC": {
+    "ean": "8056379142447",
+    "desc": "Pin Y Pon Coche Camping",
+    "marca": "Caffaro"
+  },
+  "MOCH205": {
+    "ean": "7798293841280",
+    "desc": "Mochila. Osito, Pañal Y Mamadera Rosa",
+    "marca": "Casita de Muñecas"
+  },
+  "MUFLAM2": {
+    "ean": "8267650917528",
+    "desc": "Barbie Maestra Alumna Y Accesorios",
+    "marca": "JYF Toys"
+  },
+  "MUFMYB": {
+    "ean": "8267650918440",
+    "desc": "Barbie Mamá Bebé Y Accesorios",
+    "marca": "JYF Toys"
+  },
+  "CAMMEZ": {
+    "ean": "2580920947077",
+    "desc": "Camión C/Mezcladora A R/C - 4",
+    "marca": "JYF Toys"
+  },
+  "BYCMAG32": {
+    "ean": "6991200676253",
+    "desc": "Bloques Magneticos 32 Pzs",
+    "marca": "JYF Toys"
+  },
+  "MUMIK": {
+    "ean": "4895006797940",
+    "desc": "Mika",
+    "marca": "Lalelu"
+  },
+  "MUCLA": {
+    "ean": "4895006790552",
+    "desc": "Clarita",
+    "marca": "Lalelu"
+  },
+  "MUMMR": {
+    "ean": "4895006798244",
+    "desc": "Mili Mejillitas Rojas",
+    "marca": "Lalelu"
+  },
+  "MUMOR": {
+    "ean": "845371031143",
+    "desc": "More",
+    "marca": "Lalelu"
+  },
+  "MUISA": {
+    "ean": "845371050502",
+    "desc": "Isabella",
+    "marca": "Lalelu"
+  },
+  "MUANI": {
+    "ean": "845371056122",
+    "desc": "Anita",
+    "marca": "Lalelu"
+  },
+  "SCAPPFC": {
+    "ean": "4892172601903",
+    "desc": "Pista De Autos Formula Challenger",
+    "marca": "Lalelu"
+  },
+  "MULCO": {
+    "ean": "4895006798244",
+    "desc": "Lucy Con Osito",
+    "marca": "Lalelu"
+  },
+  "MUBDS": {
+    "ean": "4895006081803",
+    "desc": "Baby Doll Set",
+    "marca": "Lalelu"
+  },
+  "MUBEL": {
+    "ean": "4895006792426",
+    "desc": "Belu Está Enfermita",
+    "marca": "Lalelu"
+  },
+  "MUKAL": {
+    "ean": "4895006791429",
+    "desc": "Kala La Que Graba",
+    "marca": "Lalelu"
+  },
+  "MUMELLI": {
+    "ean": "4895006792280",
+    "desc": "Las Melli",
+    "marca": "Lalelu"
+  },
+  "MUNIK": {
+    "ean": "4895006789327",
+    "desc": "Nikole",
+    "marca": "Lalelu"
+  },
+  "MUSOF": {
+    "ean": "4895006789327",
+    "desc": "Sofi",
+    "marca": "Lalelu"
+  },
+  "MULOU": {
+    "ean": "4895006789259",
+    "desc": "Lourdes",
+    "marca": "Lalelu"
+  },
+  "MUZOE": {
+    "ean": "4895006163837",
+    "desc": "Zoe",
+    "marca": "Lalelu"
+  },
+  "MUMUEKC": {
+    "ean": "4895006799159",
+    "desc": "Muekitas Celeste",
+    "marca": "Lalelu"
+  },
+  "MUUMA": {
+    "ean": "4895006228116",
+    "desc": "Uma",
+    "marca": "Lalelu"
+  },
+  "MUDST": {
+    "ean": "4895006818621",
+    "desc": "Muñeca Doll Stroller",
+    "marca": "Lalelu"
+  },
+  "MULUN": {
+    "ean": "4895006050038",
+    "desc": "Luna",
+    "marca": "Lalelu"
+  },
+  "MULEI": {
+    "ean": "4895006792006",
+    "desc": "Leila",
+    "marca": "Lalelu"
+  },
+  "MUEMM": {
+    "ean": "4895006791016",
+    "desc": "Emma",
+    "marca": "Lalelu"
+  },
+  "GUICH": {
+    "ean": "4895006021007",
+    "desc": "Guitarra Chica",
+    "marca": "Lalelu"
+  },
+  "GUIGR": {
+    "ean": "4895006025005",
+    "desc": "Guitarra Grande",
+    "marca": "Lalelu"
+  },
+  "PELBSAZ30D": {
+    "ean": "7798326068387",
+    "desc": "Baby Shark Azul",
+    "marca": "Magic Makers"
+  },
+  "RMPPBS": {
+    "ean": "7798326068226",
+    "desc": "Mi Primer Puzzle Baby Shark",
+    "marca": "Magic Makers"
+  },
+  "ROMCB2X1": {
+    "ean": "7798326068271",
+    "desc": "Set 2 Rompecabezas Bebes Llorones",
+    "marca": "Magic Makers"
+  },
+  "ROMCBC6": {
+    "ean": "7798326068264",
+    "desc": "Rompecabezas Bebes Llorones Violeta",
+    "marca": "Magic Makers"
+  },
+  "SQLA": {
+    "ean": "7798326067243",
+    "desc": "Lapicera Squishy Alpaca Rosa",
+    "marca": "Magic Makers"
+  },
+  "MTOLA": {
+    "ean": "7798158209095",
+    "desc": "Mini Toddler Olaf",
+    "marca": "Magic Makers"
+  },
+  "PYLTR2": {
+    "ean": "7798326069643",
+    "desc": "T Racers Serie 2",
+    "marca": "Magic Makers"
+  },
+  "PYLTR3": {
+    "ean": "7798326069650",
+    "desc": "T Racers Serie 3",
+    "marca": "Magic Makers"
+  },
+  "BYCSB39": {
+    "ean": "7898179823031",
+    "desc": "Bloques Super Blocks 39 Piezas",
+    "marca": "Rivaplast"
+  },
+  "BYCSB68": {
+    "ean": "7898179823062",
+    "desc": "Bloques Super Blocks 68 Piezas",
+    "marca": "Rivaplast"
+  },
+  "VSCCRT": {
+    "ean": "7796784001137",
+    "desc": "Camión Volcador Riva Truck",
+    "marca": "Rivaplast"
+  },
+  "COCMOC": {
+    "ean": "7898179820986",
+    "desc": "Cocina Mobility Chef",
+    "marca": "Rivaplast"
+  },
+  "JDOMIC": {
+    "ean": "7898179822034",
+    "desc": "Microondas Fucsia",
+    "marca": "Rivaplast"
+  },
+  "COCCYJ": {
+    "ean": "7898179820382",
+    "desc": "Cafetera Y Juguera",
+    "marca": "Rivaplast"
+  },
+  "COCCYJ2": {
+    "ean": "7898179820382",
+    "desc": "Cafetera Y Juguera",
+    "marca": "Rivaplast"
+  },
+  "HERCAC": {
+    "ean": "7796784004558",
+    "desc": "Caja De Herramientas Con Casco Y Agujereadora",
+    "marca": "Rivaplast"
+  },
+  "HERSEC": {
+    "ean": "7796784004572",
+    "desc": "Set De Herramientas Completo",
+    "marca": "Rivaplast"
+  },
+  "ENCCOC": {
+    "ean": "7796784007030",
+    "desc": "Cocodrilo Junior",
+    "marca": "Rivaplast"
+  },
+  "ENCEMP": {
+    "ean": "7898179822614",
+    "desc": "Empilhassauro",
+    "marca": "Rivaplast"
+  },
+  "MESDEN": {
+    "ean": "7898664631257",
+    "desc": "Mesa Didáctica Encantada",
+    "marca": "Rivaplast"
+  },
+  "MESST": {
+    "ean": "7898179821693",
+    "desc": "Smart Table",
+    "marca": "Rivaplast"
+  },
+  "ENCGRA": {
+    "ean": "7898179821853",
+    "desc": "Puzzle Mania Granja",
+    "marca": "Rivaplast"
+  },
+  "OBBBM": {
+    "ean": "7898179823048",
+    "desc": "Trompo Baby Mix",
+    "marca": "Rivaplast"
+  },
+  "ENCCAS": {
+    "ean": "789866463181",
+    "desc": "Castillo Encastre",
+    "marca": "Rivaplast"
+  },
+  "ESTMAR": {
+    "ean": "789866463175",
+    "desc": "Mariposa Baby",
+    "marca": "Rivaplast"
+  },
+  "ANCHIB": {
+    "ean": "7898179821068",
+    "desc": "Hipopótamo Caminador Blanco",
+    "marca": "Rivaplast"
+  },
+  "ANCCAA": {
+    "ean": "7898179821075",
+    "desc": "Cachorro Caminador Amarillo",
+    "marca": "Rivaplast"
+  },
+  "JDMAJE": {
+    "ean": "7794635010048",
+    "desc": "Ajedrez Estudio",
+    "marca": "Ruibal"
+  },
+  "JDMAMM": {
+    "ean": "7794635010246",
+    "desc": "Ajedrez Magistral Marfil",
+    "marca": "Ruibal"
+  },
+  "JDMRYB": {
+    "ean": "7794635010567",
+    "desc": "Rummy & Burako Clasico",
+    "marca": "Ruibal"
+  },
+  "JDMRYBP": {
+    "ean": "7794635010611",
+    "desc": "Rummy-Burako Profesional",
+    "marca": "Ruibal"
+  },
+  "JDMRYBV": {
+    "ean": "7794635010666",
+    "desc": "Rummy & Burako Viajero",
+    "marca": "Ruibal"
+  },
+  "JDMBNME": {
+    "ean": "7794635011205",
+    "desc": "Batalla Naval Máxima Estrategia",
+    "marca": "Ruibal"
+  },
+  "JDMBAN": {
+    "ean": "7794635011403",
+    "desc": "Batalla Naval",
+    "marca": "Ruibal"
+  },
+  "JDMGER": {
+    "ean": "7794635011540",
+    "desc": "Generala",
+    "marca": "Ruibal"
+  },
+  "JDM4EL": {
+    "ean": "7794635012264",
+    "desc": "4 En Linea",
+    "marca": "Ruibal"
+  },
+  "JDMUNS": {
+    "ean": "7794635012400",
+    "desc": "Uno Solo",
+    "marca": "Ruibal"
+  },
+  "JDMTRA": {
+    "ean": "7794635012424",
+    "desc": "Trabado",
+    "marca": "Ruibal"
+  },
+  "JDMJD15": {
+    "ean": "7794635012486",
+    "desc": "Juego Del 15",
+    "marca": "Ruibal"
+  },
+  "JDMRAC": {
+    "ean": "7794635012516",
+    "desc": "Rapigrama Club",
+    "marca": "Ruibal"
+  },
+  "JDMRUL": {
+    "ean": "7794635013704",
+    "desc": "Ruleta Club",
+    "marca": "Ruibal"
+  },
+  "JDMBEC": {
+    "ean": "7794635015036",
+    "desc": "Bingo",
+    "marca": "Ruibal"
+  },
+  "JDMMEB": {
+    "ean": "7794635015166",
+    "desc": "Memotest Banderas",
+    "marca": "Ruibal"
+  },
+  "JDMAGS": {
+    "ean": "7794635017405",
+    "desc": "Agente Secreto",
+    "marca": "Ruibal"
+  },
+  "JDMBUR": {
+    "ean": "7794635017504",
+    "desc": "Burakito",
+    "marca": "Ruibal"
+  },
+  "JDMDGB": {
+    "ean": "7794635020511",
+    "desc": "Damas Green Box",
+    "marca": "Ruibal"
+  },
+  "JDMOGB": {
+    "ean": "7794635020559",
+    "desc": "Oca Linea Clasica",
+    "marca": "Ruibal"
+  },
+  "JDMCDS": {
+    "ean": "7794635095243",
+    "desc": "Cobras De Shanghai",
+    "marca": "Ruibal"
+  },
+  "JDMLGM": {
+    "ean": "7794635032002",
+    "desc": "La Granja Millonaria",
+    "marca": "Ruibal"
+  },
+  "JDMCMAN": {
+    "ean": "7794635041080",
+    "desc": "Carrera De Mente Aniversario",
+    "marca": "Ruibal"
+  },
+  "JDMCMA": {
+    "ean": "7794635041103",
+    "desc": "Carrera De Mente Azul",
+    "marca": "Ruibal"
+  },
+  "JDMCMP": {
+    "ean": "7794635041127",
+    "desc": "Carrera De Mente Platinum",
+    "marca": "Ruibal"
+  },
+  "JDMCMF": {
+    "ean": "7794635041141",
+    "desc": "Carrera De Mente Familiar",
+    "marca": "Ruibal"
+  },
+  "JDMCMC1": {
+    "ean": "7794635041165",
+    "desc": "Carrera De Mente Cartas 1",
+    "marca": "Ruibal"
+  },
+  "JDMCMC2": {
+    "ean": "7794635041189",
+    "desc": "Carrera De Mente Cartas 2",
+    "marca": "Ruibal"
+  },
+  "JDMCMVM": {
+    "ean": "7794635041226",
+    "desc": "Carrera De Mente Vuelta Al Mundo",
+    "marca": "Ruibal"
+  },
+  "JDMMAG50": {
+    "ean": "7794635045002",
+    "desc": "Juego De Magia X 50 Trucos",
+    "marca": "Ruibal"
+  },
+  "JDMMAG": {
+    "ean": "7794635045026",
+    "desc": "Juego De Magia X 100 Trucos",
+    "marca": "Ruibal"
+  },
+  "JDMMAG180": {
+    "ean": "7794635045040",
+    "desc": "Juego De Magia X 180 Trucos",
+    "marca": "Ruibal"
+  },
+  "JDMMSM": {
+    "ean": "7794635050006",
+    "desc": "Mr Super Mente",
+    "marca": "Ruibal"
+  },
+  "JDMMRS": {
+    "ean": "7794635050013",
+    "desc": "Mister Sabio",
+    "marca": "Ruibal"
+  },
+  "JDMOLA": {
+    "ean": "7794635061156",
+    "desc": "Oca Linea Azul",
+    "marca": "Ruibal"
+  },
+  "JDMALA": {
+    "ean": "7794635061194",
+    "desc": "Ajedrez Linea Azul",
+    "marca": "Ruibal"
+  },
+  "JDMTRF": {
+    "ean": "7794635063112",
+    "desc": "Trust Financiero",
+    "marca": "Ruibal"
+  },
+  "JDMMIS": {
+    "ean": "7794635007017",
+    "desc": "Misterio",
+    "marca": "Ruibal"
+  },
+  "JDMCEH": {
+    "ean": "7794635070158",
+    "desc": "Conejos En El Huerto",
+    "marca": "Ruibal"
+  },
+  "JDMKIN": {
+    "ean": "7794635070189",
+    "desc": "Kinmo",
+    "marca": "Ruibal"
+  },
+  "JDMDRE": {
+    "ean": "7794635070165",
+    "desc": "Dr. Eureka",
+    "marca": "Ruibal"
+  },
+  "JDMBLE": {
+    "ean": "7794635070264",
+    "desc": "Bleff",
+    "marca": "Ruibal"
+  },
+  "JDMOCP": {
+    "ean": "7794635070370",
+    "desc": "Oca Con Prendas",
+    "marca": "Ruibal"
+  },
+  "JDMTUF": {
+    "ean": "7794635070523",
+    "desc": "Tutti Frutti",
+    "marca": "Ruibal"
+  },
+  "JDMSCH": {
+    "ean": "7794635070608",
+    "desc": "Sopa China",
+    "marca": "Ruibal"
+  },
+  "JDMMOV": {
+    "ean": "7794635070752",
+    "desc": "Movies",
+    "marca": "Ruibal"
+  },
+  "JDMDCL": {
+    "ean": "7794635071322",
+    "desc": "Digalo Con El Lapiz",
+    "marca": "Ruibal"
+  },
+  "JDMELP": {
+    "ean": "7794635074507",
+    "desc": "El Preso",
+    "marca": "Ruibal"
+  },
+  "JDMCRU": {
+    "ean": "7794635075009",
+    "desc": "Crucigrama",
+    "marca": "Ruibal"
+  },
+  "JDMPIC": {
+    "ean": "7794635079007",
+    "desc": "Pictionary",
+    "marca": "Ruibal"
+  },
+  "JDMPJR": {
+    "ean": "7794635079014",
+    "desc": "Pictionary Junior",
+    "marca": "Ruibal"
+  },
+  "JDMSCR": {
+    "ean": "7794635079502",
+    "desc": "Scrabble",
+    "marca": "Ruibal"
+  },
+  "JDMMPD": {
+    "ean": "7794635002029",
+    "desc": "Mi Primer Dominó",
+    "marca": "Ruibal"
+  },
+  "JDMDOV": {
+    "ean": "7794635002036",
+    "desc": "Donde Viven",
+    "marca": "Ruibal"
+  },
+  "JDMLOP": {
+    "ean": "7794635002050",
+    "desc": "Los Opuestos",
+    "marca": "Ruibal"
+  },
+  "JDMLOYP": {
+    "ean": "7794635003149",
+    "desc": "Loteria Oficios Y Profesiones",
+    "marca": "Ruibal"
+  },
+  "JDMMEI": {
+    "ean": "7794635004184",
+    "desc": "Memotest Infantil",
+    "marca": "Ruibal"
+  },
+  "JDMGDR": {
+    "ean": "7794635004603",
+    "desc": "La Granja De Don Rastrillo",
+    "marca": "Ruibal"
+  },
+  "JDMZAN": {
+    "ean": "7794635004627",
+    "desc": "Zanahorias",
+    "marca": "Ruibal"
+  },
+  "JDMSYP": {
+    "ean": "7794635004634",
+    "desc": "Don Rastr. Suma Y Pesa",
+    "marca": "Ruibal"
+  },
+  "JDMLT": {
+    "ean": "7794635004658",
+    "desc": "Lototactil",
+    "marca": "Ruibal"
+  },
+  "JDMVDM": {
+    "ean": "7794635007505",
+    "desc": "La Valija Del Mago",
+    "marca": "Ruibal"
+  },
+  "BYCING1": {
+    "ean": "789664045275",
+    "desc": "Bloques Ingeniero 1",
+    "marca": "Xalingo"
+  },
+  "PELMON1612": {
+    "ean": "7798036083861",
+    "desc": "Mono 1.10 1612",
+    "marca": "Yani Toys"
+  },
+  "PELOSO1612": {
+    "ean": "7798036083861",
+    "desc": "Oso 1.10 1612",
+    "marca": "Yani Toys"
+  },
+  "PELPER1612": {
+    "ean": "7798036083861",
+    "desc": "Perro 1.10 1612",
+    "marca": "Yani Toys"
+  },
+  "PELRAN1612": {
+    "ean": "7798036083861",
+    "desc": "Rana 1.10 1612",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60BCT": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Blanco Celeste Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60BRI": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Blanco Rosa I Love You",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60BRT": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Blanco Rosa Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60MCI": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Marron Claro I Love You",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60MCT": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Marron Claro Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60MOI": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Marron Oscuro I Love You",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60MOT": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Marron Oscuro Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60RSI": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Rosa I Love You",
+    "marca": "Yani Toys"
+  },
+  "PELOCR60RST": {
+    "ean": "7798036080570",
+    "desc": "Oso Corazon 60Cm Rosa Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PELOHM": {
+    "ean": "7798036084738",
+    "desc": "Oso Sentado Con Huella Y Moño Gris",
+    "marca": "Yani Toys"
+  },
+  "PELOHMB": {
+    "ean": "7798036084738",
+    "desc": "Oso Sentado Con Huella Y Moño Blanco",
+    "marca": "Yani Toys"
+  },
+  "PELOHMR": {
+    "ean": "7798036084738",
+    "desc": "Oso Sentado Con Huella Y Moño Rosa",
+    "marca": "Yani Toys"
+  },
+  "PELOMC30": {
+    "ean": "7798036082543",
+    "desc": "Oso Peluche Marrón Claro 30Cm",
+    "marca": "Yani Toys"
+  },
+  "PELOMO30": {
+    "ean": "7798036082543",
+    "desc": "Oso Peluche Marrón Oscuro 30Cm",
+    "marca": "Yani Toys"
+  },
+  "PELOGC70": {
+    "ean": "7798036085360",
+    "desc": "Oso Gris Claro 70Cm",
+    "marca": "Yani Toys"
+  },
+  "PELOGO70": {
+    "ean": "7798036085360",
+    "desc": "Oso Gris Oscuro 70Cm",
+    "marca": "Yani Toys"
+  },
+  "PELO70MO": {
+    "ean": "7798036087111",
+    "desc": "Oso 70Cm Patas Largas Marrón Oscuro Huellas",
+    "marca": "Yani Toys"
+  },
+  "PELOC40C": {
+    "ean": "7798036089764",
+    "desc": "Oso Con Corazon 40 Cm Celeste Corazon Liso",
+    "marca": "Yani Toys"
+  },
+  "PELOC40CT": {
+    "ean": "7798036089764",
+    "desc": "Oso Con Corazon 40 Cm Celeste Corazon Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PELOC40MC": {
+    "ean": "7798036089764",
+    "desc": "Oso Con Corazon 40 Cm Marron Claro Corazon Liso",
+    "marca": "Yani Toys"
+  },
+  "PELOC40MCT": {
+    "ean": "7798036089764",
+    "desc": "Oso Con Corazon 40 Cm Marron Claro Corazon Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PELOC40MO": {
+    "ean": "7798036089764",
+    "desc": "Oso Con Corazon 40 Cm Marron Oscuro Corazon Liso",
+    "marca": "Yani Toys"
+  },
+  "PELOC40MOT": {
+    "ean": "7798036089764",
+    "desc": "Oso Con Corazon 40 Cm Marron Oscuro Corazon Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PELOC40R": {
+    "ean": "7798036089764",
+    "desc": "Oso Rosa Corazon 40 Cm (Liso)",
+    "marca": "Yani Toys"
+  },
+  "PELOC40RT": {
+    "ean": "7798036089764",
+    "desc": "Oso Con Corazon 40 Cm Rosa Corazon Te Amo",
+    "marca": "Yani Toys"
+  },
+  "PEL40EL": {
+    "ean": "7798421190068",
+    "desc": "Elefante Pelota 40 Cm Ys030047",
+    "marca": "Yani Toys"
+  },
+  "PEL40GA": {
+    "ean": "7798421190068",
+    "desc": "Gato Pelota 40 Cm Ys030047",
+    "marca": "Yani Toys"
+  },
+  "PEL40PE": {
+    "ean": "7798421190068",
+    "desc": "Perro Pelota 40 Cm Ys030047",
+    "marca": "Yani Toys"
+  },
+  "PEL40VA": {
+    "ean": "7798421190068",
+    "desc": "Vaca Pelota 40 Cm Ys030047",
+    "marca": "Yani Toys"
+  },
+  "PELJI40": {
+    "ean": "7798036087890",
+    "desc": "Jirafa 40 Cm Ys030052",
+    "marca": "Yani Toys"
+  },
+  "PELPAN40": {
+    "ean": "7798036087890",
+    "desc": "Oso Panda 40 Cm Ys030052",
+    "marca": "Yani Toys"
+  },
+  "PELPER40": {
+    "ean": "7798036087890",
+    "desc": "Perro 40 Cm Ys030052",
+    "marca": "Yani Toys"
+  },
+  "PELUN40": {
+    "ean": "7798036087890",
+    "desc": "Unicornio 40 Cm Ys030052",
+    "marca": "Yani Toys"
+  },
+  "PELPERE60": {
+    "ean": "7798421191317",
+    "desc": "Perezoso Ojon 60 Cm",
+    "marca": "Yani Toys"
+  },
+  "PELOCM60M": {
+    "ean": "7798036089580",
+    "desc": "Oso Con Moño 60 Cm Marron",
+    "marca": "Yani Toys"
+  },
+  "PELKOA": {
+    "ean": "7798421190969",
+    "desc": "Koala Ojos Azules 60 Cm",
+    "marca": "Yani Toys"
+  },
+  "PELARD": {
+    "ean": "7798421191003",
+    "desc": "Ardilla 60Cm",
+    "marca": "Yani Toys"
+  },
+  "PELOMC120": {
+    "ean": "7798036088835",
+    "desc": "Oso Marrón Claro 120Cm",
+    "marca": "Yani Toys"
+  },
+  "PELOMO120": {
+    "ean": "7798036088835",
+    "desc": "Oso Marrón Oscuro 120Cm",
+    "marca": "Yani Toys"
+  },
+  "PEL2MMC": {
+    "ean": "7798036089641",
+    "desc": "Oso Parado 2 Mts Marron Claro",
+    "marca": "Yani Toys"
+  },
+  "PEL2MMO": {
+    "ean": "7798036089641",
+    "desc": "Oso Parado 2 Mts Marron Oscuro",
+    "marca": "Yani Toys"
+  },
+  "PEL2MRS": {
+    "ean": "7798036089641",
+    "desc": "Oso Parado 2 Mts Rosa",
+    "marca": "Yani Toys"
+  },
+  "PELUN80C": {
+    "ean": "7798421190112",
+    "desc": "Unicornio Acostado Crema",
+    "marca": "Yani Toys"
+  },
+  "PELUN80R": {
+    "ean": "7798421190112",
+    "desc": "Unicornio Acostado Rosa",
+    "marca": "Yani Toys"
+  },
+  "PELOC120": {
+    "ean": "7798421190129",
+    "desc": "Oso Beige Parado Con Corazon 1",
+    "marca": "Yani Toys"
+  },
+  "MUBCS138": {
+    "ean": "7793602001386",
+    "desc": "Bebe Chico Con Sillita 138",
+    "marca": "Yoly Bell"
+  },
+  "MUBCA144": {
+    "ean": "7793602001447",
+    "desc": "Bebe Chico Con Andador 144",
+    "marca": "Yoly Bell"
+  },
+  "MUBEB149": {
+    "ean": "7793602001492",
+    "desc": "Bebe Chico En Bolsa 149",
+    "marca": "Yoly Bell"
+  },
+  "MUBMP154": {
+    "ean": "7793602001546",
+    "desc": "Bebe Mediano Con Percha 154",
+    "marca": "Yoly Bell"
+  },
+  "MUBGEB209": {
+    "ean": "7793602002093",
+    "desc": "Bebe Grande En Bolsa 209",
+    "marca": "Yoly Bell"
+  },
+  "MUBGR228": {
+    "ean": "7793602002284",
+    "desc": "Bebe Mamadera 228",
+    "marca": "Yoly Bell"
+  },
+  "MUBLL1186": {
+    "ean": "7793602011866",
+    "desc": "Bebe Chico Llora Al Sacarle El Chupete 1186",
+    "marca": "Yoly Bell"
   }
 }
