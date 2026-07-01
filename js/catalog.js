@@ -23,6 +23,15 @@ const CatalogService = (() => {
     } catch { return null; }
   }
 
+  // Ignora el TTL — se usa como último recurso si no hay señal para descargar
+  function loadCacheStale() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      return new Map(Object.entries(JSON.parse(raw)));
+    } catch { return null; }
+  }
+
   function saveCache(map) {
     try {
       localStorage.removeItem(CACHE_KEY);
@@ -68,7 +77,21 @@ const CatalogService = (() => {
     if (!forceRefresh) {
       const cached = loadCache();
       if (cached) return cached;
+      // Sin caché fresco: intentar descargar, y si no hay señal, usar el
+      // caché vencido antes que dejar al operario sin catálogo (24hs era
+      // una bomba de tiempo para conectividad pobre de depósito).
+      try {
+        return await download();
+      } catch (e) {
+        const stale = loadCacheStale();
+        if (stale) {
+          console.warn('[Catalog] Descarga falló, usando caché vencido:', e.message);
+          return stale;
+        }
+        throw e;
+      }
     }
+    // Sync explícito del operario: si falla, que se entere (sin fallback silencioso)
     return await download();
   }
 
