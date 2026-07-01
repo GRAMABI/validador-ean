@@ -87,9 +87,12 @@
     <button class="topbar-action" onclick="showScreen('screen-summary')">📊</button>
   </div>
   <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
-  <div class="progress-label" id="progress-label">0 de 0 pedidos</div>
+  <div class="progress-label" id="progress-label">0 de 0 unidades</div>
+  <div id="orders-batch-hint" style="font-size:11px;color:#6b7280;padding:0 14px 2px"></div>
   <div style="font-size:12px;color:#6b7280;padding:2px 14px 6px" id="operario-label"></div>
+  <div id="batch-done-banner" style="display:none"></div>
   <div class="content no-top-pad" id="orders-list"></div>
+  <div class="orders-action-bar"><button class="btn-primary" id="btn-finish-batch">✓ Finalizar preparación</button></div>
   <div class="bottom-nav">
     <div class="nav-item active" onclick="showScreen('screen-orders')"><span>📦</span><span>Pedidos</span></div>
     <div class="nav-item" onclick="showScreen('screen-validator')"><span>🔍</span><span>Consultar</span></div>
@@ -114,7 +117,7 @@
     <button class="btn-secondary" id="btn-torch" style="border-color:#d97706;color:#d97706;margin-top:6px">🔦 Linterna</button>
   </div>
   <div class="bottom-action">
-    <button class="btn-primary" id="btn-confirm-order" disabled>Confirmar pedido</button>
+    <button class="btn-primary" id="btn-confirm-order" disabled>Confirmar SKU</button>
   </div>
   <div id="toast-container"></div>
 </div>
@@ -148,8 +151,9 @@
   </div>
   <div class="content">
     <div style="font-size:12px;color:#6b7280;margin-bottom:10px" id="sum-operario"></div>
+    <div id="sum-finalized" style="display:none;font-weight:600;color:#1D9E75;margin-bottom:8px"></div>
     <div class="metrics-grid">
-      <div class="metric-card"><div class="metric-val green" id="sum-ok">0</div><div class="metric-label">Validados</div></div>
+      <div class="metric-card"><div class="metric-val green" id="sum-ok">0</div><div class="metric-label">SKUs OK</div></div>
       <div class="metric-card"><div class="metric-val amber" id="sum-pending">0</div><div class="metric-label">Pendientes</div></div>
       <div class="metric-card"><div class="metric-val red" id="sum-error">0</div><div class="metric-label">Con error</div></div>
     </div>

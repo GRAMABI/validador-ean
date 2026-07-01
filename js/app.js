@@ -1,8 +1,9 @@
-/* v20260415 — modo consolidado por SKU */
+/* v20260701A — modo consolidado por SKU + finalización de lote */
 /**
  * app.js — versión con agrupación consolidada por SKU
  * Cambios: vista de pedidos agrupa por marca → SKU (sin comprador ni ID pedido)
  * Al escanear un SKU se muestra solo ese artículo y se requieren N escaneos
+ * + Finalización de lote: botón "Finalizar preparación", done-state y faltantes
  */
 
 const State = {
@@ -13,12 +14,31 @@ const State = {
   pdfLoaded: false,
   catalogLoaded: false,
   operario: localStorage.getItem('vean_operario') || '',
+  batchFinalized: false, // lote cerrado por el operario
+  finalizedAt: null,     // ISO timestamp del cierre
+  shortages: [],          // [{sku, desc, marca, missingQty, reason}] quiebres de stock
 };
 let _scanning = false;
+let _readyToastShown = false; // aviso "todo escaneado" una vez por transición
+let _quotaWarned = false;     // aviso de cuota de localStorage una vez
 
 // ── PERSISTENCIA ─────────────────────────────────────────────
 function saveProgress() {
-  try { localStorage.setItem('vean_progress', JSON.stringify({ orders: State.orders, operario: State.operario })); } catch {}
+  try {
+    localStorage.setItem('vean_progress', JSON.stringify({
+      orders: State.orders,
+      operario: State.operario,
+      batchFinalized: State.batchFinalized,
+      finalizedAt: State.finalizedAt,
+      shortages: State.shortages,
+    }));
+  } catch(e) {
+    // Cuota de localStorage llena → avisar (una vez) en vez de perder progreso en silencio
+    if (!_quotaWarned) {
+      _quotaWarned = true;
+      showToast('⚠ No se pudo guardar el progreso — exportá el reporte ya', 'error', 5000);
+    }
+  }
 }
 function loadProgress() {
   try { return JSON.parse(localStorage.getItem('vean_progress')); } catch { return null; }
@@ -27,6 +47,11 @@ function clearProgress() {
   localStorage.removeItem('vean_progress');
   State.orders = [];
   State.pdfLoaded = false;
+  State.batchFinalized = false;
+  State.finalizedAt = null;
+  State.shortages = [];
+  _readyToastShown = false;
+  _quotaWarned = false;
 }
 
 // ── NAVEGACIÓN ───────────────────────────────────────────────
@@ -93,6 +118,9 @@ window.doResume = function() {
   if (!prog) return;
   State.orders   = prog.orders;
   State.operario = prog.operario || State.operario;
+  State.batchFinalized = prog.batchFinalized || false;
+  State.finalizedAt    = prog.finalizedAt || null;
+  State.shortages      = prog.shortages || [];
   State.pdfLoaded = true;
   renderOrdersList();
   showScreen('screen-orders');
@@ -185,6 +213,11 @@ document.getElementById('input-pdf').addEventListener('change', async e => {
 
     State.orders    = orders;
     State.pdfLoaded = true;
+    // Lote nuevo → resetear estado de finalización y faltantes
+    State.batchFinalized = false;
+    State.finalizedAt = null;
+    State.shortages = [];
+    _readyToastShown = false;
     saveProgress();
 
     const totalItems   = orders.reduce((s, o) => s + o.items.length, 0);
@@ -275,11 +308,14 @@ function renderOrdersList() {
   const list = document.getElementById('orders-list');
   list.innerHTML = '';
 
-  // Progreso global: pedidos (no SKUs)
-  const total = State.orders.length;
-  const done  = State.orders.filter(o => o.status !== 'pending').length;
-  document.getElementById('progress-fill').style.width = (total ? done / total * 100 : 0) + '%';
-  document.getElementById('progress-label').textContent = `${done} de ${total} pedidos procesados`;
+  // Progreso global: por UNIDADES/SKU consolidado (fuente de verdad de la UI),
+  // no por order.status (que quedaba 'pending' eterno con items sin EAN).
+  const stats = getBatchStats();
+  const pctVal = stats.totalUnits ? (stats.scannedUnits + stats.missingUnits) / stats.totalUnits * 100 : 0;
+  document.getElementById('progress-fill').style.width = pctVal + '%';
+  document.getElementById('progress-label').textContent =
+    `${stats.scannedUnits} de ${stats.totalUnits} unidades validadas` +
+    (stats.missingUnits ? ` · ${stats.missingUnits} faltante(s)` : '');
   const ol = document.getElementById('operario-label');
   if (ol) ol.textContent = State.operario ? 'Operario: ' + State.operario : '';
 
@@ -324,28 +360,154 @@ function renderOrdersList() {
       const hasErr = entry.hasError;
       const noEan  = entry.hasEan === false;
 
-      const stIcon = allOk  ? '✓'
-                   : hasErr ? '✕'
-                   : noEan  ? '—' : '○';
-      const stCls  = allOk  ? 'check-ok'
-                   : hasErr ? 'check-error'
-                   : noEan  ? 'check-warn' : 'check-gray';
+      // Faltante declarado (quiebre de stock) que cubre las unidades sin escanear
+      const shortage = State.shortages.find(s => s.sku === entry.sku);
+      const shMissing = shortage ? shortage.missingQty : 0;
+      const covered  = entry.scannedQty + shMissing >= entry.totalQty && !hasErr;
+      const isShort  = shMissing > 0 && covered && !allOk;
 
-      const progress = `${entry.scannedQty}/${entry.totalQty}`;
+      const stIcon = allOk   ? '✓'
+                   : isShort ? '⚠'
+                   : hasErr  ? '✕'
+                   : noEan   ? '—' : '○';
+      const stCls  = allOk   ? 'check-ok'
+                   : isShort ? 'check-warn'
+                   : hasErr  ? 'check-error'
+                   : noEan   ? 'check-warn' : 'check-gray';
+
+      const progress = isShort
+        ? `${entry.scannedQty}/${entry.totalQty} · ${shMissing} faltante(s)`
+        : `${entry.scannedQty}/${entry.totalQty} unidades escaneadas`;
 
       div.innerHTML = `
         <div class="sku-check ${stCls}" style="flex-shrink:0">${stIcon}</div>
         <div class="marca-item-info">
           <div class="marca-item-sku">${escHtml(entry.sku)} <span style="font-weight:400;color:var(--gray-text)">×${entry.totalQty}</span></div>
           <div class="marca-item-desc">${escHtml(entry.desc)}</div>
-          <div class="marca-item-buyer" style="font-size:11px;color:#aaa">${progress} unidades escaneadas</div>
+          <div class="marca-item-buyer" style="font-size:11px;color:#aaa">${progress}</div>
         </div>
-        <button class="marca-item-btn" onclick="openSku('${escHtml(entry.sku)}')">Escanear →</button>`;
+        <button class="marca-item-btn" onclick="openSku('${escHtml(entry.sku)}')">${allOk || isShort ? 'Ver →' : 'Escanear →'}</button>`;
       list.appendChild(div);
     });
   });
 
+  updateBatchActionUI();
   saveProgress();
+}
+
+// ── ESTADO DEL LOTE (consolidado por SKU) ────────────────────
+/**
+ * Estadísticas del lote calculadas SOBRE buildSkuMap (por SKU/unidades),
+ * que es la fuente de verdad del modo consolidado — no sobre order.status.
+ * Un SKU está "listo" si escaneó todas sus unidades o el resto se declaró faltante.
+ */
+function getBatchStats() {
+  const map = buildSkuMap();
+  let totalSkus = 0, readySkus = 0, pendingSkus = 0, errorSkus = 0, noEanPendingSkus = 0;
+  let totalUnits = 0, scannedUnits = 0, missingUnits = 0;
+  map.forEach(entry => {
+    totalSkus++;
+    totalUnits   += entry.totalQty;
+    scannedUnits += entry.scannedQty;
+    const sh = State.shortages.find(s => s.sku === entry.sku);
+    const shMissing = sh ? sh.missingQty : 0;
+    missingUnits += shMissing;
+    const covered = entry.scannedQty + shMissing;
+    if (entry.hasError)                { errorSkus++; }
+    else if (covered >= entry.totalQty) { readySkus++; }
+    else { pendingSkus++; if (entry.hasEan === false) noEanPendingSkus++; }
+  });
+  const pendingUnits = Math.max(0, totalUnits - scannedUnits - missingUnits);
+  const allReady = pendingSkus === 0 && errorSkus === 0 && totalSkus > 0;
+  return { totalSkus, readySkus, pendingSkus, errorSkus, noEanPendingSkus,
+           totalUnits, scannedUnits, pendingUnits, missingUnits, allReady };
+}
+
+/**
+ * Refresca el botón "Finalizar preparación" y el banner de lote finalizado.
+ * Se llama al final de renderOrdersList (que corre tras cada escaneo).
+ */
+function updateBatchActionUI() {
+  const btn    = document.getElementById('btn-finish-batch');
+  const banner = document.getElementById('batch-done-banner');
+  const hint   = document.getElementById('orders-batch-hint');
+  if (!btn) return;
+  const s = getBatchStats();
+
+  if (hint) {
+    hint.textContent = State.batchFinalized ? '' :
+      `${s.readySkus} listos · ${s.pendingSkus} pendientes` +
+      (s.errorSkus ? ` · ${s.errorSkus} con error` : '') +
+      (s.missingUnits ? ` · ${s.missingUnits} faltante(s)` : '');
+  }
+
+  if (State.batchFinalized) {
+    btn.textContent = '📋 Ver resumen';
+    btn.className = 'btn-secondary';
+    if (banner) {
+      const t = State.finalizedAt
+        ? new Date(State.finalizedAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+        : '';
+      banner.style.display = 'block';
+      banner.textContent = `✓ Lote finalizado${t ? ' a las ' + t : ''}`;
+    }
+    document.querySelectorAll('#orders-list .marca-item-btn').forEach(b => b.classList.add('locked'));
+    return;
+  }
+
+  if (banner) banner.style.display = 'none';
+  document.querySelectorAll('#orders-list .marca-item-btn').forEach(b => b.classList.remove('locked'));
+
+  if (s.allReady) {
+    btn.textContent = '✓ Finalizar preparación';
+    btn.className = 'btn-primary';
+    if (!_readyToastShown) { _readyToastShown = true; showToast('Todo listo — tocá Finalizar', 'ok', 3000); }
+  } else {
+    const n = s.pendingUnits;
+    btn.textContent = `Finalizar (faltan ${n} ud${n === 1 ? '' : 's'})`;
+    btn.className = 'btn-primary btn-warn';
+    _readyToastShown = false;
+  }
+}
+
+// ── FINALIZAR PREPARACIÓN DEL LOTE ───────────────────────────
+function showFinishDialog() {
+  const s = getBatchStats();
+  document.getElementById('finish-dlg')?.remove();
+  const clean = s.allReady;
+  const rows = [];
+  rows.push(`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>SKUs listos</span><strong>${s.readySkus}/${s.totalSkus}</strong></div>`);
+  if (s.pendingUnits) rows.push(`<div style="display:flex;justify-content:space-between;padding:4px 0;color:#d97706"><span>Unidades sin validar</span><strong>${s.pendingUnits}</strong></div>`);
+  if (s.errorSkus)    rows.push(`<div style="display:flex;justify-content:space-between;padding:4px 0;color:#dc2626"><span>SKUs con error</span><strong>${s.errorSkus}</strong></div>`);
+  if (s.missingUnits) rows.push(`<div style="display:flex;justify-content:space-between;padding:4px 0;color:#6b7280"><span>Faltantes declarados</span><strong>${s.missingUnits}</strong></div>`);
+  const dlg = document.createElement('div');
+  dlg.id = 'finish-dlg';
+  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;box-sizing:border-box';
+  dlg.innerHTML = `<div style="background:#fff;border-radius:16px;padding:24px;max-width:360px;width:100%">
+    <div style="font-size:26px;margin-bottom:8px">${clean ? '✅' : '⚠️'}</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:10px">${clean ? 'Preparación completa' : 'Finalizar con pendientes'}</div>
+    <div style="font-size:13px;margin-bottom:16px">${rows.join('')}</div>
+    <button class="btn-primary${clean ? '' : ' btn-warn'}" style="margin-bottom:8px" onclick="doFinishBatch()">${clean ? 'Finalizar preparación' : 'Finalizar igual'}</button>
+    <button class="btn-secondary" onclick="document.getElementById('finish-dlg').remove()">Seguir preparando</button>
+  </div>`;
+  document.body.appendChild(dlg);
+}
+
+window.doFinishBatch = function() {
+  document.getElementById('finish-dlg')?.remove();
+  finalizeBatch();
+  showScreen('screen-summary');
+};
+
+function finalizeBatch() {
+  if (State.batchFinalized) return; // idempotente
+  const now = new Date().toLocaleTimeString('es-AR');
+  State.orders.forEach(o => { updateOrderStatus(o); if (!o.confirmedAt) o.confirmedAt = now; });
+  State.batchFinalized = true;
+  State.finalizedAt = new Date().toISOString();
+  Scanner.stop();
+  saveProgress();
+  showToast('✓ Lote finalizado', 'ok');
 }
 
 // ── DETALLE SKU (modo consolidado) ───────────────────────────
@@ -354,6 +516,10 @@ function renderOrdersList() {
  * Muestra solo ese SKU con la cantidad total consolidada.
  */
 window.openSku = function(sku) {
+  if (State.batchFinalized) {
+    showToast('Lote finalizado — iniciá nueva sesión para re-escanear', 'warn', 3000);
+    return;
+  }
   State.currentSkuKey = sku;
   Scanner.stop();
   _scanning = false;
@@ -410,8 +576,15 @@ function renderSkuDetail() {
                : '—';
 
   const desc = entry.desc ? `<div class="sku-desc">${escHtml(entry.desc)}</div>` : '';
+  const remaining = total - scanned;
   const manBtn = (!allOk && noEan)
-    ? `<button class="btn-manual" onclick="confirmManualSku()">Confirmar manual (${scanned}/${total})</button>` : '';
+    ? `<button class="btn-manual" onclick="confirmManualSku()">Confirmar 1 (${scanned}/${total})</button>` +
+      (remaining > 1 ? `<button class="btn-manual" style="margin-top:4px" onclick="confirmAllNoEan()">Confirmar todo (${remaining})</button>` : '')
+    : '';
+  // Quiebre de stock: marcar las unidades faltantes para poder cerrar el lote
+  const shortBtn = (!allOk && remaining > 0)
+    ? `<button class="btn-manual" style="margin-top:4px;background:var(--red-bg);color:var(--red);border-color:#fca5a5" onclick="markShortage()">⚠ Marcar faltante (${remaining})</button>`
+    : '';
 
   div.innerHTML = `
     <div class="sku-check ${cls}">${icon}</div>
@@ -420,6 +593,7 @@ function renderSkuDetail() {
       ${desc}
       <div class="sku-ean">${eanTxt}</div>
       ${manBtn}
+      ${shortBtn}
     </div>
     <div class="sku-qty">×${total}</div>`;
   container.appendChild(div);
@@ -458,6 +632,52 @@ window.confirmManualSku = function() {
   }
 
   saveProgress();
+  renderSkuDetail();
+  renderOrdersList();
+};
+
+// Confirmar en bloque todas las unidades restantes de un SKU sin EAN
+window.confirmAllNoEan = function() {
+  const sku = State.currentSkuKey;
+  const entry = getSkuEntry(sku);
+  if (!entry) return;
+  entry.refs.forEach(ref => {
+    if (ref.item.status === 'pending' && ref.item.hasEan === false) {
+      ref.item.scanned = ref.item.qty;
+      ref.item.status = 'ok';
+      ref.item.scannedEan = 'Confirmado manualmente';
+      updateOrderStatus(ref.order);
+    }
+  });
+  saveProgress();
+  const ne = getSkuEntry(sku);
+  showToast(`✓ ${sku} — ${ne ? ne.totalQty : ''} unidades confirmadas`, 'ok');
+  renderSkuDetail();
+  renderOrdersList();
+};
+
+// Declarar quiebre de stock: registra las unidades faltantes del SKU actual
+window.markShortage = function() {
+  const sku = State.currentSkuKey;
+  const entry = getSkuEntry(sku);
+  if (!entry) return;
+  const missing = entry.totalQty - entry.scannedQty;
+  if (missing <= 0) return;
+  if (!confirm(`¿Marcar ${missing} unidad(es) de ${sku} como faltante (quiebre de stock)?`)) return;
+
+  const existing = State.shortages.find(s => s.sku === sku);
+  if (existing) existing.missingQty = missing;
+  else State.shortages.push({ sku, desc: entry.desc, marca: entry.marca, missingQty: missing, reason: 'Sin stock' });
+
+  // Limpiar errores de este SKU para que no bloqueen la finalización
+  entry.refs.forEach(r => {
+    if (r.item.lastError) delete r.item.lastError;
+    if (r.item.status === 'error') r.item.status = 'pending';
+    updateOrderStatus(r.order);
+  });
+
+  saveProgress();
+  showToast(`⚠ ${missing} faltante(s) registrada(s) en ${sku}`, 'warn', 3000);
   renderSkuDetail();
   renderOrdersList();
 };
@@ -581,6 +801,13 @@ document.getElementById('btn-confirm-order').addEventListener('click', () => {
 
 document.getElementById('btn-torch').addEventListener('click', () => Scanner.toggleTorch());
 
+// Finalizar preparación del lote completo
+document.getElementById('btn-finish-batch').addEventListener('click', () => {
+  if (State.batchFinalized) { showScreen('screen-summary'); return; }
+  if (!State.orders.length) { showToast('No hay lote cargado', 'warn'); return; }
+  showFinishDialog();
+});
+
 document.getElementById('back-to-orders').addEventListener('click', () => {
   Scanner.stop();
   renderOrdersList();
@@ -646,15 +873,24 @@ document.getElementById('back-from-validator').addEventListener('click', () => {
 
 // ── RESUMEN ──────────────────────────────────────────────────
 function renderSummary() {
-  const ok   = State.orders.filter(o => o.status === 'ok').length;
-  const pend = State.orders.filter(o => o.status === 'pending').length;
-  const err  = State.orders.filter(o => o.status === 'error').length;
-  document.getElementById('sum-ok').textContent      = ok;
-  document.getElementById('sum-pending').textContent = pend;
-  document.getElementById('sum-error').textContent   = err;
+  // Métricas por SKU consolidado (no por pedido) — coherente con la vista del operario
+  const s = getBatchStats();
+  document.getElementById('sum-ok').textContent      = s.readySkus;
+  document.getElementById('sum-pending').textContent = s.pendingSkus;
+  document.getElementById('sum-error').textContent   = s.errorSkus;
 
   const so = document.getElementById('sum-operario');
   if (so) so.textContent = State.operario ? 'Operario: ' + State.operario : '';
+
+  const fin = document.getElementById('sum-finalized');
+  if (fin) {
+    if (State.finalizedAt) {
+      fin.style.display = 'block';
+      fin.textContent = `✓ Lote FINALIZADO — ${new Date(State.finalizedAt).toLocaleString('es-AR')}`;
+    } else {
+      fin.style.display = 'none';
+    }
+  }
 
   // Resumen por SKU consolidado (sin comprador)
   const list = document.getElementById('summary-list');
@@ -664,14 +900,19 @@ function renderSummary() {
   skuMap.forEach((entry, sku) => {
     const div = document.createElement('div');
     div.className = 'summary-item';
+    const shortage = State.shortages.find(x => x.sku === sku);
+    const shMissing = shortage ? shortage.missingQty : 0;
     const allOk  = entry.allDone && !entry.hasError;
     const hasErr = entry.hasError;
-    const bc = allOk ? 'badge-ok' : hasErr ? 'badge-error' : 'badge-warn';
-    const bt = allOk ? '✓ OK' : hasErr ? '✕ Error' : 'Pendiente';
+    const isShort = shMissing > 0 && (entry.scannedQty + shMissing >= entry.totalQty) && !hasErr && !allOk;
+    const bc = allOk ? 'badge-ok' : hasErr ? 'badge-error' : isShort ? 'badge-warn' : 'badge-warn';
+    const bt = allOk ? '✓ OK' : hasErr ? '✕ Error' : isShort ? '⚠ Faltante' : 'Pendiente';
+    const sub = `${escHtml(entry.desc)} — ${entry.scannedQty}/${entry.totalQty} uds` +
+                (shMissing ? ` · ${shMissing} faltante(s)` : '');
     div.innerHTML = `
       <div>
         <div class="summary-name">${escHtml(sku)}</div>
-        <div class="summary-sub">${escHtml(entry.desc)} — ${entry.scannedQty}/${entry.totalQty} uds</div>
+        <div class="summary-sub">${sub}</div>
       </div>
       <span class="badge ${bc}">${bt}</span>`;
     list.appendChild(div);
@@ -685,18 +926,23 @@ document.getElementById('btn-export').addEventListener('click', () => {
   const err  = State.orders.filter(o => o.status === 'error');
   const pend = State.orders.filter(o => o.status === 'pending');
 
+  const stats = getBatchStats();
   const skuMap = buildSkuMap();
   let skuRows = '';
   skuMap.forEach((entry, sku) => {
+    const shortage = State.shortages.find(x => x.sku === sku);
+    const shMissing = shortage ? shortage.missingQty : 0;
     const allOk  = entry.allDone && !entry.hasError;
     const hasErr = entry.hasError;
+    const isShort = shMissing > 0 && (entry.scannedQty + shMissing >= entry.totalQty) && !hasErr && !allOk;
     const sc = allOk ? 'ok' : hasErr ? 'er' : 'pn';
-    const st = allOk ? '✓ OK' : hasErr ? '✕ Error' : 'Pendiente';
+    const st = allOk ? '✓ OK' : hasErr ? '✕ Error' : isShort ? '⚠ Faltante' : 'Pendiente';
+    const uds = `${entry.scannedQty}/${entry.totalQty}` + (shMissing ? ` (${shMissing} falt.)` : '');
     skuRows += `<tr>
-      <td style="font-family:monospace">${sku}</td>
+      <td style="font-family:monospace">${escHtml(sku)}</td>
       <td>${escHtml(entry.desc)}</td>
       <td>${escHtml(entry.marca)}</td>
-      <td>${entry.scannedQty}/${entry.totalQty}</td>
+      <td>${uds}</td>
       <td class="${sc}">${st}</td>
     </tr>`;
   });
@@ -715,23 +961,32 @@ tr:nth-child(even) td{background:#f9fafb}
 .ok{color:#1D9E75;font-weight:600}.er{color:#dc2626;font-weight:600}.pn{color:#d97706;font-weight:600}
 </style></head><body>
 <h1>📦 Reporte de despacho</h1>
-<div class="meta">Operario: <strong>${escHtml(State.operario || 'Sin identificar')}</strong> · Generado: ${now}</div>
+<div class="meta">Operario: <strong>${escHtml(State.operario || 'Sin identificar')}</strong> · Generado: ${now}${State.finalizedAt ? ' · <strong style="color:#1D9E75">LOTE FINALIZADO ' + escHtml(new Date(State.finalizedAt).toLocaleString('es-AR')) + '</strong>' : ' · <strong style="color:#d97706">En preparación</strong>'}</div>
 <div class="metrics">
-  <div class="metric"><div class="val green">${ok.length}</div><div>Pedidos OK</div></div>
-  <div class="metric"><div class="val amber">${pend.length}</div><div>Pendientes</div></div>
-  <div class="metric"><div class="val red">${err.length}</div><div>Con error</div></div>
-  <div class="metric"><div class="val">${State.orders.length}</div><div>Total pedidos</div></div>
+  <div class="metric"><div class="val green">${stats.readySkus}</div><div>SKUs listos</div></div>
+  <div class="metric"><div class="val amber">${stats.pendingSkus}</div><div>Pendientes</div></div>
+  <div class="metric"><div class="val red">${stats.errorSkus}</div><div>Con error</div></div>
+  <div class="metric"><div class="val">${stats.scannedUnits}/${stats.totalUnits}</div><div>Unidades</div></div>
 </div>
 <h2>SKUs procesados</h2>
 <table><thead><tr><th>SKU</th><th>Descripción</th><th>Marca</th><th>Uds</th><th>Estado</th></tr></thead>
 <tbody>${skuRows}</tbody></table>`;
+
+  if (State.shortages.length) {
+    html += `<h2>⚠ Faltantes (quiebre de stock)</h2>
+<table><thead><tr><th>SKU</th><th>Descripción</th><th>Marca</th><th>Uds faltantes</th><th>Motivo</th></tr></thead><tbody>`;
+    State.shortages.forEach(s => {
+      html += `<tr><td style="font-family:monospace">${escHtml(s.sku)}</td><td>${escHtml(s.desc||'')}</td><td>${escHtml(s.marca||'')}</td><td class="pn">${s.missingQty}</td><td>${escHtml(s.reason||'')}</td></tr>`;
+    });
+    html += '</tbody></table>';
+  }
 
   if (err.length) {
     html += `<h2>⚠ Incidencias</h2>
 <table><thead><tr><th>SKU</th><th>Descripción</th><th>EAN leído</th><th>EAN esperado</th></tr></thead><tbody>`;
     err.forEach(o => o.items.filter(i => i.status === 'error' || i.lastError).forEach(i => {
       const exp = State.catalog ? (State.catalog.get(i.sku)?.ean || '—') : '—';
-      html += `<tr><td>${i.sku}</td><td>${escHtml(i.desc||'')}</td><td style="color:#dc2626">${i.scannedEan||'—'}</td><td>${exp}</td></tr>`;
+      html += `<tr><td>${escHtml(i.sku)}</td><td>${escHtml(i.desc||'')}</td><td style="color:#dc2626">${escHtml(i.scannedEan||'—')}</td><td>${escHtml(exp)}</td></tr>`;
     }));
     html += '</tbody></table>';
   }

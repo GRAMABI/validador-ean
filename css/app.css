@@ -561,3 +561,35 @@ html, body {
   align-self: center;
 }
 .marca-item-btn:active { opacity: .8; }
+.marca-item-btn.locked { opacity: .4; pointer-events: none; }
+
+/* ═══════════════════════════════════════ FINALIZAR LOTE */
+/* Botón "Finalizar con pendientes" — ámbar */
+.btn-warn { background: var(--amber) !important; }
+.btn-warn:hover { background: #b45309 !important; }
+
+/* Barra de acción fija sobre el bottom-nav en screen-orders */
+.orders-action-bar {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: var(--bottom-nav-h);
+  background: var(--white);
+  border-top: 1px solid var(--gray-border);
+  padding: 10px 14px;
+  z-index: 9;
+}
+/* La lista deja lugar para la barra de acción + el bottom-nav */
+#orders-list { padding-bottom: calc(var(--bottom-nav-h) + 80px); }
+
+/* Banner de lote finalizado */
+#batch-done-banner {
+  background: var(--green-bg);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  padding: 8px 14px;
+  border-top: 1px solid #86efac;
+  border-bottom: 1px solid #86efac;
+  flex-shrink: 0;
+}
