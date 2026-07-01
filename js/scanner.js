@@ -122,13 +122,14 @@ const Scanner = window.Scanner = (() => {
   let _torchOn = false;
   let _videoTrack = null;
 
+  // Devuelve true/false = nuevo estado de la linterna, null = no disponible
   async function toggleTorch() {
     try {
       // 1. Usar track guardado
       if (_videoTrack) {
         _torchOn = !_torchOn;
         await _videoTrack.applyConstraints({ advanced: [{ torch: _torchOn }] });
-        return;
+        return _torchOn;
       }
 
       // 2. Buscar en videos del DOM
@@ -141,7 +142,7 @@ const Scanner = window.Scanner = (() => {
               _videoTrack = track;
               _torchOn = !_torchOn;
               await track.applyConstraints({ advanced: [{ torch: _torchOn }] });
-              return;
+              return _torchOn;
             }
           }
         }
@@ -155,7 +156,9 @@ const Scanner = window.Scanner = (() => {
       if (track) {
         _videoTrack = track;
         _torchOn = true;
+        return true;
       }
+      return null;
     } catch(e) {
       console.warn('Linterna error:', e);
       // Intentar con constraint directo
@@ -169,16 +172,19 @@ const Scanner = window.Scanner = (() => {
           _videoTrack = track;
           _torchOn = !_torchOn;
           await track.applyConstraints({ advanced: [{ torch: _torchOn }] });
-        } else {
-          alert('La linterna no está disponible en este dispositivo o navegador.');
+          return _torchOn;
         }
+        return null;
       } catch(e2) {
         console.warn('Linterna fallback error:', e2);
+        return null;
       }
     }
   }
 
-  return { start, stop, toggleTorch };
+  function isTorchOn() { return _torchOn; }
+
+  return { start, stop, toggleTorch, isTorchOn };
 })();
 
 /* Estilos extra para html5-qrcode — se inyectan cuando el DOM está listo */
@@ -283,17 +289,22 @@ const Scanner2 = window.Scanner2 = (() => {
     _torchOn = false;
   }
 
+  // Devuelve true/false = nuevo estado de la linterna, null = no disponible
   async function toggleTorch() {
-    if (!_track) { alert('Esperá que la cámara encienda antes de usar la linterna.'); return; }
+    if (!_track) return null;
     const caps = _track.getCapabilities ? _track.getCapabilities() : {};
-    if (!caps.torch) { alert('Linterna no disponible en este dispositivo.'); return; }
+    if (!caps.torch) return null;
     _torchOn = !_torchOn;
     try {
       await _track.applyConstraints({ advanced: [{ torch: _torchOn }] });
+      return _torchOn;
     } catch(e) {
       console.warn('Torch error:', e);
+      return null;
     }
   }
 
-  return { start, stop, toggleTorch };
+  function isTorchOn() { return _torchOn; }
+
+  return { start, stop, toggleTorch, isTorchOn };
 })();

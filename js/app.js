@@ -1,9 +1,11 @@
-/* v20260701A — modo consolidado por SKU + finalización de lote */
+/* v20260701B — modo consolidado por SKU + finalización de lote + UX depósito */
 /**
  * app.js — versión con agrupación consolidada por SKU
  * Cambios: vista de pedidos agrupa por marca → SKU (sin comprador ni ID pedido)
  * Al escanear un SKU se muestra solo ese artículo y se requieren N escaneos
  * + Finalización de lote: botón "Finalizar preparación", done-state y faltantes
+ * + UX: linterna con estado, reintentar sin detener cámara, toasts globales,
+ *   botones más grandes para uso con guantes
  */
 
 const State = {
@@ -21,6 +23,14 @@ const State = {
 let _scanning = false;
 let _readyToastShown = false; // aviso "todo escaneado" una vez por transición
 let _quotaWarned = false;     // aviso de cuota de localStorage una vez
+const SCAN_LOCK_MS = 2000;    // alineado con el lock anti-repetición de scanner.js
+
+function setTorchBtnState(btn, state) {
+  if (!btn) return;
+  if (state === null) { btn.textContent = '🔦 No disponible'; btn.classList.remove('torch-on'); }
+  else if (state)      { btn.textContent = '🔦 Linterna ON';   btn.classList.add('torch-on'); }
+  else                 { btn.textContent = '🔦 Linterna';      btn.classList.remove('torch-on'); }
+}
 
 // ── PERSISTENCIA ─────────────────────────────────────────────
 function saveProgress() {
@@ -87,7 +97,10 @@ async function initApp() {
   try {
     State.catalog = await CatalogService.getCatalog(false);
     State.catalogLoaded = true;
-  } catch(e) { console.warn('[Catálogo]', e.message); }
+  } catch(e) {
+    console.warn('[Catálogo]', e.message);
+    showToast('⚠ No se pudo cargar el catálogo — revisá la conexión', 'warn', 5000);
+  }
 
   const prog = loadProgress();
   if (prog && prog.orders && prog.orders.length > 0) {
@@ -523,7 +536,7 @@ window.openSku = function(sku) {
   State.currentSkuKey = sku;
   Scanner.stop();
   _scanning = false;
-  document.getElementById('retry-scan-wrap')?.remove();
+  setTorchBtnState(document.getElementById('btn-torch'), false);
   renderSkuDetail();
   showScreen('screen-detail');
   startSkuScanner();
@@ -721,6 +734,7 @@ function onEanScannedSku(ean) {
   const order  = pendingRef.order;
   const result = CatalogService.validate(item.sku, ean, State.catalog);
   item.scannedEan = ean;
+  delete item.lastError; // un nuevo intento reemplaza el error anterior (lo re-setea la rama 'error' si corresponde)
 
   if (result.status === 'ok') {
     item.scanned = (item.scanned || 0) + 1;
@@ -740,7 +754,7 @@ function onEanScannedSku(ean) {
     }
 
     playBeep('ok');
-    setTimeout(() => { _scanning = false; }, 800);
+    setTimeout(() => { _scanning = false; }, SCAN_LOCK_MS);
     updateOrderStatus(order);
     renderSkuDetail();
     renderOrdersList();
@@ -748,16 +762,11 @@ function onEanScannedSku(ean) {
   } else if (result.status === 'error') {
     item.lastError = ean;
     playBeep('error');
-    Scanner.stop();
-    _scanning = false;
-    showToast('✕ EAN incorrecto. Tocá "Reintentar".', 'error', 4000);
+    // La cámara sigue activa: no hace falta ubicar un botón para reintentar,
+    // solo reapuntar. El lock de scanner.js ya evita re-disparar el mismo EAN.
+    showToast('✕ EAN incorrecto — reintentá', 'error', 2500);
+    setTimeout(() => { _scanning = false; }, SCAN_LOCK_MS);
     renderSkuDetail();
-    document.getElementById('retry-scan-wrap')?.remove();
-    const retryDiv = document.createElement('div');
-    retryDiv.id = 'retry-scan-wrap';
-    retryDiv.style.cssText = 'padding:10px 0';
-    retryDiv.innerHTML = '<button class="btn-secondary" onclick="retryScanSku()" style="border-color:#dc2626;color:#dc2626">↺ Reintentar escaneo</button>';
-    document.getElementById('scanner-wrap').insertAdjacentElement('afterend', retryDiv);
 
   } else {
     if (result.status === 'no_ean') {
@@ -767,23 +776,12 @@ function onEanScannedSku(ean) {
       item.status = 'not_in_catalog';
       showToast('⚠ SKU no encontrado en catálogo', 'warn', 3000);
     }
-    setTimeout(() => { _scanning = false; }, 800);
+    setTimeout(() => { _scanning = false; }, SCAN_LOCK_MS);
     updateOrderStatus(order);
     renderSkuDetail();
     renderOrdersList();
   }
 }
-
-window.retryScanSku = function() {
-  document.getElementById('retry-scan-wrap')?.remove();
-  _scanning = false;
-  const sku = State.currentSkuKey;
-  // Limpiar lastError en todos los refs de este SKU
-  const entry = getSkuEntry(sku);
-  if (entry) entry.refs.forEach(r => { if (r.item.lastError) delete r.item.lastError; });
-  renderSkuDetail();
-  startSkuScanner();
-};
 
 // ── Confirmar SKU completo y volver ─────────────────────────
 document.getElementById('btn-confirm-order').addEventListener('click', () => {
@@ -799,7 +797,11 @@ document.getElementById('btn-confirm-order').addEventListener('click', () => {
   showScreen('screen-orders');
 });
 
-document.getElementById('btn-torch').addEventListener('click', () => Scanner.toggleTorch());
+document.getElementById('btn-torch').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-torch');
+  const state = await Scanner.toggleTorch();
+  setTorchBtnState(btn, state);
+});
 
 // Finalizar preparación del lote completo
 document.getElementById('btn-finish-batch').addEventListener('click', () => {
@@ -824,6 +826,7 @@ function updateOrderStatus(order) {
 // ── VALIDADOR EAN ────────────────────────────────────────────
 function startValidator() {
   document.getElementById('val-result').style.display = 'none';
+  setTorchBtnState(document.getElementById('btn-torch-validator-2'), false);
   Scanner2.start('scanner-video-validator', ean => {
     let foundSku = '', foundDesc = '';
     if (State.catalog) {
@@ -866,9 +869,13 @@ document.getElementById('back-from-validator').addEventListener('click', () => {
   showScreen('screen-home');
 });
 
-['btn-torch-validator', 'btn-torch-validator-2'].forEach(id => {
-  const btn = document.getElementById(id);
-  if (btn) btn.addEventListener('click', () => Scanner2.toggleTorch());
+document.getElementById('btn-torch-validator-2')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-torch-validator-2');
+  // Scanner2 (BarcodeDetector) es el camino principal; si no tiene track activo
+  // (cayó al fallback Scanner/html5-qrcode), probamos ese.
+  let state = await Scanner2.toggleTorch();
+  if (state === null) state = await Scanner.toggleTorch();
+  setTorchBtnState(btn, state);
 });
 
 // ── RESUMEN ──────────────────────────────────────────────────

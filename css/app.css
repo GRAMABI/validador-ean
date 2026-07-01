@@ -16,7 +16,7 @@
   --text: #111827;
   --white: #ffffff;
   --topbar-h: 52px;
-  --bottom-nav-h: 60px;
+  --bottom-nav-h: 64px;
   --radius: 12px;
   --radius-sm: 8px;
 }
@@ -108,12 +108,12 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--gray-text);
   cursor: pointer;
   transition: color .15s;
 }
-.nav-item span:first-child { font-size: 18px; }
+.nav-item span:first-child { font-size: 20px; }
 .nav-item.active { color: var(--brand); }
 
 /* ═══════════════════════════════════════ CARDS */
@@ -366,6 +366,13 @@ html, body {
   to   { opacity: 1; transform: none; }
 }
 
+/* ═══ Linterna: estado ON */
+.btn-torch.torch-on {
+  background: var(--amber);
+  color: #fff;
+  border-color: var(--amber);
+}
+
 /* ═══════════════════════════════════════ SUMMARY */
 .metrics-grid {
   display: grid;
@@ -483,11 +490,12 @@ html, body {
   color: var(--amber);
   border: 1px solid #fcd34d;
   border-radius: var(--radius-sm);
-  padding: 5px 10px;
-  font-size: 11px;
+  padding: 12px 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
+  min-height: 44px;
 }
 .btn-manual:active { opacity: .8; }
 
@@ -553,12 +561,14 @@ html, body {
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   align-self: center;
+  min-height: 44px;
+  min-width: 44px;
 }
 .marca-item-btn:active { opacity: .8; }
 .marca-item-btn.locked { opacity: .4; pointer-events: none; }
