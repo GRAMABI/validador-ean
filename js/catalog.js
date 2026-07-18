@@ -33,12 +33,21 @@ const CatalogService = (() => {
   }
 
   function saveCache(map) {
+    // NO borrar antes de escribir: si el setItem falla por cuota llena, un
+    // removeItem previo dejaba la tablet SIN catálogo (y sin app usable).
+    // El setItem sobreescribe igual, y ante error se restaura el valor previo.
+    const prev   = localStorage.getItem(CACHE_KEY);
+    const prevTs = localStorage.getItem(CACHE_TS_KEY);
     try {
-      localStorage.removeItem(CACHE_KEY);
-      localStorage.removeItem(CACHE_TS_KEY);
       localStorage.setItem(CACHE_KEY, JSON.stringify(Object.fromEntries(map)));
       localStorage.setItem(CACHE_TS_KEY, Date.now().toString());
-    } catch (e) { console.warn('[Catalog] No se pudo guardar caché:', e); }
+    } catch (e) {
+      console.warn('[Catalog] No se pudo guardar caché:', e);
+      try {
+        if (prev !== null) localStorage.setItem(CACHE_KEY, prev);
+        if (prevTs !== null) localStorage.setItem(CACHE_TS_KEY, prevTs);
+      } catch {}
+    }
   }
 
   async function download() {
@@ -96,16 +105,96 @@ const CatalogService = (() => {
   }
 
   function getInfo(sku, catalog) {
-    return catalog.get(sku.trim().toUpperCase()) || { ean: null, desc: '', marca: 'Varios' };
+    // Guard: un item sin SKU (alta manual) rompía todo el render con TypeError.
+    if (!sku || !catalog) return { ean: null, desc: '', marca: 'Otros' };
+    return catalog.get(String(sku).trim().toUpperCase()) || { ean: null, desc: '', marca: 'Otros' };
+  }
+
+  // ── NORMALIZACIÓN DE CÓDIGOS ────────────────────────────────
+  // El catálogo mezcla EAN-13 (3013), UPC-A de 12 (94), GTIN-14 de bulto (35)
+  // y un EAN-8. El lector puede devolver cualquiera de esas formas, así que
+  // comparar en crudo (como se hacía) produce falsos negativos.
+  function _digits(s) { return String(s || '').replace(/\D/g, ''); }
+
+  function _checkDigit13(d12) {
+    let sum = 0;
+    for (let i = 0; i < 12; i++) sum += (+d12[i]) * (i % 2 === 0 ? 1 : 3);
+    return (10 - (sum % 10)) % 10;
+  }
+
+  /**
+   * Variantes equivalentes de un código, para indexar y para buscar.
+   * - 12 dígitos (UPC-A) → se le antepone 0 para formar el EAN-13.
+   * - 14 dígitos (GTIN-14 de bulto) → se quita el dígito indicador y se
+   *   RECALCULA el verificador (quitarlo a lo bruto da un código inválido).
+   */
+  function eanVariants(code) {
+    const d = _digits(code);
+    if (!d) return [];
+    const out = [d];
+    if (d.length === 12) out.push('0' + d);
+    if (d.length === 13 && d[0] === '0') out.push(d.slice(1));
+    if (d.length === 14) {
+      const base12 = d.slice(1, 13);
+      out.push(base12 + _checkDigit13(base12));
+    }
+    return Array.from(new Set(out));
+  }
+
+  function eansMatch(a, b) {
+    const va = eanVariants(a), vb = eanVariants(b);
+    return va.some(x => vb.includes(x));
+  }
+
+  /**
+   * Índice inverso EAN → [SKU,...]. Se construye UNA vez por catálogo.
+   * Devuelve un array porque 137 EANs del catálogo están compartidos por
+   * más de un SKU (hasta 12), así que el llamador debe desambiguar.
+   */
+  let _idxCache = null, _idxSrc = null;
+  function eanIndex(catalog) {
+    if (!catalog) return new Map();
+    if (_idxCache && _idxSrc === catalog) return _idxCache;
+    const idx = new Map();
+    catalog.forEach((info, sku) => {
+      if (!info || !info.ean) return;
+      eanVariants(info.ean).forEach(v => {
+        if (!idx.has(v)) idx.set(v, []);
+        const arr = idx.get(v);
+        if (!arr.includes(sku)) arr.push(sku);
+      });
+    });
+    _idxCache = idx; _idxSrc = catalog;
+    return idx;
+  }
+
+  /** Devuelve [{sku, ean, desc, marca}, ...] — vacío si no está en catálogo. */
+  function findByEan(scannedEan, catalog) {
+    if (!catalog) return [];
+    const idx = eanIndex(catalog);
+    const seen = new Set();
+    const out = [];
+    eanVariants(scannedEan).forEach(v => {
+      (idx.get(v) || []).forEach(sku => {
+        if (seen.has(sku)) return;
+        seen.add(sku);
+        const info = catalog.get(sku) || {};
+        out.push({ sku, ean: info.ean || '', desc: info.desc || '', marca: info.marca || 'Otros' });
+      });
+    });
+    return out;
   }
 
   function validate(sku, scannedEan, catalog) {
-    const info = catalog.get(sku.trim().toUpperCase());
+    const info = catalog.get(String(sku || '').trim().toUpperCase());
     if (!info)     return { status: 'not_in_catalog', expected: null, desc: '' };
     if (!info.ean) return { status: 'no_ean', expected: null, desc: info.desc };
-    const match = scannedEan.trim() === info.ean.trim();
+    // Comparación normalizada: un UPC-A leído como 12 dígitos ahora matchea
+    // contra el EAN-13 del catálogo (y el bulto GTIN-14 contra la unidad).
+    const match = eansMatch(scannedEan, info.ean);
     return { status: match ? 'ok' : 'error', expected: info.ean, desc: info.desc };
   }
 
-  return { getCatalog, validate, getInfo, lastSyncLabel, cachedCount };
+  return { getCatalog, validate, getInfo, lastSyncLabel, cachedCount,
+           eanVariants, eansMatch, eanIndex, findByEan };
 })();

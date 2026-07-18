@@ -373,6 +373,184 @@ html, body {
   border-color: var(--amber);
 }
 
+/* ═══════════════════════════════════════ INPUTS */
+/* font-size 16px OBLIGATORIO: Chrome Android hace auto-zoom al enfocar inputs
+   de menos de 16px, y el user-scalable=no del viewport no lo previene. */
+.input-field {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 12px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+.input-field:focus { border-color: var(--brand); }
+
+/* ═══════════════════════════════════════ MODALES */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.modal-box {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 380px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.modal-sub   { font-size: 13px; color: var(--gray-text); margin-bottom: 14px; line-height: 1.4; }
+.modal-label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-text); margin: 12px 0 4px; }
+
+/* ═══════════════════════════════════════ MÓDULO STOCK */
+/* Clases propias: NO reusar .marca-item (es la fila de SKU de pedidos). */
+.stock-report-row, .stock-marca-row {
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin: 0 14px 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  cursor: pointer;
+}
+.stock-report-row:active, .stock-marca-row:active { background: var(--gray-bg); }
+.stock-report-info { flex: 1; min-width: 0; }
+.stock-report-title { font-size: 15px; font-weight: 600; }
+.stock-report-sub   { font-size: 12px; color: var(--gray-text); margin-top: 2px; }
+.stock-marca-name  { flex: 1; font-size: 15px; font-weight: 600; }
+.stock-marca-count { font-size: 12px; color: var(--gray-text); flex-shrink: 0; }
+
+/* Selector de modo de conteo */
+.stock-modo-bar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px 0;
+  flex-shrink: 0;
+}
+.stock-modo-btn {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--gray-border);
+  background: var(--white);
+  color: var(--gray-text);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stock-modo-btn.modo-on {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.stock-modo-hint {
+  font-size: 11px;
+  color: var(--gray-text);
+  padding: 4px 14px 0;
+  flex-shrink: 0;
+}
+
+/* Feedback persistente sobre la cámara (los toasts se pisan entre sí) */
+.stock-last-read {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,.78);
+  color: #fff;
+  padding: 10px 12px;
+}
+.stock-last-desc { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 6px; }
+.stock-last-row  { display: flex; align-items: center; gap: 10px; }
+.stock-last-qty  { font-size: 30px; font-weight: 800; color: #4ade80; line-height: 1; }
+.stock-undo-btn  {
+  margin-left: auto;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,.5);
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stock-last-warn { font-size: 12px; color: #fcd34d; margin-top: 6px; font-weight: 600; }
+
+.stock-scan-actions { display: flex; gap: 8px; margin: 8px 0; }
+.stock-scan-actions .btn-secondary { margin: 0; }
+
+/* Lista de items contados */
+.stock-item {
+  background: var(--white);
+  border: 1px solid var(--gray-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.stock-item-hit { border-color: var(--green); background: var(--green-bg); }
+.stock-item-info { flex: 1; min-width: 0; }
+.stock-item-desc { font-size: 13px; font-weight: 600; line-height: 1.3; }
+.stock-item-meta { font-size: 11px; color: var(--gray-text); margin-top: 2px; font-family: monospace; }
+.stock-item-qty  { font-size: 20px; font-weight: 800; color: var(--brand); flex-shrink: 0; min-width: 34px; text-align: right; }
+.stock-item-edit {
+  flex-shrink: 0;
+  min-width: 44px; min-height: 44px;
+  border: 1px solid var(--gray-border);
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  cursor: pointer;
+}
+.stock-tag-new  { color: var(--green); font-weight: 700; }
+.stock-tag-warn { color: var(--amber); font-weight: 700; }
+
+/* Desambiguación de EAN compartido por varios SKUs */
+.stock-pick-list { max-height: 46vh; overflow-y: auto; }
+.stock-pick-row {
+  border: 1px solid var(--gray-border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  min-height: 44px;
+}
+.stock-pick-row:active { background: var(--gray-bg); }
+.stock-pick-sku   { font-family: monospace; font-weight: 700; font-size: 13px; }
+.stock-pick-desc  { font-size: 12px; color: var(--gray-text); margin-top: 2px; line-height: 1.3; }
+.stock-pick-marca { font-size: 11px; color: var(--brand); margin-top: 2px; font-weight: 600; }
+
+/* Detalle de reporte */
+.stock-rep-tot {
+  background: var(--gray-bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.stock-export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stock-export-grid .btn-secondary { margin: 0; min-height: 48px; }
+
+#scanner-video-stock { width: 100%; height: 100%; }
+
 /* ═══════════════════════════════════════ SUMMARY */
 .metrics-grid {
   display: grid;

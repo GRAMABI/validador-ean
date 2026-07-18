@@ -22,6 +22,9 @@
       <button class="btn-primary" id="btn-mode-orders" style="margin-bottom:10px;font-size:16px;padding:16px">
         📋 Validar pedidos por PDF
       </button>
+      <button class="btn-primary" id="btn-mode-stock" style="margin-bottom:10px;font-size:16px;padding:16px;background:var(--green)">
+        📦 Control de Stock
+      </button>
       <button class="btn-secondary" id="btn-mode-validator" style="font-size:16px;padding:14px">
         🔍 Consultar EAN
       </button>
@@ -168,6 +171,80 @@
   </div>
 </div>
 
+<div id="screen-stock-home" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="showScreen('screen-home')">←</button>
+    <span class="topbar-title">Control de Stock</span>
+  </div>
+  <div class="content no-top-pad" id="stock-reports-list"></div>
+  <div class="bottom-action">
+    <button class="btn-primary" id="btn-stock-nuevo">＋ Nuevo conteo</button>
+  </div>
+</div>
+
+<div id="screen-stock-marcas" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="StockModule.abrirModulo()">←</button>
+    <span class="topbar-title">Elegí la marca</span>
+  </div>
+  <div style="padding:10px 14px 6px;flex-shrink:0">
+    <input type="text" id="stock-marca-buscar" class="input-field" placeholder="Buscar marca…">
+  </div>
+  <div class="content no-top-pad" id="stock-marcas-list"></div>
+</div>
+
+<div id="screen-stock-scan" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="StockModule.abrirModulo()">←</button>
+    <span class="topbar-title" id="stock-scan-title">Conteo</span>
+    <span class="badge badge-gray" id="stock-resumen">0 productos</span>
+  </div>
+  <div class="stock-modo-bar">
+    <button class="stock-modo-btn modo-on" id="btn-modo-sumar">＋1 por escaneo</button>
+    <button class="stock-modo-btn" id="btn-modo-cantidad">Escanear y tipear</button>
+  </div>
+  <div class="stock-modo-hint" id="stock-modo-hint">Cada lectura suma 1 unidad</div>
+  <div class="content no-top-pad">
+    <div class="scanner-wrap" id="stock-scanner-wrap">
+      <div id="scanner-video-stock"></div>
+      <div id="stock-last-read" class="stock-last-read" style="display:none"></div>
+    </div>
+    <div id="stock-scanner-error" class="error-msg" style="display:none"></div>
+    <div class="stock-scan-actions">
+      <button class="btn-secondary btn-torch" id="btn-torch-stock" style="border-color:#d97706;color:#d97706">🔦 Linterna</button>
+      <button class="btn-secondary" id="btn-stock-manual">✎ Cargar a mano</button>
+    </div>
+    <div id="stock-items-list"></div>
+  </div>
+  <div class="bottom-action">
+    <button class="btn-primary" id="btn-stock-finalizar">✓ Finalizar conteo</button>
+  </div>
+</div>
+
+<div id="screen-stock-report" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="StockModule.abrirModulo()">←</button>
+    <span class="topbar-title" id="stock-rep-marca">Conteo</span>
+    <span class="badge" id="stock-rep-estado">Cerrado</span>
+  </div>
+  <div class="content">
+    <div class="hint-text" id="stock-rep-meta"></div>
+    <div class="stock-rep-tot" id="stock-rep-totales"></div>
+    <div id="stock-rep-items"></div>
+
+    <div class="section-label mt-16">Exportar</div>
+    <div class="stock-export-grid">
+      <button class="btn-secondary" id="btn-stock-xls">📊 Excel</button>
+      <button class="btn-secondary" id="btn-stock-pdf">📄 PDF</button>
+      <button class="btn-secondary" id="btn-stock-share-xls">↗ Compartir Excel</button>
+      <button class="btn-secondary" id="btn-stock-share-pdf">↗ Compartir PDF</button>
+    </div>
+
+    <button class="btn-primary mt-16" id="btn-stock-reabrir">✎ Reabrir y editar</button>
+    <button class="btn-secondary mt-8" id="btn-stock-borrar" style="border-color:#dc2626;color:#dc2626">Borrar conteo</button>
+  </div>
+</div>
+
 <div id="loader" style="display:none">
   <div class="loader-box">
     <div class="spinner"></div>
@@ -192,9 +269,17 @@
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- jsPDF: genera el PDF del conteo como archivo real (compartible por WhatsApp).
+     Si no carga, stock.js cae solo a imprimir → "Guardar como PDF" de Android. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="js/catalog.js"></script>
 <script src="js/pdfParser.js"></script>
 <script src="js/scanner.js"></script>
 <script src="js/app.js"></script>
+<!-- stock.js DESPUÉS de app.js: usa `State`, que app.js declara con const
+     (no es window.State) — cargarlo antes daría ReferenceError por TDZ. -->
+<script src="js/stockStore.js"></script>
+<script src="js/stock.js"></script>
 </body>
 </html>

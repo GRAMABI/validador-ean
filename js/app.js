@@ -65,11 +65,18 @@ function clearProgress() {
 }
 
 // ── NAVEGACIÓN ───────────────────────────────────────────────
+// Pantallas que usan cámara: showScreen no debe apagarles el escáner al entrar.
+const CAM_SCREENS = ['screen-detail', 'screen-validator', 'screen-stock-scan'];
+
 function showScreen(id) {
-  if (id !== 'screen-detail' && id !== 'screen-validator') Scanner.stop();
-  if (id !== 'screen-validator') Scanner2.stop();
+  // Guard: sin esto un id mal escrito dejaba la app SIN ninguna pantalla
+  // activa (negro total, solo recuperable recargando).
+  const el = document.getElementById(id);
+  if (!el) { console.error('[showScreen] no existe la pantalla:', id); return; }
+  if (!CAM_SCREENS.includes(id)) Scanner.stop();
+  if (id !== 'screen-validator' && id !== 'screen-stock-scan') Scanner2.stop();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
   if (id === 'screen-validator') startValidator();
   if (id === 'screen-summary') renderSummary();
 }
@@ -827,39 +834,35 @@ function updateOrderStatus(order) {
 function startValidator() {
   document.getElementById('val-result').style.display = 'none';
   setTorchBtnState(document.getElementById('btn-torch-validator-2'), false);
-  Scanner2.start('scanner-video-validator', ean => {
-    let foundSku = '', foundDesc = '';
-    if (State.catalog) {
-      for (const [sku, info] of State.catalog) {
-        if (info.ean && info.ean.trim() === ean.trim()) {
-          foundSku = sku; foundDesc = info.desc; break;
-        }
-      }
-    }
+
+  // Búsqueda por índice inverso (antes era un for..of lineal sobre 3779 SKUs
+  // en CADA lectura, duplicado en los dos caminos).
+  const mostrarResultado = (ean) => {
+    const hits = CatalogService.findByEan(ean, State.catalog);
     const res = document.getElementById('val-result');
-    document.getElementById('val-ean').textContent  = ean;
-    document.getElementById('val-sku').textContent  = foundSku || '— No encontrado';
-    document.getElementById('val-desc').textContent = foundDesc || (foundSku ? '' : 'EAN no registrado en catálogo');
-    res.style.display    = 'block';
-    res.style.borderColor = foundSku ? '#1D9E75' : '#dc2626';
-  }, err => {
+    document.getElementById('val-ean').textContent = ean;
+    if (!hits.length) {
+      document.getElementById('val-sku').textContent  = '— No encontrado';
+      document.getElementById('val-desc').textContent = 'EAN no registrado en catálogo';
+      res.style.borderColor = '#dc2626';
+    } else {
+      // 137 EANs del catálogo apuntan a más de un SKU: mostrarlos todos.
+      document.getElementById('val-sku').textContent  = hits.map(h => h.sku).join('  ·  ');
+      document.getElementById('val-desc').textContent = hits.length === 1
+        ? hits[0].desc
+        : hits.map(h => `${h.sku}: ${h.desc}`).join('\n');
+      res.style.borderColor = '#1D9E75';
+    }
+    res.style.display = 'block';
+  };
+
+  Scanner2.start('scanner-video-validator', mostrarResultado, err => {
     console.warn('[Validador] BarcodeDetector no disponible, usando fallback:', err);
-    Scanner.start('scanner-video-validator', ean => {
-      let foundSku = '', foundDesc = '';
-      if (State.catalog) {
-        for (const [sku, info] of State.catalog) {
-          if (info.ean && info.ean.trim() === ean.trim()) {
-            foundSku = sku; foundDesc = info.desc; break;
-          }
-        }
-      }
-      const res = document.getElementById('val-result');
-      document.getElementById('val-ean').textContent  = ean;
-      document.getElementById('val-sku').textContent  = foundSku || '— No encontrado';
-      document.getElementById('val-desc').textContent = foundDesc || '';
-      res.style.display    = 'block';
-      res.style.borderColor = foundSku ? '#1D9E75' : '#dc2626';
-    }, e => console.warn('[Validador fallback]', e));
+    // Si el operario ya salió de la pantalla, NO arrancar el fallback: dejaba
+    // la cámara prendida en una pantalla oculta.
+    if (!document.getElementById('screen-validator').classList.contains('active')) return;
+    Scanner.start('scanner-video-validator', mostrarResultado,
+      e => console.warn('[Validador fallback]', e));
   });
 }
 
@@ -1020,18 +1023,26 @@ if (btnNew) btnNew.addEventListener('click', () => {
 });
 
 // ── AUDIO ────────────────────────────────────────────────────
+// Un ÚNICO AudioContext reutilizado. Antes se creaba uno por beep y nunca se
+// cerraba: Chrome corta cerca de los 6 por pestaña, así que en un conteo en
+// ráfaga los beeps se apagaban a la mitad — justo el feedback del que depende
+// el operario para no mirar la pantalla.
+let _actx = null;
 function playBeep(type) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
+    _actx = _actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (_actx.state === 'suspended') _actx.resume();
+    const freq = type === 'ok' ? 880 : type === 'warn' ? 440 : 220;
+    const dur  = type === 'ok' ? .15 : type === 'warn' ? .22 : .4;
+    const o = _actx.createOscillator(), g = _actx.createGain();
+    o.connect(g); g.connect(_actx.destination);
     o.type = 'sine';
-    o.frequency.value = type === 'ok' ? 880 : 220;
-    g.gain.setValueAtTime(.3, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + (type === 'ok' ? .15 : .4));
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(.3, _actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, _actx.currentTime + dur);
     o.start();
-    o.stop(ctx.currentTime + (type === 'ok' ? .15 : .4));
-  } catch {}
+    o.stop(_actx.currentTime + dur);
+  } catch (e) { console.warn('[beep]', e); }
 }
 
 function escHtml(s) {

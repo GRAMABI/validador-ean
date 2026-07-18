@@ -7,8 +7,14 @@ const Scanner = window.Scanner = (() => {
 
   let activeScanner = null;
 
-  async function start(videoId, onScan, onErr) {
+  // opts: { dedupeMs = 2000, allowRepeat = false, vibrate = true }
+  // Defaults idénticos al comportamiento previo — pedidos y validador no cambian.
+  async function start(videoId, onScan, onErr, opts) {
     await stop();
+    const o = opts || {};
+    const dedupeMs   = o.dedupeMs != null ? o.dedupeMs : 2000;
+    const allowRepeat = !!o.allowRepeat;
+    const doVibrate  = o.vibrate !== false;
 
     if (typeof Html5Qrcode === 'undefined') {
       onErr('Librería de escáner no disponible. Recargá la página.');
@@ -76,12 +82,14 @@ const Scanner = window.Scanner = (() => {
           let _lastEan = null;
           let _lock = false;
           return (decodedText) => {
-            // Anti-repetición a nivel de escáner: mismo EAN o lock activo = ignorar
-            if (_lock || decodedText === _lastEan) return;
+            // Anti-repetición: en modo ráfaga (allowRepeat) se permite releer el
+            // mismo código, solo se respeta la ventana de dedupeMs.
+            if (_lock) return;
+            if (!allowRepeat && decodedText === _lastEan) return;
             _lock = true;
             _lastEan = decodedText;
-            setTimeout(() => { _lock = false; _lastEan = null; }, 2000);
-            if (navigator.vibrate) navigator.vibrate(50);
+            setTimeout(() => { _lock = false; if (!allowRepeat) _lastEan = null; }, dedupeMs);
+            if (doVibrate && navigator.vibrate) navigator.vibrate(50);
             onScan(decodedText);
           };
         })(),
@@ -101,22 +109,26 @@ const Scanner = window.Scanner = (() => {
   }
 
   async function stop() {
-    if (activeScanner) {
-      try {
-        const state = activeScanner.getState();
-        if (state === 2 || state === 3) {
-          await activeScanner.stop();
-        }
-        activeScanner.clear();
-      } catch {}
-      activeScanner = null;
-    }
-    // Apagar linterna y limpiar track
-    if (_videoTrack) {
-      try { await _videoTrack.applyConstraints({ advanced: [{ torch: false }] }); } catch {}
-      _videoTrack = null;
-    }
+    // Capturar y anular ANTES de cualquier await: si en esa ventana arranca un
+    // start() nuevo, el stop viejo apagaba el stream recién creado y la pantalla
+    // quedaba en negro sin error en consola.
+    const sc = activeScanner;
+    const tr = _videoTrack;
+    activeScanner = null;
+    _videoTrack = null;
     _torchOn = false;
+
+    if (sc) {
+      try {
+        const state = sc.getState();
+        if (state === 2 || state === 3) await sc.stop();
+        sc.clear();
+      } catch {}
+    }
+    if (tr) {
+      try { await tr.applyConstraints({ advanced: [{ torch: false }] }); } catch {}
+      try { tr.stop(); } catch {}
+    }
   }
 
   let _torchOn = false;
@@ -191,7 +203,7 @@ const Scanner = window.Scanner = (() => {
 document.addEventListener('DOMContentLoaded', function() {
   const style = document.createElement('style');
   style.textContent = `
-    #scanner-video > *, #scanner-video-free > * { border-radius: 12px !important; }
+    #scanner-video > *, #scanner-video-validator > *, #scanner-video-stock > * { border-radius: 12px !important; }
     #html5-qrcode-button-camera-permission {
       background: #1a56db !important; color: white !important;
       border: none !important; padding: 12px 24px !important;
@@ -216,12 +228,18 @@ const Scanner2 = window.Scanner2 = (() => {
   let _detector = null;
   let _video = null;
 
-  async function start(videoId, onScan, onErr) {
+  // opts: { dedupeMs = 2500, allowRepeat = false, vibrate = true }
+  async function start(videoId, onScan, onErr, opts) {
     await stop();
+    const o = opts || {};
+    const dedupeMs    = o.dedupeMs != null ? o.dedupeMs : 2500;
+    const allowRepeat = !!o.allowRepeat;
+    const doVibrate   = o.vibrate !== false;
 
     // BarcodeDetector API — disponible en Chrome Android 83+
     if (!('BarcodeDetector' in window)) {
-      onErr('Tu navegador no soporta el escáner nativo. Actualizá Chrome.');
+      // Sin cámara pedida todavía: el llamador puede caer al fallback.
+      onErr('Tu navegador no soporta el escáner nativo. Actualizá Chrome.', 'no_support');
       return;
     }
 
@@ -250,43 +268,60 @@ const Scanner2 = window.Scanner2 = (() => {
         await _video.play();
       }
 
+      // Watchdog: si Android le quita la cámara a la app (llamada entrante, otra
+      // app toma el recurso), el track termina y el loop quedaba haciendo return
+      // en silencio para siempre — cuadro negro y el operario escaneando al vacío.
+      const _watchTrack = _track;
+      if (_watchTrack) {
+        _watchTrack.addEventListener('ended', () => {
+          try { onErr('Se perdió la cámara. Tocá "Reintentar".', 'camera_lost'); } catch {}
+        });
+      }
+
       // Escanear cada 300ms
       let _lastEan = null;
       let _lock = false;
       _interval = setInterval(async () => {
-        if (!_video || _video.readyState < 2 || _lock) return;
+        if (!_video || _lock) return;
+        if (_watchTrack && _watchTrack.readyState === 'ended') return;
+        if (_video.readyState < 2) return;
         try {
           const barcodes = await _detector.detect(_video);
           if (barcodes.length > 0) {
             const ean = barcodes[0].rawValue;
-            if (ean === _lastEan) return;
+            if (!allowRepeat && ean === _lastEan) return;
             _lock = true;
             _lastEan = ean;
-            setTimeout(() => { _lock = false; _lastEan = null; }, 2500);
-            if (navigator.vibrate) navigator.vibrate(50);
+            setTimeout(() => { _lock = false; if (!allowRepeat) _lastEan = null; }, dedupeMs);
+            if (doVibrate && navigator.vibrate) navigator.vibrate(50);
             onScan(ean);
           }
         } catch {}
       }, 300);
 
     } catch(e) {
+      // Distinguir el motivo: si el permiso está denegado, reintentar con el
+      // otro escáner falla igual — no tiene sentido caer al fallback.
       if (e.name === 'NotAllowedError') {
-        onErr('Permiso de cámara denegado.');
+        onErr('Permiso de cámara denegado.', 'denied');
       } else {
-        onErr('Error al iniciar cámara: ' + e.message);
+        onErr('Error al iniciar cámara: ' + e.message, 'error');
       }
     }
   }
 
   async function stop() {
-    if (_interval) { clearInterval(_interval); _interval = null; }
-    if (_track) {
-      try { await _track.applyConstraints({ advanced: [{ torch: false }] }); } catch {}
-      _track = null;
-    }
-    if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
-    if (_video) { _video.srcObject = null; _video = null; }
+    // Capturar y anular ANTES de los await (misma race que en Scanner).
+    const iv = _interval, tr = _track, st = _stream, vd = _video;
+    _interval = null; _track = null; _stream = null; _video = null;
     _torchOn = false;
+
+    if (iv) clearInterval(iv);
+    if (tr) {
+      try { await tr.applyConstraints({ advanced: [{ torch: false }] }); } catch {}
+    }
+    if (st) { try { st.getTracks().forEach(t => t.stop()); } catch {} }
+    if (vd) { try { vd.srcObject = null; } catch {} }
   }
 
   // Devuelve true/false = nuevo estado de la linterna, null = no disponible
