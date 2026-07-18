@@ -36,35 +36,39 @@ const StockModule = (() => {
     return MARCAS_LARIX.has((marca || '').trim()) ? 'LARIX' : 'GRAMABI';
   }
 
-  // El conteo puede filtrarse por una marca puntual, por empresa entera
-  // (se guarda como '@GRAMABI' / '@LARIX') o por nada (todas).
-  function selEmpresa(valor) {
-    const v = (valor || '').trim();
-    return v.startsWith('@') ? v.slice(1) : null;
+  /**
+   * Agrupa los items de un reporte por empresa → marca, con subtotales.
+   * La marca sale del catálogo (o de lo que se cargó a mano) y la empresa se
+   * deriva de la marca, así que el desglose es siempre el dato real: no hace
+   * falta declarar nada antes de empezar a contar.
+   */
+  function agruparPorEmpresa(items) {
+    const emp = {};
+    (items || []).forEach(i => {
+      const e = empresaDeMarca(i.marca);
+      const m = (i.marca || 'Otros').trim() || 'Otros';
+      emp[e] = emp[e] || { empresa: e, unidades: 0, productos: 0, marcas: {} };
+      emp[e].marcas[m] = emp[e].marcas[m] || { marca: m, unidades: 0, items: [] };
+      emp[e].marcas[m].unidades += (+i.cantidad || 0);
+      emp[e].marcas[m].items.push(i);
+      emp[e].unidades += (+i.cantidad || 0);
+      emp[e].productos += 1;
+    });
+    // GRAMABI primero, y dentro las marcas por cantidad descendente
+    return ['GRAMABI', 'LARIX'].filter(e => emp[e]).map(e => ({
+      ...emp[e],
+      marcas: Object.values(emp[e].marcas).sort((a, b) => b.unidades - a.unidades),
+    }));
   }
 
-  function etiquetaMarca(valor) {
-    const emp = selEmpresa(valor);
-    if (emp) return 'Todo ' + emp;
-    return valor || 'Todas las marcas';
-  }
-
-  /** ¿El producto leído entra en lo que se está contando? */
-  function marcaEnSeleccion(marcaProducto) {
-    const sel = (S.marca || '').trim();
-    if (!sel) return true;
-    const emp = selEmpresa(sel);
-    if (emp) return empresaDeMarca(marcaProducto) === emp;
-    return (marcaProducto || '').trim() === sel;
-  }
-
-  /** Marca a pre-cargar en el alta manual (vacía si se eligió una empresa). */
-  function marcaPorDefecto() {
-    return selEmpresa(S.marca) ? '' : (S.marca || '');
+  /** Texto corto tipo " · GRAMABI 12 · LARIX 3" para el historial. */
+  function resumenEmpresas(items) {
+    const g = agruparPorEmpresa(items);
+    if (!g.length) return '';
+    return ' · ' + g.map(e => `${e.empresa} ${e.unidades}`).join(' · ');
   }
 
   const S = {
-    marca: null,
     report: null,          // reporte en curso
     modo: 'sumar',         // 'sumar' = +1 por escaneo | 'cantidad' = escanear y tipear
     eanChoice: new Map(),  // EAN ambiguo → SKU elegido (dura lo que dura el conteo)
@@ -157,19 +161,6 @@ const StockModule = (() => {
     return 'descargado';
   }
 
-  // ── CATÁLOGO / BÚSQUEDA ────────────────────────────────────
-  function marcasDisponibles() {
-    const m = new Map();
-    if (State.catalog) {
-      State.catalog.forEach(info => {
-        const marca = (info && info.marca || 'Otros').trim() || 'Otros';
-        m.set(marca, (m.get(marca) || 0) + 1);
-      });
-    }
-    return [...m.entries()]
-      .sort((a, b) => a[0] === 'Otros' ? 1 : b[0] === 'Otros' ? -1 : a[0].localeCompare(b[0], 'es'));
-  }
-
   // ── PANTALLA: INICIO DEL MÓDULO (lista de conteos) ─────────
   async function abrirModulo() {
     showScreen('screen-stock-home');
@@ -199,76 +190,25 @@ const StockModule = (() => {
       const uds = totalUnidades(r);
       return `<div class="stock-report-row" onclick="StockModule.verReporte('${escHtml(r.id)}')">
         <div class="stock-report-info">
-          <div class="stock-report-title">${escHtml(etiquetaMarca(r.marca))}</div>
-          <div class="stock-report-sub">${fechaCorta(r.fecha)} · ${(r.items || []).length} productos · ${uds} unidades</div>
+          <div class="stock-report-title">Conteo del ${fechaCorta(r.fecha)}</div>
+          <div class="stock-report-sub">${(r.items || []).length} productos · ${uds} unidades${resumenEmpresas(r.items)}</div>
         </div>
         <span class="badge ${abierto ? 'badge-warn' : 'badge-ok'}">${abierto ? 'En curso' : 'Cerrado'}</span>
       </div>`;
     }).join('');
   }
 
-  // ── PANTALLA: ELEGIR MARCA ─────────────────────────────────
-  function elegirMarca() {
+  // ── INICIAR / RETOMAR CONTEO ───────────────────────────────
+  async function iniciarConteo() {
     if (!State.catalog) {
       showToast('⚠ Sin catálogo cargado — solo vas a poder cargar productos a mano', 'warn', 4000);
     }
-    showScreen('screen-stock-marcas');
-    renderMarcas('');
-    const inp = document.getElementById('stock-marca-buscar');
-    if (inp) { inp.value = ''; }
-  }
-
-  function renderMarcas(filtro) {
-    const cont = document.getElementById('stock-marcas-list');
-    if (!cont) return;
-    const f = (filtro || '').trim().toLowerCase();
-    const marcas = marcasDisponibles().filter(([m]) => !f || m.toLowerCase().includes(f));
-
-    const grupos = { GRAMABI: [], LARIX: [] };
-    marcas.forEach(par => grupos[empresaDeMarca(par[0])].push(par));
-
-    const fila = (valor, nombre, detalle, extraClase) =>
-      `<div class="stock-marca-row${extraClase ? ' ' + extraClase : ''}" onclick="StockModule.iniciarConteo('${escHtml(valor).replace(/'/g, '&#39;')}')">
-        <div class="stock-marca-name">${escHtml(nombre)}</div>
-        <div class="stock-marca-count">${escHtml(detalle)}</div>
-      </div>`;
-
-    let html = '';
-
-    // GRAMABI y LARIX se listan por separado: son negocios distintos y mezclar
-    // 67 marcas de ferretería con 11 de juguetería obligaba a scrollear de más.
-    [['GRAMABI', 'ferretería'], ['LARIX', 'juguetería']].forEach(([empresa, rubro]) => {
-      const lista = grupos[empresa];
-      if (!lista.length) return;
-      const skus = lista.reduce((s, [, n]) => s + n, 0);
-      html += `<div class="stock-empresa-header">
-        <span class="stock-empresa-name">${empresa}</span>
-        <span class="stock-empresa-sub">${rubro} · ${lista.length} marcas · ${skus} SKUs</span>
-      </div>`;
-      // Contar la empresa entera de una, sin elegir marca por marca
-      html += fila('@' + empresa, `Todo ${empresa}`, 'contar la empresa completa', 'stock-marca-todo');
-      html += lista.map(([m, n]) => fila(m, m, n + ' SKUs')).join('');
-    });
-
-    if (!html) { cont.innerHTML = '<div class="hint-text">Sin resultados.</div>'; return; }
-
-    // "Todas" solo tiene sentido sin filtro de búsqueda activo
-    if (!f) {
-      html = fila('', 'Todas las marcas', 'GRAMABI + LARIX juntas', 'stock-marca-todo') + html;
-    }
-    cont.innerHTML = html;
-  }
-
-  // ── INICIAR / RETOMAR CONTEO ───────────────────────────────
-  async function iniciarConteo(marca) {
     await StockStore.requestPersist();
-    S.marca = marca || '';
     S.eanChoice = new Map();
     S.report = {
       id: nuevoId(),
       fecha: new Date().toISOString(),
       operario: State.operario || '',
-      marca: S.marca,
       estado: 'abierto',
       items: [],
       createdAt: new Date().toISOString(),
@@ -290,7 +230,6 @@ const StockModule = (() => {
       if (!rep) { showToast('No se encontró el conteo', 'error'); return; }
       rep.estado = 'abierto';
       S.report = rep;
-      S.marca = rep.marca || '';
       S.eanChoice = new Map();
       await guardarYa();
       abrirPantallaConteo();
@@ -302,7 +241,7 @@ const StockModule = (() => {
   function abrirPantallaConteo() {
     showScreen('screen-stock-scan');
     const t = document.getElementById('stock-scan-title');
-    if (t) t.textContent = etiquetaMarca(S.marca);
+    if (t) t.textContent = 'Conteo del ' + fechaCorta(S.report && S.report.fecha);
     setModo(S.modo);
     renderItems();
     arrancarScanner();
@@ -382,12 +321,7 @@ const StockModule = (() => {
   }
 
   function aplicarLectura(hit, eanLeido) {
-    if (!marcaEnSeleccion(hit.marca)) {
-      playBeep('warn');
-      if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
-    } else {
-      playBeep('ok');
-    }
+    playBeep('ok');
 
     if (S.modo === 'cantidad') {
       pedirCantidad(hit, eanLeido);
@@ -414,10 +348,9 @@ const StockModule = (() => {
         sku: hit.sku || '',
         ean: hit.ean || eanLeido || '',
         desc: hit.desc || '',
-        marca: hit.marca || marcaPorDefecto() || 'Otros',
+        marca: hit.marca || 'Otros',
         cantidad: n,
         nuevo: !!hit.nuevo,
-        fueraDeMarca: !marcaEnSeleccion(hit.marca),
       };
       S.report.items.unshift(it);
     }
@@ -437,7 +370,7 @@ const StockModule = (() => {
         <span class="stock-last-qty">${it.cantidad}</span>
         <button class="stock-undo-btn" onclick="StockModule.deshacer('${escHtml(it.id)}')">↺ Deshacer</button>
       </div>
-      ${it.fueraDeMarca ? '<div class="stock-last-warn">⚠ Es de otra marca</div>' : ''}`;
+      <div class="stock-last-meta">${escHtml(it.marca || 'Otros')} · ${escHtml(empresaDeMarca(it.marca))}</div>`;
     box.style.display = 'block';
   }
 
@@ -475,7 +408,8 @@ const StockModule = (() => {
       <div class="stock-item${i.id === destacarId ? ' stock-item-hit' : ''}" data-id="${escHtml(i.id)}">
         <div class="stock-item-info">
           <div class="stock-item-desc">${escHtml(i.desc || '(sin nombre)')}</div>
-          <div class="stock-item-meta">${escHtml(i.sku || 'sin SKU')}${i.ean ? ' · ' + escHtml(i.ean) : ''}${i.nuevo ? ' · <span class="stock-tag-new">nuevo</span>' : ''}${i.fueraDeMarca ? ' · <span class="stock-tag-warn">otra marca</span>' : ''}</div>
+          <div class="stock-item-meta">${escHtml(i.sku || 'sin SKU')}${i.ean ? ' · ' + escHtml(i.ean) : ''}${i.nuevo ? ' · <span class="stock-tag-new">nuevo</span>' : ''}</div>
+          <div class="stock-item-marca">${escHtml(i.marca || 'Otros')} · <span class="stock-emp-tag">${escHtml(empresaDeMarca(i.marca))}</span></div>
         </div>
         <div class="stock-item-qty">${i.cantidad}</div>
         <button class="stock-item-edit" onclick="StockModule.editarItem('${escHtml(i.id)}')">✎</button>
@@ -542,7 +476,7 @@ const StockModule = (() => {
       <label class="modal-label">SKU (opcional)</label>
       <input type="text" id="stock-new-sku" class="input-field" placeholder="Ej: AMAL720">
       <label class="modal-label">Marca</label>
-      <input type="text" id="stock-new-marca" class="input-field" value="${escHtml(marcaPorDefecto())}">
+      <input type="text" id="stock-new-marca" class="input-field" placeholder="Ej: Ruibal (opcional)">
       <label class="modal-label">Cantidad</label>
       <input type="number" inputmode="numeric" min="1" step="1" value="1" id="stock-new-qty" class="input-field">
       <button class="btn-primary mt-16" onclick="StockModule.confirmarAlta()">Agregar al conteo</button>
@@ -629,7 +563,7 @@ const StockModule = (() => {
     S.report = rep;
     showScreen('screen-stock-report');
 
-    document.getElementById('stock-rep-marca').textContent = etiquetaMarca(rep.marca);
+    document.getElementById('stock-rep-marca').textContent = 'Conteo del ' + fechaCorta(rep.fecha);
     document.getElementById('stock-rep-meta').textContent =
       `${fechaLarga(rep.fecha)}${rep.operario ? ' · ' + rep.operario : ''}`;
     document.getElementById('stock-rep-totales').textContent =
@@ -638,15 +572,34 @@ const StockModule = (() => {
     badge.textContent = rep.estado === 'abierto' ? 'En curso' : 'Cerrado';
     badge.className = 'badge ' + (rep.estado === 'abierto' ? 'badge-warn' : 'badge-ok');
 
+    // Desglose por empresa → marca. Sale del dato de cada producto, no de un
+    // filtro elegido de antemano.
     const cont = document.getElementById('stock-rep-items');
-    cont.innerHTML = (rep.items || []).map(i => `
-      <div class="stock-item">
-        <div class="stock-item-info">
-          <div class="stock-item-desc">${escHtml(i.desc || '(sin nombre)')}</div>
-          <div class="stock-item-meta">${escHtml(i.sku || 'sin SKU')}${i.ean ? ' · ' + escHtml(i.ean) : ''}${i.nuevo ? ' · <span class="stock-tag-new">nuevo</span>' : ''}</div>
+    const grupos = agruparPorEmpresa(rep.items);
+    if (!grupos.length) {
+      cont.innerHTML = '<div class="hint-text">Sin productos.</div>';
+      return;
+    }
+    cont.innerHTML = grupos.map(emp => `
+      <div class="stock-empresa-header">
+        <span class="stock-empresa-name">${escHtml(emp.empresa)}</span>
+        <span class="stock-empresa-sub">${emp.productos} productos · ${emp.unidades} unidades</span>
+      </div>
+      ${emp.marcas.map(m => `
+        <div class="stock-marca-sub">
+          <span>${escHtml(m.marca)}</span>
+          <span class="stock-marca-sub-tot">${m.unidades} u.</span>
         </div>
-        <div class="stock-item-qty">${i.cantidad}</div>
-      </div>`).join('') || '<div class="hint-text">Sin productos.</div>';
+        ${m.items.map(i => `
+          <div class="stock-item">
+            <div class="stock-item-info">
+              <div class="stock-item-desc">${escHtml(i.desc || '(sin nombre)')}</div>
+              <div class="stock-item-meta">${escHtml(i.sku || 'sin SKU')}${i.ean ? ' · ' + escHtml(i.ean) : ''}${i.nuevo ? ' · <span class="stock-tag-new">nuevo</span>' : ''}</div>
+            </div>
+            <div class="stock-item-qty">${i.cantidad}</div>
+          </div>`).join('')}
+      `).join('')}
+    `).join('');
   }
 
   async function borrarReporte() {
@@ -662,10 +615,14 @@ const StockModule = (() => {
 
   // ── EXPORTAR ───────────────────────────────────────────────
   function filasExport(rep) {
-    return (rep.items || []).map(i => ({
+    // Ordenadas por empresa → marca para que el Excel salga ya agrupado
+    const ordenados = agruparPorEmpresa(rep.items)
+      .flatMap(emp => emp.marcas.flatMap(m => m.items));
+    return ordenados.map(i => ({
+      Empresa: empresaDeMarca(i.marca),
+      Marca: i.marca || 'Otros',
       SKU: i.sku || '',
       Producto: i.desc || '',
-      Marca: i.marca || '',
       EAN: i.ean || '',
       Cantidad: +i.cantidad || 0,
       Origen: i.nuevo ? 'Nuevo (fuera de catálogo)' : 'Catálogo',
@@ -673,11 +630,8 @@ const StockModule = (() => {
   }
 
   function nombreArchivo(rep, ext) {
-    const marca = etiquetaMarca(rep.marca)
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // sacar tildes/ñ del nombre de archivo
-      .replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
     const f = (rep.fecha || '').slice(0, 10);
-    return `stock-${marca}-${f}.${ext}`;
+    return `stock-${f}.${ext}`;
   }
 
   async function exportarExcel(compartir) {
@@ -690,7 +644,7 @@ const StockModule = (() => {
     try {
       const filas = filasExport(rep);
       const ws = XLSX.utils.json_to_sheet(filas);
-      ws['!cols'] = [{ wch: 16 }, { wch: 46 }, { wch: 16 }, { wch: 16 }, { wch: 10 }, { wch: 24 }];
+      ws['!cols'] = [{ wch: 10 }, { wch: 18 }, { wch: 16 }, { wch: 46 }, { wch: 16 }, { wch: 10 }, { wch: 24 }];
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Conteo');
       const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -710,13 +664,20 @@ const StockModule = (() => {
   }
 
   function htmlReporte(rep) {
-    const filas = (rep.items || []).map(i => `<tr>
-      <td>${escHtml(i.sku || '')}</td>
-      <td>${escHtml(i.desc || '')}</td>
-      <td>${escHtml(i.marca || '')}</td>
-      <td style="font-family:monospace">${escHtml(i.ean || '')}</td>
-      <td style="text-align:right;font-weight:600">${+i.cantidad || 0}</td>
-    </tr>`).join('');
+    // Agrupado por empresa → marca, con subtotales
+    const filas = agruparPorEmpresa(rep.items).map(emp => `
+      <tr class="emp"><td colspan="4">${escHtml(emp.empresa)}</td>
+        <td style="text-align:right">${emp.unidades} u.</td></tr>
+      ${emp.marcas.map(m => `
+        <tr class="mar"><td colspan="4">${escHtml(m.marca)}</td>
+          <td style="text-align:right">${m.unidades} u.</td></tr>
+        ${m.items.map(i => `<tr>
+          <td>${escHtml(i.sku || '')}</td>
+          <td>${escHtml(i.desc || '')}</td>
+          <td>${escHtml(i.marca || '')}</td>
+          <td style="font-family:monospace">${escHtml(i.ean || '')}</td>
+          <td style="text-align:right;font-weight:600">${+i.cantidad || 0}</td>
+        </tr>`).join('')}`).join('')}`).join('');
     return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
 <title>${escHtml(nombreArchivo(rep, 'pdf'))}</title>
 <style>
@@ -727,12 +688,13 @@ h1{color:#1a56db;margin:0 0 4px}
 table{width:100%;border-collapse:collapse}
 th{background:#1a56db;color:#fff;padding:7px 10px;font-size:12px;text-align:left}
 td{padding:6px 10px;border-bottom:1px solid #e5e7eb;font-size:12px}
-tr:nth-child(even) td{background:#f9fafb}
+tr.emp td{background:#1a56db;color:#fff;font-weight:700;font-size:12px;letter-spacing:.5px}
+tr.mar td{background:#e8eefc;font-weight:700;font-size:12px}
 @media print{ body{padding:0} }
 </style></head><body>
 <h1>📦 Conteo de stock</h1>
-<div class="meta">${escHtml(selEmpresa(rep.marca) ? 'Empresa' : 'Marca')}: <strong>${escHtml(etiquetaMarca(rep.marca))}</strong> · Fecha: ${escHtml(fechaLarga(rep.fecha))}${rep.operario ? ' · Operario: <strong>' + escHtml(rep.operario) + '</strong>' : ''}</div>
-<div class="tot">${(rep.items || []).length} productos · ${totalUnidades(rep)} unidades contadas</div>
+<div class="meta">Fecha: ${escHtml(fechaLarga(rep.fecha))}${rep.operario ? ' · Operario: <strong>' + escHtml(rep.operario) + '</strong>' : ''}</div>
+<div class="tot">${(rep.items || []).length} productos · ${totalUnidades(rep)} unidades contadas${escHtml(resumenEmpresas(rep.items))}</div>
 <table><thead><tr><th>SKU</th><th>Producto</th><th>Marca</th><th>EAN</th><th style="text-align:right">Cant.</th></tr></thead>
 <tbody>${filas}</tbody></table>
 </body></html>`;
@@ -750,19 +712,44 @@ tr:nth-child(even) td{background:#f9fafb}
         doc.setFontSize(16); doc.setTextColor('#1a56db');
         doc.text('Conteo de stock', 40, 46);
         doc.setFontSize(10); doc.setTextColor('#444');
-        doc.text(`${selEmpresa(rep.marca) ? 'Empresa' : 'Marca'}: ${etiquetaMarca(rep.marca)}`, 40, 64);
-        doc.text(`Fecha: ${fechaLarga(rep.fecha)}${rep.operario ? '   Operario: ' + rep.operario : ''}`, 40, 78);
-        doc.text(`${(rep.items || []).length} productos · ${totalUnidades(rep)} unidades`, 40, 92);
+        doc.text(`Fecha: ${fechaLarga(rep.fecha)}${rep.operario ? '   Operario: ' + rep.operario : ''}`, 40, 64);
+        doc.text(`${(rep.items || []).length} productos · ${totalUnidades(rep)} unidades${resumenEmpresas(rep.items)}`, 40, 78);
 
-        const body = (rep.items || []).map(i => [i.sku || '', i.desc || '', i.marca || '', i.ean || '', String(+i.cantidad || 0)]);
+        // Filas agrupadas por empresa → marca, con subtotales
+        const grupos = agruparPorEmpresa(rep.items);
+        const body = [];
+        const filasEmpresa = [], filasMarca = [];
+        grupos.forEach(emp => {
+          filasEmpresa.push(body.length);
+          body.push([emp.empresa, '', '', '', `${emp.unidades} u.`]);
+          emp.marcas.forEach(m => {
+            filasMarca.push(body.length);
+            body.push([m.marca, '', '', '', `${m.unidades} u.`]);
+            m.items.forEach(i => body.push([
+              i.sku || '', i.desc || '', i.marca || '', i.ean || '', String(+i.cantidad || 0),
+            ]));
+          });
+        });
+
         if (doc.autoTable) {
           doc.autoTable({
             head: [['SKU', 'Producto', 'Marca', 'EAN', 'Cant.']],
             body,
-            startY: 108,
+            startY: 96,
             styles: { fontSize: 8, cellPadding: 3 },
             headStyles: { fillColor: [26, 86, 219] },
             columnStyles: { 4: { halign: 'right' } },
+            didParseCell: d => {
+              if (d.section !== 'body') return;
+              if (filasEmpresa.includes(d.row.index)) {
+                d.cell.styles.fillColor = [26, 86, 219];
+                d.cell.styles.textColor = [255, 255, 255];
+                d.cell.styles.fontStyle = 'bold';
+              } else if (filasMarca.includes(d.row.index)) {
+                d.cell.styles.fillColor = [232, 238, 252];
+                d.cell.styles.fontStyle = 'bold';
+              }
+            },
           });
         } else {
           // Sin autotable: tabla simple paginada a mano
@@ -808,8 +795,7 @@ tr:nth-child(even) td{background:#f9fafb}
   // ── CABLEADO ───────────────────────────────────────────────
   function init() {
     document.getElementById('btn-mode-stock')?.addEventListener('click', abrirModulo);
-    document.getElementById('btn-stock-nuevo')?.addEventListener('click', elegirMarca);
-    document.getElementById('stock-marca-buscar')?.addEventListener('input', e => renderMarcas(e.target.value));
+    document.getElementById('btn-stock-nuevo')?.addEventListener('click', iniciarConteo);
     document.getElementById('btn-modo-sumar')?.addEventListener('click', () => setModo('sumar'));
     document.getElementById('btn-modo-cantidad')?.addEventListener('click', () => setModo('cantidad'));
     document.getElementById('btn-stock-finalizar')?.addEventListener('click', finalizarConteo);
@@ -837,7 +823,7 @@ tr:nth-child(even) td{background:#f9fafb}
   }
 
   return {
-    abrirModulo, elegirMarca, iniciarConteo, retomarConteo, verReporte,
+    abrirModulo, iniciarConteo, retomarConteo, verReporte,
     deshacer, editarItem, confirmarEdicion, borrarItem,
     confirmarCantidad, confirmarAlta, elegirSku, cerrarModal,
     reintentarScanner, renderListaReportes,

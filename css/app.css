@@ -452,12 +452,32 @@ html, body {
   letter-spacing: .5px;
 }
 .stock-empresa-sub { font-size: 11px; color: var(--gray-text); }
-/* Fila para contar una empresa entera (o todas) */
-.stock-marca-todo {
-  background: var(--gray-bg);
-  border-style: dashed;
+
+/* Subtotal por marca dentro de una empresa (en el reporte) */
+.stock-marca-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #e8eefc;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  margin: 8px 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand);
 }
-.stock-marca-todo .stock-marca-name { color: var(--brand); }
+.stock-marca-sub-tot { font-weight: 800; }
+
+/* Marca + empresa de cada producto contado */
+.stock-item-marca { font-size: 11px; color: var(--gray-text); margin-top: 2px; }
+.stock-emp-tag {
+  background: var(--gray-bg);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-weight: 700;
+  color: var(--brand);
+}
+.stock-last-meta { font-size: 12px; color: #cbd5e1; margin-top: 6px; }
 
 /* Selector de modo de conteo */
 .stock-modo-bar {
