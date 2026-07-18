@@ -16,6 +16,53 @@
 
 const StockModule = (() => {
 
+  /**
+   * Marcas de LARIX (juguetería). Sale del mapeo PROVEEDOR → marca de
+   * CLAUDE.md; el resto del catálogo se considera GRAMABI (ferretería).
+   * Se deriva en código a propósito: el catalog_data.json no tiene campo de
+   * empresa, así que agregar una marca acá es todo lo que hace falta.
+   * Incluye 3 marcas que hoy no tienen SKUs cargados (First Rate, John & Mary,
+   * Trucco) para que queden del lado correcto apenas aparezcan.
+   */
+  const MARCAS_LARIX = new Set([
+    'Ruibal', 'Yani Toys', 'Andicar', 'Rivaplast', 'Lalelu', 'JYF Toys',
+    'Magic Makers', 'Caffaro', 'Casita de Muñecas', 'Yoly Bell',
+    'First Rate', 'John & Mary', 'Trucco', 'Xalingo',
+  ]);
+
+  // 'Otros' (sin marca detectada) cuenta como GRAMABI: las marcas LARIX vienen
+  // de la columna PROVEEDOR del Excel, que siempre las identifica.
+  function empresaDeMarca(marca) {
+    return MARCAS_LARIX.has((marca || '').trim()) ? 'LARIX' : 'GRAMABI';
+  }
+
+  // El conteo puede filtrarse por una marca puntual, por empresa entera
+  // (se guarda como '@GRAMABI' / '@LARIX') o por nada (todas).
+  function selEmpresa(valor) {
+    const v = (valor || '').trim();
+    return v.startsWith('@') ? v.slice(1) : null;
+  }
+
+  function etiquetaMarca(valor) {
+    const emp = selEmpresa(valor);
+    if (emp) return 'Todo ' + emp;
+    return valor || 'Todas las marcas';
+  }
+
+  /** ¿El producto leído entra en lo que se está contando? */
+  function marcaEnSeleccion(marcaProducto) {
+    const sel = (S.marca || '').trim();
+    if (!sel) return true;
+    const emp = selEmpresa(sel);
+    if (emp) return empresaDeMarca(marcaProducto) === emp;
+    return (marcaProducto || '').trim() === sel;
+  }
+
+  /** Marca a pre-cargar en el alta manual (vacía si se eligió una empresa). */
+  function marcaPorDefecto() {
+    return selEmpresa(S.marca) ? '' : (S.marca || '');
+  }
+
   const S = {
     marca: null,
     report: null,          // reporte en curso
@@ -152,7 +199,7 @@ const StockModule = (() => {
       const uds = totalUnidades(r);
       return `<div class="stock-report-row" onclick="StockModule.verReporte('${escHtml(r.id)}')">
         <div class="stock-report-info">
-          <div class="stock-report-title">${escHtml(r.marca || 'Todas las marcas')}</div>
+          <div class="stock-report-title">${escHtml(etiquetaMarca(r.marca))}</div>
           <div class="stock-report-sub">${fechaCorta(r.fecha)} · ${(r.items || []).length} productos · ${uds} unidades</div>
         </div>
         <span class="badge ${abierto ? 'badge-warn' : 'badge-ok'}">${abierto ? 'En curso' : 'Cerrado'}</span>
@@ -177,17 +224,39 @@ const StockModule = (() => {
     const f = (filtro || '').trim().toLowerCase();
     const marcas = marcasDisponibles().filter(([m]) => !f || m.toLowerCase().includes(f));
 
-    let html = `<div class="stock-marca-row" onclick="StockModule.iniciarConteo('')">
-      <div class="stock-marca-name">Todas las marcas</div>
-      <div class="stock-marca-count">sin filtrar</div>
-    </div>`;
+    const grupos = { GRAMABI: [], LARIX: [] };
+    marcas.forEach(par => grupos[empresaDeMarca(par[0])].push(par));
 
-    html += marcas.map(([m, n]) => `<div class="stock-marca-row" onclick="StockModule.iniciarConteo('${escHtml(m).replace(/'/g, '&#39;')}')">
-      <div class="stock-marca-name">${escHtml(m)}</div>
-      <div class="stock-marca-count">${n} SKUs</div>
-    </div>`).join('');
+    const fila = (valor, nombre, detalle, extraClase) =>
+      `<div class="stock-marca-row${extraClase ? ' ' + extraClase : ''}" onclick="StockModule.iniciarConteo('${escHtml(valor).replace(/'/g, '&#39;')}')">
+        <div class="stock-marca-name">${escHtml(nombre)}</div>
+        <div class="stock-marca-count">${escHtml(detalle)}</div>
+      </div>`;
 
-    cont.innerHTML = html || '<div class="hint-text">Sin resultados.</div>';
+    let html = '';
+
+    // GRAMABI y LARIX se listan por separado: son negocios distintos y mezclar
+    // 67 marcas de ferretería con 11 de juguetería obligaba a scrollear de más.
+    [['GRAMABI', 'ferretería'], ['LARIX', 'juguetería']].forEach(([empresa, rubro]) => {
+      const lista = grupos[empresa];
+      if (!lista.length) return;
+      const skus = lista.reduce((s, [, n]) => s + n, 0);
+      html += `<div class="stock-empresa-header">
+        <span class="stock-empresa-name">${empresa}</span>
+        <span class="stock-empresa-sub">${rubro} · ${lista.length} marcas · ${skus} SKUs</span>
+      </div>`;
+      // Contar la empresa entera de una, sin elegir marca por marca
+      html += fila('@' + empresa, `Todo ${empresa}`, 'contar la empresa completa', 'stock-marca-todo');
+      html += lista.map(([m, n]) => fila(m, m, n + ' SKUs')).join('');
+    });
+
+    if (!html) { cont.innerHTML = '<div class="hint-text">Sin resultados.</div>'; return; }
+
+    // "Todas" solo tiene sentido sin filtro de búsqueda activo
+    if (!f) {
+      html = fila('', 'Todas las marcas', 'GRAMABI + LARIX juntas', 'stock-marca-todo') + html;
+    }
+    cont.innerHTML = html;
   }
 
   // ── INICIAR / RETOMAR CONTEO ───────────────────────────────
@@ -233,7 +302,7 @@ const StockModule = (() => {
   function abrirPantallaConteo() {
     showScreen('screen-stock-scan');
     const t = document.getElementById('stock-scan-title');
-    if (t) t.textContent = S.marca || 'Todas las marcas';
+    if (t) t.textContent = etiquetaMarca(S.marca);
     setModo(S.modo);
     renderItems();
     arrancarScanner();
@@ -313,7 +382,7 @@ const StockModule = (() => {
   }
 
   function aplicarLectura(hit, eanLeido) {
-    if (S.marca && hit.marca && hit.marca !== S.marca) {
+    if (!marcaEnSeleccion(hit.marca)) {
       playBeep('warn');
       if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
     } else {
@@ -345,10 +414,10 @@ const StockModule = (() => {
         sku: hit.sku || '',
         ean: hit.ean || eanLeido || '',
         desc: hit.desc || '',
-        marca: hit.marca || S.marca || 'Otros',
+        marca: hit.marca || marcaPorDefecto() || 'Otros',
         cantidad: n,
         nuevo: !!hit.nuevo,
-        fueraDeMarca: !!(S.marca && hit.marca && hit.marca !== S.marca),
+        fueraDeMarca: !marcaEnSeleccion(hit.marca),
       };
       S.report.items.unshift(it);
     }
@@ -473,7 +542,7 @@ const StockModule = (() => {
       <label class="modal-label">SKU (opcional)</label>
       <input type="text" id="stock-new-sku" class="input-field" placeholder="Ej: AMAL720">
       <label class="modal-label">Marca</label>
-      <input type="text" id="stock-new-marca" class="input-field" value="${escHtml(S.marca || '')}">
+      <input type="text" id="stock-new-marca" class="input-field" value="${escHtml(marcaPorDefecto())}">
       <label class="modal-label">Cantidad</label>
       <input type="number" inputmode="numeric" min="1" step="1" value="1" id="stock-new-qty" class="input-field">
       <button class="btn-primary mt-16" onclick="StockModule.confirmarAlta()">Agregar al conteo</button>
@@ -560,7 +629,7 @@ const StockModule = (() => {
     S.report = rep;
     showScreen('screen-stock-report');
 
-    document.getElementById('stock-rep-marca').textContent = rep.marca || 'Todas las marcas';
+    document.getElementById('stock-rep-marca').textContent = etiquetaMarca(rep.marca);
     document.getElementById('stock-rep-meta').textContent =
       `${fechaLarga(rep.fecha)}${rep.operario ? ' · ' + rep.operario : ''}`;
     document.getElementById('stock-rep-totales').textContent =
@@ -604,7 +673,9 @@ const StockModule = (() => {
   }
 
   function nombreArchivo(rep, ext) {
-    const marca = (rep.marca || 'todas').replace(/[^\w\-]+/g, '-').toLowerCase();
+    const marca = etiquetaMarca(rep.marca)
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // sacar tildes/ñ del nombre de archivo
+      .replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
     const f = (rep.fecha || '').slice(0, 10);
     return `stock-${marca}-${f}.${ext}`;
   }
@@ -660,7 +731,7 @@ tr:nth-child(even) td{background:#f9fafb}
 @media print{ body{padding:0} }
 </style></head><body>
 <h1>📦 Conteo de stock</h1>
-<div class="meta">Marca: <strong>${escHtml(rep.marca || 'Todas')}</strong> · Fecha: ${escHtml(fechaLarga(rep.fecha))}${rep.operario ? ' · Operario: <strong>' + escHtml(rep.operario) + '</strong>' : ''}</div>
+<div class="meta">${escHtml(selEmpresa(rep.marca) ? 'Empresa' : 'Marca')}: <strong>${escHtml(etiquetaMarca(rep.marca))}</strong> · Fecha: ${escHtml(fechaLarga(rep.fecha))}${rep.operario ? ' · Operario: <strong>' + escHtml(rep.operario) + '</strong>' : ''}</div>
 <div class="tot">${(rep.items || []).length} productos · ${totalUnidades(rep)} unidades contadas</div>
 <table><thead><tr><th>SKU</th><th>Producto</th><th>Marca</th><th>EAN</th><th style="text-align:right">Cant.</th></tr></thead>
 <tbody>${filas}</tbody></table>
@@ -679,7 +750,7 @@ tr:nth-child(even) td{background:#f9fafb}
         doc.setFontSize(16); doc.setTextColor('#1a56db');
         doc.text('Conteo de stock', 40, 46);
         doc.setFontSize(10); doc.setTextColor('#444');
-        doc.text(`Marca: ${rep.marca || 'Todas'}`, 40, 64);
+        doc.text(`${selEmpresa(rep.marca) ? 'Empresa' : 'Marca'}: ${etiquetaMarca(rep.marca)}`, 40, 64);
         doc.text(`Fecha: ${fechaLarga(rep.fecha)}${rep.operario ? '   Operario: ' + rep.operario : ''}`, 40, 78);
         doc.text(`${(rep.items || []).length} productos · ${totalUnidades(rep)} unidades`, 40, 92);
 

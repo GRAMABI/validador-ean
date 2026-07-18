@@ -436,6 +436,29 @@ html, body {
 .stock-marca-name  { flex: 1; font-size: 15px; font-weight: 600; }
 .stock-marca-count { font-size: 12px; color: var(--gray-text); flex-shrink: 0; }
 
+/* Separación GRAMABI (ferretería) / LARIX (juguetería) */
+.stock-empresa-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 16px 14px 6px;
+  border-bottom: 2px solid var(--brand);
+  margin: 8px 14px 8px;
+}
+.stock-empresa-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--brand);
+  letter-spacing: .5px;
+}
+.stock-empresa-sub { font-size: 11px; color: var(--gray-text); }
+/* Fila para contar una empresa entera (o todas) */
+.stock-marca-todo {
+  background: var(--gray-bg);
+  border-style: dashed;
+}
+.stock-marca-todo .stock-marca-name { color: var(--brand); }
+
 /* Selector de modo de conteo */
 .stock-modo-bar {
   display: flex;
