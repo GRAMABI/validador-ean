@@ -1,5 +1,5 @@
 /**
- * pdfParser.js — v20260610c
+ * pdfParser.js — v20260610d
  * Compatible con Android 11 / Chrome viejo (Samsung SM-T510 y similares).
  *
  * Estrategia de carga de pdf.js worker (en orden de preferencia):
@@ -224,10 +224,21 @@ const PdfParser = (() => {
   function extractFullQuantities(text, into) {
     if (!text) return;
     // Algunas variantes del PDF tienen texto de instrucciones con números
-    // ("Cada producto debe pesar menos de 30 kg... 120 cm... 260 cm").
-    // Eliminamos cada bullet "•" y su texto hasta el siguiente bullet o fin,
-    // para que solo queden los números de la columna UNIDADES.
-    const cleaned = text.replace(/•[\s\S]*?(?=•|$)/g, ' ');
+    // ("...mayor a 90 días...", "...menos de 30 kg... 120 cm...") intercalado
+    // en la columna UNIDADES: pasa con productos tipo SUPERMERCADO (perecederos),
+    // cuyas instrucciones de vencimiento se meten EN EL MEDIO de las cantidades,
+    // y algunas cantidades quedan DESPUÉS del texto.
+    //
+    // Cada bullet se borra hasta el ÚLTIMO punto de su propia oración, acotado
+    // al bullet con [^•] para no cruzar al siguiente. Así se eliminan los
+    // números embebidos en las instrucciones (que están antes del punto) pero
+    // se conservan las cantidades que vienen después del texto (que no tienen
+    // punto). El regex viejo borraba "• ... hasta el próximo • o el FIN", y ese
+    // "FIN" se comía las cantidades finales de la página.
+    let cleaned = text.replace(/•[^•]*\./g, ' ');
+    // Bullet residual sin punto (raro): se saca junto con su texto hasta el
+    // siguiente bullet, sin llegar al fin, para no tragar cantidades finales.
+    cleaned = cleaned.replace(/•[^•\d]*/g, ' ');
     // Enteros aislados de 1-3 dígitos. El cleanup anterior garantiza que ya
     // no queden números embebidos en las instrucciones.
     const re = /(?:^|\s)(\d{1,3})(?=\s|$)/g;
