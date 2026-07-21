@@ -648,14 +648,40 @@ const StockModule = (() => {
    * Es determinístico: re-exportar el mismo conteo reemplaza su archivo en vez
    * de acumular copias.
    */
+  /** Marca con más unidades contadas del reporte ('' si no hay productos). */
+  function marcaDominante(rep) {
+    const porMarca = {};
+    (rep.items || []).forEach(i => {
+      const m = (i.marca || 'Otros').trim() || 'Otros';
+      porMarca[m] = (porMarca[m] || 0) + (+i.cantidad || 0);
+    });
+    let mejor = '', max = -1;
+    Object.entries(porMarca).forEach(([m, u]) => { if (u > max) { max = u; mejor = m; } });
+    return mejor;
+  }
+
+  /** Saca tildes/ñ y caracteres raros para que el nombre viaje bien por WhatsApp. */
+  function limpiarNombre(s) {
+    return String(s || '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * "Control Stock - <marca dominante> - <fecha> <hora>.xlsx"
+   * La hora va igual porque dos conteos de la misma marca el mismo día
+   * generarían el mismo nombre, y ahí Android guarda "(1)" y el operario
+   * termina abriendo el conteo equivocado desde Descargas.
+   */
   function nombreArchivo(rep, ext) {
     const d = new Date(rep.fecha || Date.now());
     const p = n => String(n).padStart(2, '0');
     const fecha = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-    // Con segundos: dos conteos seguidos caen en el mismo minuto y volverían a
-    // pisarse. Crear un conteo es un tap, así que el segundo ya los separa.
-    const hora  = `${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}`;
-    return `stock-${fecha}_${hora}.${ext}`;
+    const hora  = `${p(d.getHours())}-${p(d.getMinutes())}`;
+    const marca = limpiarNombre(marcaDominante(rep));
+    return `Control Stock${marca ? ' - ' + marca : ''} - ${fecha} ${hora}.${ext}`;
   }
 
   // Chrome Android bloquea (o encola con un prompt) varias descargas seguidas:
