@@ -98,17 +98,25 @@ const StockModule = (() => {
   // Guardado con debounce: serializar el reporte entero en cada beep del modo
   // ráfaga bloquearía el hilo principal de la tablet.
   let _saveTimer = null;
+  let _savePend = null;   // reporte con cambios pendientes de guardar
+
   function guardarDebounced() {
+    // Se recuerda A QUÉ reporte pertenecen los cambios: si el operario navega a
+    // otro conteo dentro de los 400ms, antes se guardaba el reporte equivocado
+    // y las últimas lecturas se perdían.
+    _savePend = S.report;
     if (_saveTimer) clearTimeout(_saveTimer);
     _saveTimer = setTimeout(() => { _saveTimer = null; guardarYa(); }, 400);
   }
 
   async function guardarYa() {
-    if (!S.report) return;
     if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
-    S.report.updatedAt = new Date().toISOString();
+    const rep = _savePend || S.report;
+    _savePend = null;
+    if (!rep) return;
+    rep.updatedAt = new Date().toISOString();
     try {
-      await StockStore.put(S.report);
+      await StockStore.put(rep);
     } catch (e) {
       console.error('[Stock] No se pudo guardar:', e);
       showToast('⚠ No se pudo guardar el conteo', 'error', 5000);
@@ -117,7 +125,7 @@ const StockModule = (() => {
 
   // Flush antes de que Android mate la pestaña
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && S.report) guardarYa();
+    if (document.visibilityState === 'hidden' && (_savePend || S.report)) guardarYa();
   });
 
   // ── MODALES ────────────────────────────────────────────────
@@ -140,10 +148,12 @@ const StockModule = (() => {
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
+    a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    // Quitar el <a> recién después: sacarlo en el mismo tick llegó a cancelar
+    // la descarga en algunas versiones de Chrome Android.
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 10000);
   }
 
   async function compartirOBajar(blob, filename, mime) {
@@ -566,8 +576,9 @@ const StockModule = (() => {
     document.getElementById('stock-rep-marca').textContent = 'Conteo del ' + fechaCorta(rep.fecha);
     document.getElementById('stock-rep-meta').textContent =
       `${fechaLarga(rep.fecha)}${rep.operario ? ' · ' + rep.operario : ''}`;
-    document.getElementById('stock-rep-totales').textContent =
-      `${(rep.items || []).length} productos · ${totalUnidades(rep)} unidades`;
+    document.getElementById('stock-rep-totales').innerHTML =
+      `${(rep.items || []).length} productos · ${totalUnidades(rep)} unidades` +
+      `<div class="stock-rep-file">Archivo: ${escHtml(nombreArchivo(rep, 'xlsx').replace(/\.xlsx$/, ''))}</div>`;
     const badge = document.getElementById('stock-rep-estado');
     badge.textContent = rep.estado === 'abierto' ? 'En curso' : 'Cerrado';
     badge.className = 'badge ' + (rep.estado === 'abierto' ? 'badge-warn' : 'badge-ok');
@@ -629,18 +640,42 @@ const StockModule = (() => {
     }));
   }
 
+  /**
+   * Nombre único por conteo: fecha + hora de creación.
+   * Con solo la fecha, todos los conteos del mismo día generaban el MISMO
+   * archivo: Android guardaba "(1)", "(2)"… y el operario terminaba abriendo
+   * el conteo equivocado desde Descargas (o el navegador rechazaba la bajada).
+   * Es determinístico: re-exportar el mismo conteo reemplaza su archivo en vez
+   * de acumular copias.
+   */
   function nombreArchivo(rep, ext) {
-    const f = (rep.fecha || '').slice(0, 10);
-    return `stock-${f}.${ext}`;
+    const d = new Date(rep.fecha || Date.now());
+    const p = n => String(n).padStart(2, '0');
+    const fecha = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    // Con segundos: dos conteos seguidos caen en el mismo minuto y volverían a
+    // pisarse. Crear un conteo es un tap, así que el segundo ya los separa.
+    const hora  = `${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}`;
+    return `stock-${fecha}_${hora}.${ext}`;
+  }
+
+  // Chrome Android bloquea (o encola con un prompt) varias descargas seguidas:
+  // un doble-tap en el botón hacía que la segunda no bajara nunca.
+  let _exportando = false;
+  function tomarTurnoExport() {
+    if (_exportando) return false;
+    _exportando = true;
+    setTimeout(() => { _exportando = false; }, 1500);
+    return true;
   }
 
   async function exportarExcel(compartir) {
     const rep = S.report;
     if (!rep) return;
     if (typeof XLSX === 'undefined') {
-      showToast('⚠ La librería de Excel no está disponible offline', 'error', 5000);
+      showToast('⚠ Falta la librería de Excel. Conectate a internet y recargá la app.', 'error', 6000);
       return;
     }
+    if (!tomarTurnoExport()) return;
     try {
       const filas = filasExport(rep);
       const ws = XLSX.utils.json_to_sheet(filas);
@@ -655,7 +690,9 @@ const StockModule = (() => {
         if (r === 'descargado') showToast('Compartir no disponible — se descargó el archivo', 'warn', 4000);
       } else {
         descargarBlob(blob, nombre);
-        showToast('✓ Excel descargado', 'ok');
+        // Se nombra el archivo: con varios conteos por día, el operario necesita
+        // saber cuál buscar en Descargas.
+        showToast('✓ Descargado: ' + nombre, 'ok', 5000);
       }
     } catch (e) {
       console.error('[Stock] Excel:', e);
@@ -703,6 +740,7 @@ tr.mar td{background:#e8eefc;font-weight:700;font-size:12px}
   async function exportarPDF(compartir) {
     const rep = S.report;
     if (!rep) return;
+    if (!tomarTurnoExport()) return;
     const jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
 
     // Camino preferido: jsPDF genera un archivo real, compartible por WhatsApp.
@@ -770,7 +808,7 @@ tr.mar td{background:#e8eefc;font-weight:700;font-size:12px}
           if (r === 'descargado') showToast('Compartir no disponible — se descargó el archivo', 'warn', 4000);
         } else {
           descargarBlob(blob, nombre);
-          showToast('✓ PDF descargado', 'ok');
+          showToast('✓ Descargado: ' + nombre, 'ok', 5000);
         }
         return;
       } catch (e) {
