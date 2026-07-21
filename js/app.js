@@ -226,7 +226,7 @@ document.getElementById('input-pdf').addEventListener('change', async e => {
       orders.forEach(o => o.items.forEach(item => {
         const info = CatalogService.getInfo(item.sku, State.catalog);
         item.desc   = info.desc  || '';
-        item.hasEan = !!info.ean;
+        item.hasEan = !!info.ean || !!item.mlCode || !!item.pdfEan;
         item.marca  = info.marca || 'Varios';
       }));
     }
@@ -266,7 +266,7 @@ document.getElementById('btn-go-orders').addEventListener('click', async () => {
     if (item.desc === undefined && State.catalog) {
       const info = CatalogService.getInfo(item.sku, State.catalog);
       item.desc   = info.desc  || '';
-      item.hasEan = !!info.ean;
+      item.hasEan = !!info.ean || !!item.mlCode || !!item.pdfEan;
       item.marca  = info.marca || 'Varios';
     }
   }));
@@ -581,6 +581,11 @@ function renderSkuDetail() {
   const hasErr2  = entry.hasError;
   const noEan    = entry.hasEan === false;
 
+  // ¿Este SKU se escanea por etiqueta ML? (Full sin EAN, con Código ML)
+  const it0 = entry.refs[0] ? entry.refs[0].item : null;
+  const eanCat = CatalogService.getInfo(sku, State.catalog).ean;
+  const porMl = !!(it0 && it0.mlCode && !eanCat && !it0.pdfEan);
+
   const icon = allOk  ? '✓'
              : noEan  ? '—'
              : hasErr2 ? '✕' : '○';
@@ -590,8 +595,9 @@ function renderSkuDetail() {
 
   const progressTxt = `${scanned} de ${total} unidades escaneadas`;
   const eanTxt = allOk        ? '✓ Completo'
+               : hasErr2      ? '✕ Código incorrecto — reescaneá'
+               : porMl        ? '🏷 Escaneá la etiqueta ML (' + escHtml(it0.mlCode) + ')'
                : noEan        ? 'Sin código de barras'
-               : hasErr2      ? '✕ EAN incorrecto — reescaneá'
                : scanned > 0  ? progressTxt
                : '—';
 
@@ -720,6 +726,32 @@ function startSkuScanner() {
 }
 
 /**
+ * Valida un código escaneado contra un ítem. Acepta, en este orden:
+ *  1. El Código ML de la etiqueta (Envíos a Full): alfanumérico, siempre válido
+ *     para su SKU. Es lo que ML imprime en la etiqueta de los productos sin EAN.
+ *  2. El "Código universal" (EAN) que trae el PDF de Full, por si el catálogo
+ *     todavía no lo tiene cargado.
+ *  3. El EAN del catálogo (comportamiento normal de todos los formatos).
+ * Para pedidos que no son Full, item.mlCode y item.pdfEan son undefined, así que
+ * el comportamiento es idéntico al anterior (solo (3)).
+ */
+function validarLectura(item, code) {
+  const scanned = String(code || '').trim();
+  if (item.mlCode && scanned.toUpperCase() === String(item.mlCode).toUpperCase()) {
+    return { status: 'ok', via: 'ml' };
+  }
+  if (item.pdfEan && CatalogService.eansMatch(scanned, item.pdfEan)) {
+    return { status: 'ok', via: 'ean_pdf' };
+  }
+  const res = CatalogService.validate(item.sku, scanned, State.catalog);
+  if (res.status === 'ok') return res;
+  // Si el ítem tiene un código propio esperado (Full: Código ML o universal),
+  // un scan que no coincide es un ERROR de lectura, no "sin EAN registrado".
+  if (item.mlCode || item.pdfEan) return { status: 'error', expected: item.mlCode || item.pdfEan };
+  return res;
+}
+
+/**
  * Al escanear en modo SKU consolidado:
  * - Busca el primer ítem pendiente de ese SKU (en cualquier pedido)
  * - Valida el EAN contra el SKU
@@ -739,7 +771,7 @@ function onEanScannedSku(ean) {
 
   const item   = pendingRef.item;
   const order  = pendingRef.order;
-  const result = CatalogService.validate(item.sku, ean, State.catalog);
+  const result = validarLectura(item, ean);
   item.scannedEan = ean;
   delete item.lastError; // un nuevo intento reemplaza el error anterior (lo re-setea la rama 'error' si corresponde)
 

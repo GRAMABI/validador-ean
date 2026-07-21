@@ -1,5 +1,5 @@
 /**
- * pdfParser.js — v20260610d
+ * pdfParser.js — v20260610e
  * Compatible con Android 11 / Chrome viejo (Samsung SM-T510 y similares).
  *
  * Estrategia de carga de pdf.js worker (en orden de preferencia):
@@ -185,7 +185,9 @@ const PdfParser = (() => {
       sku: p.sku,
       qty: qtys[i] || 1,
       scanned: 0,
-      scannedEan: p.ean,
+      scannedEan: null,
+      pdfEan: p.ean,      // "Código universal" del PDF (EAN si lo tiene)
+      mlCode: p.mlCode,   // "Código ML" de la etiqueta (para ítems sin EAN)
       status: 'pending',
       lastError: null
     }));
@@ -215,9 +217,16 @@ const PdfParser = (() => {
       let ean = null;
       const eanMatch = block.match(/Código\s*universal:\s*(\d{12,14})/i);
       if (eanMatch) ean = eanMatch[1];
+      // Código ML (alfanumérico, ej "COUF29738"): es lo que ML imprime en la
+      // etiqueta de producto cuando el ítem NO tiene EAN. Siempre válido para
+      // ese SKU, así que el operario puede escanear la etiqueta.
+      let mlCode = null;
+      const mlMatch = block.match(/Código\s*ML:\s*([A-Z0-9]{6,})/i);
+      if (mlMatch) mlCode = mlMatch[1].trim().toUpperCase();
       into.push({
         sku: skuMatch[1].trim().toUpperCase(),
-        ean
+        ean,
+        mlCode
       });
     }
   }
