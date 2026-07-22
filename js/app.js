@@ -836,9 +836,12 @@ document.getElementById('btn-confirm-order').addEventListener('click', () => {
   showScreen('screen-orders');
 });
 
-document.getElementById('btn-torch').addEventListener('click', async () => {
+document.getElementById('btn-torch')?.addEventListener('click', async () => {
   const btn = document.getElementById('btn-torch');
-  const state = await Scanner.toggleTorch();
+  // Pedidos usa Scanner (html5-qrcode); si por algún motivo la cámara la tiene
+  // Scanner2, se prueba con ese antes de dar "no disponible".
+  let state = await Scanner.toggleTorch();
+  if (state === null) state = await Scanner2.toggleTorch();
   setTorchBtnState(btn, state);
 });
 

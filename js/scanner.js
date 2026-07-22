@@ -50,28 +50,23 @@ const Scanner = window.Scanner = (() => {
       };
 
 
-      // Capturar el track con reintentos hasta que esté disponible
+      // Capturar el track con reintentos hasta que esté disponible.
+      // El timer se guarda a nivel de módulo para poder cortarlo en stop(): antes
+      // quedaba corriendo y, al abrir un SKU tras otro, los intervalos viejos
+      // dejaban guardado un track YA MUERTO y la linterna dejaba de andar.
+      if (_findTrackTimer) { clearInterval(_findTrackTimer); _findTrackTimer = null; }
       let _attempts = 0;
-      const _findTrack = setInterval(() => {
+      _findTrackTimer = setInterval(() => {
         _attempts++;
-        const videos = document.querySelectorAll('video');
-        for (const video of videos) {
-          if (video.srcObject) {
-            const tracks = video.srcObject.getVideoTracks();
-            for (const track of tracks) {
-              const caps = track.getCapabilities ? track.getCapabilities() : {};
-              if (caps.torch) {
-                _videoTrack = track;
-                console.log('[Scanner] Track con linterna encontrado en intento', _attempts);
-                clearInterval(_findTrack);
-                return;
-              }
-            }
-          }
+        const t = _liveTrack();
+        if (t) {
+          _videoTrack = t;
+          clearInterval(_findTrackTimer); _findTrackTimer = null;
+          return;
         }
         if (_attempts >= 10) {
-          console.log('[Scanner] No se encontró track con linterna después de', _attempts, 'intentos');
-          clearInterval(_findTrack);
+          console.log('[Scanner] No se encontró track de cámara tras', _attempts, 'intentos');
+          clearInterval(_findTrackTimer); _findTrackTimer = null;
         }
       }, 500);
 
@@ -118,6 +113,8 @@ const Scanner = window.Scanner = (() => {
     _videoTrack = null;
     _torchOn = false;
 
+    if (_findTrackTimer) { clearInterval(_findTrackTimer); _findTrackTimer = null; }
+
     if (sc) {
       try {
         const state = sc.getState();
@@ -133,65 +130,50 @@ const Scanner = window.Scanner = (() => {
 
   let _torchOn = false;
   let _videoTrack = null;
+  let _findTrackTimer = null;
+
+  /** Primer track de video VIVO del DOM (el que abrió html5-qrcode). */
+  function _liveTrack() {
+    const videos = document.querySelectorAll('video');
+    for (const video of videos) {
+      const ss = video.srcObject;
+      if (!ss || !ss.getVideoTracks) continue;
+      for (const t of ss.getVideoTracks()) {
+        if (t.readyState === 'live') return t;
+      }
+    }
+    return null;
+  }
 
   // Devuelve true/false = nuevo estado de la linterna, null = no disponible
   async function toggleTorch() {
+    // Descartar un track muerto de un escaneo anterior: usarlo hacía fallar el
+    // applyConstraints y se terminaba pidiendo una SEGUNDA cámara mientras el
+    // escáner ya tenía la suya. En Android eso da "cámara ocupada" y el botón
+    // quedaba en "No disponible" aunque el equipo sí tenga linterna.
+    if (_videoTrack && _videoTrack.readyState !== 'live') {
+      _videoTrack = null;
+      _torchOn = false;
+    }
+    const track = _videoTrack || _liveTrack();
+    if (!track) return null;
+
+    const next = !_torchOn;
     try {
-      // 1. Usar track guardado
-      if (_videoTrack) {
-        _torchOn = !_torchOn;
-        await _videoTrack.applyConstraints({ advanced: [{ torch: _torchOn }] });
-        return _torchOn;
-      }
-
-      // 2. Buscar en videos del DOM
-      const videos = document.querySelectorAll('video');
-      for (const video of videos) {
-        if (video.srcObject) {
-          for (const track of video.srcObject.getVideoTracks()) {
-            const caps = track.getCapabilities ? track.getCapabilities() : {};
-            if (caps.torch) {
-              _videoTrack = track;
-              _torchOn = !_torchOn;
-              await track.applyConstraints({ advanced: [{ torch: _torchOn }] });
-              return _torchOn;
-            }
-          }
-        }
-      }
-
-      // 3. Último recurso: pedir stream propio con torch activado
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', advanced: [{ torch: true }] }
-      });
-      const track = stream.getVideoTracks()[0];
-      if (track) {
-        _videoTrack = track;
-        _torchOn = true;
-        return true;
-      }
-      return null;
+      await track.applyConstraints({ advanced: [{ torch: next }] });
     } catch(e) {
       console.warn('Linterna error:', e);
-      // Intentar con constraint directo
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } }
-        });
-        const track = stream.getVideoTracks()[0];
-        const caps = track.getCapabilities ? track.getCapabilities() : {};
-        if (caps.torch) {
-          _videoTrack = track;
-          _torchOn = !_torchOn;
-          await track.applyConstraints({ advanced: [{ torch: _torchOn }] });
-          return _torchOn;
-        }
-        return null;
-      } catch(e2) {
-        console.warn('Linterna fallback error:', e2);
-        return null;
-      }
+      return null;
     }
+    // Confirmar que el equipo realmente la soporta: si no aparece ni en
+    // settings ni en capabilities, el applyConstraints se ignoró en silencio.
+    const st   = track.getSettings     ? track.getSettings()     : {};
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    if (st.torch === undefined && !caps.torch) return null;
+
+    _videoTrack = track;
+    _torchOn = next;
+    return next;
   }
 
   function isTorchOn() { return _torchOn; }
