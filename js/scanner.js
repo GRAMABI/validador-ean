@@ -145,12 +145,14 @@ const Scanner = window.Scanner = (() => {
     return null;
   }
 
-  let _torchDiag = '';
+  let _torchDiag = '';   // detalle técnico (solo consola)
+  let _torchWhy  = '';   // motivo: sin_camara | sin_flash | navegador
   function torchDiag() { return _torchDiag; }
+  function torchWhy()  { return _torchWhy; }
 
   // Devuelve true/false = nuevo estado de la linterna, null = no disponible
   async function toggleTorch() {
-    _torchDiag = '';
+    _torchDiag = ''; _torchWhy = '';
     // Descartar un track muerto de un escaneo anterior: usarlo hacía fallar el
     // applyConstraints y se terminaba pidiendo una SEGUNDA cámara mientras el
     // escáner ya tenía la suya. En Android eso da "cámara ocupada" y el botón
@@ -160,14 +162,17 @@ const Scanner = window.Scanner = (() => {
       _torchOn = false;
     }
     const track = _videoTrack || _liveTrack();
-    if (!track) { _torchDiag = 'no encontré la cámara activa'; return null; }
+    if (!track) {
+      _torchDiag = 'no encontré la cámara activa'; _torchWhy = 'sin_camara';
+      return null;
+    }
 
     // Muchos Android soportan la linterna por applyConstraints AUNQUE no la
     // declaren en getCapabilities(). Por eso solo rechazamos si el navegador
     // dice EXPLÍCITAMENTE que no hay torch; si no la declara, igual probamos.
     const caps = track.getCapabilities ? track.getCapabilities() : {};
     if ('torch' in caps && caps.torch === false) {
-      _torchDiag = 'la cámara informa que no tiene linterna';
+      _torchDiag = 'la cámara informa que no tiene linterna'; _torchWhy = 'sin_flash';
       return null;
     }
 
@@ -175,7 +180,9 @@ const Scanner = window.Scanner = (() => {
     try {
       await track.applyConstraints({ advanced: [{ torch: next }] });
     } catch(e) {
+      // Típico en WebView (app abierta desde un link) o Chrome viejo.
       _torchDiag = 'applyConstraints falló: ' + (e && e.name ? e.name : String(e));
+      _torchWhy  = 'navegador';
       console.warn('Linterna error:', e);
       return null;
     }
@@ -186,7 +193,7 @@ const Scanner = window.Scanner = (() => {
 
   function isTorchOn() { return _torchOn; }
 
-  return { start, stop, toggleTorch, isTorchOn, torchDiag };
+  return { start, stop, toggleTorch, isTorchOn, torchDiag, torchWhy };
 })();
 
 /* Estilos extra para html5-qrcode — se inyectan cuando el DOM está listo */
@@ -314,17 +321,22 @@ const Scanner2 = window.Scanner2 = (() => {
     if (vd) { try { vd.srcObject = null; } catch {} }
   }
 
-  let _torchDiag = '';
+  let _torchDiag = '';   // detalle técnico (solo consola)
+  let _torchWhy  = '';   // motivo: sin_camara | sin_flash | navegador
   function torchDiag() { return _torchDiag; }
+  function torchWhy()  { return _torchWhy; }
 
   // Devuelve true/false = nuevo estado de la linterna, null = no disponible
   async function toggleTorch() {
-    _torchDiag = '';
-    if (!_track) { _torchDiag = 'la cámara no está activa'; return null; }
+    _torchDiag = ''; _torchWhy = '';
+    if (!_track) {
+      _torchDiag = 'la cámara no está activa'; _torchWhy = 'sin_camara';
+      return null;
+    }
     // Solo rechazar si el navegador declara explícitamente que no hay torch.
     const caps = _track.getCapabilities ? _track.getCapabilities() : {};
     if ('torch' in caps && caps.torch === false) {
-      _torchDiag = 'la cámara informa que no tiene linterna';
+      _torchDiag = 'la cámara informa que no tiene linterna'; _torchWhy = 'sin_flash';
       return null;
     }
     const next = !_torchOn;
@@ -333,7 +345,9 @@ const Scanner2 = window.Scanner2 = (() => {
       _torchOn = next;
       return next;
     } catch(e) {
+      // Típico en WebView (app abierta desde un link) o Chrome viejo.
       _torchDiag = 'applyConstraints falló: ' + (e && e.name ? e.name : String(e));
+      _torchWhy  = 'navegador';
       console.warn('Torch error:', e);
       return null;
     }
@@ -341,5 +355,5 @@ const Scanner2 = window.Scanner2 = (() => {
 
   function isTorchOn() { return _torchOn; }
 
-  return { start, stop, toggleTorch, isTorchOn, torchDiag };
+  return { start, stop, toggleTorch, isTorchOn, torchDiag, torchWhy };
 })();

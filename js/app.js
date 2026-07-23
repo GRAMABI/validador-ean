@@ -32,16 +32,27 @@ function setTorchBtnState(btn, state) {
   else                 { btn.textContent = '🔦 Linterna';      btn.classList.remove('torch-on'); }
 }
 
-// Muestra por qué falló la linterna (diagnóstico en pantalla, para no adivinar).
+/**
+ * Mensaje para el OPERARIO cuando la linterna no anda. El detalle técnico
+ * (OverconstrainedError, etc.) va solo a la consola: al operario no le sirve y
+ * lo preocupa. Se distingue el equipo sin flash (no hay nada que hacer) del
+ * navegador que no la deja (típico al abrir la app desde un link → WebView, o
+ * con Chrome viejo), que SÍ tiene solución.
+ */
 function mostrarDiagLinterna(boxId) {
-  const diag = (Scanner.torchDiag && Scanner.torchDiag())
-            || (Scanner2.torchDiag && Scanner2.torchDiag())
-            || 'no disponible en este navegador';
+  const why  = (Scanner.torchWhy  && Scanner.torchWhy())  || (Scanner2.torchWhy  && Scanner2.torchWhy())  || '';
+  const tech = (Scanner.torchDiag && Scanner.torchDiag()) || (Scanner2.torchDiag && Scanner2.torchDiag()) || '';
+  if (tech) console.warn('[linterna]', why, '·', tech);
+
+  const msg = (why === 'sin_flash')
+    ? 'Este equipo no tiene linterna.'
+    : 'Actualizá la app de Google Chrome y abrí el Validador desde Chrome.';
+
   const box = document.getElementById(boxId);
   if (!box) return;
-  box.textContent = '🔦 ' + diag;
+  box.textContent = '🔦 ' + msg;
   box.style.display = 'block';
-  setTimeout(() => { box.style.display = 'none'; }, 7000);
+  setTimeout(() => { box.style.display = 'none'; }, 8000);
 }
 
 // ── PERSISTENCIA ─────────────────────────────────────────────
