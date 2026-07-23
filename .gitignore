@@ -4,8 +4,19 @@
 .backups/
 catalog_data.backup-*.json
 
+# PDFs de envíos Full usados como regresión del parser. Son datos de envíos
+# reales (SKUs y cantidades) y el repo es PÚBLICO: nunca se commitean. Igual que
+# .backups/, arrancan con punto, así que Jekyll tampoco los publica al sitio.
+# No hace falta versionarlos: cada PDF trae adentro su propio total esperado.
+.pdfs-referencia/
+
 # Config local de Claude Code (si alguna vez aparece)
 .claude/settings.local.json
+
+# Dependencia local de la skill de diagnóstico (pdf.js). No se versiona.
+node_modules/
+package.json
+package-lock.json
 
 # Python (bytecode del motor de la skill)
 __pycache__/
