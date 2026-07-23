@@ -145,8 +145,12 @@ const Scanner = window.Scanner = (() => {
     return null;
   }
 
+  let _torchDiag = '';
+  function torchDiag() { return _torchDiag; }
+
   // Devuelve true/false = nuevo estado de la linterna, null = no disponible
   async function toggleTorch() {
+    _torchDiag = '';
     // Descartar un track muerto de un escaneo anterior: usarlo hacía fallar el
     // applyConstraints y se terminaba pidiendo una SEGUNDA cámara mientras el
     // escáner ya tenía la suya. En Android eso da "cámara ocupada" y el botón
@@ -156,21 +160,25 @@ const Scanner = window.Scanner = (() => {
       _torchOn = false;
     }
     const track = _videoTrack || _liveTrack();
-    if (!track) return null;
+    if (!track) { _torchDiag = 'no encontré la cámara activa'; return null; }
+
+    // Muchos Android soportan la linterna por applyConstraints AUNQUE no la
+    // declaren en getCapabilities(). Por eso solo rechazamos si el navegador
+    // dice EXPLÍCITAMENTE que no hay torch; si no la declara, igual probamos.
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    if ('torch' in caps && caps.torch === false) {
+      _torchDiag = 'la cámara informa que no tiene linterna';
+      return null;
+    }
 
     const next = !_torchOn;
     try {
       await track.applyConstraints({ advanced: [{ torch: next }] });
     } catch(e) {
+      _torchDiag = 'applyConstraints falló: ' + (e && e.name ? e.name : String(e));
       console.warn('Linterna error:', e);
       return null;
     }
-    // Confirmar que el equipo realmente la soporta: si no aparece ni en
-    // settings ni en capabilities, el applyConstraints se ignoró en silencio.
-    const st   = track.getSettings     ? track.getSettings()     : {};
-    const caps = track.getCapabilities ? track.getCapabilities() : {};
-    if (st.torch === undefined && !caps.torch) return null;
-
     _videoTrack = track;
     _torchOn = next;
     return next;
@@ -178,7 +186,7 @@ const Scanner = window.Scanner = (() => {
 
   function isTorchOn() { return _torchOn; }
 
-  return { start, stop, toggleTorch, isTorchOn };
+  return { start, stop, toggleTorch, isTorchOn, torchDiag };
 })();
 
 /* Estilos extra para html5-qrcode — se inyectan cuando el DOM está listo */
@@ -306,16 +314,26 @@ const Scanner2 = window.Scanner2 = (() => {
     if (vd) { try { vd.srcObject = null; } catch {} }
   }
 
+  let _torchDiag = '';
+  function torchDiag() { return _torchDiag; }
+
   // Devuelve true/false = nuevo estado de la linterna, null = no disponible
   async function toggleTorch() {
-    if (!_track) return null;
+    _torchDiag = '';
+    if (!_track) { _torchDiag = 'la cámara no está activa'; return null; }
+    // Solo rechazar si el navegador declara explícitamente que no hay torch.
     const caps = _track.getCapabilities ? _track.getCapabilities() : {};
-    if (!caps.torch) return null;
-    _torchOn = !_torchOn;
+    if ('torch' in caps && caps.torch === false) {
+      _torchDiag = 'la cámara informa que no tiene linterna';
+      return null;
+    }
+    const next = !_torchOn;
     try {
-      await _track.applyConstraints({ advanced: [{ torch: _torchOn }] });
-      return _torchOn;
+      await _track.applyConstraints({ advanced: [{ torch: next }] });
+      _torchOn = next;
+      return next;
     } catch(e) {
+      _torchDiag = 'applyConstraints falló: ' + (e && e.name ? e.name : String(e));
       console.warn('Torch error:', e);
       return null;
     }
@@ -323,5 +341,5 @@ const Scanner2 = window.Scanner2 = (() => {
 
   function isTorchOn() { return _torchOn; }
 
-  return { start, stop, toggleTorch, isTorchOn };
+  return { start, stop, toggleTorch, isTorchOn, torchDiag };
 })();

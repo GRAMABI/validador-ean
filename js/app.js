@@ -32,6 +32,18 @@ function setTorchBtnState(btn, state) {
   else                 { btn.textContent = '🔦 Linterna';      btn.classList.remove('torch-on'); }
 }
 
+// Muestra por qué falló la linterna (diagnóstico en pantalla, para no adivinar).
+function mostrarDiagLinterna(boxId) {
+  const diag = (Scanner.torchDiag && Scanner.torchDiag())
+            || (Scanner2.torchDiag && Scanner2.torchDiag())
+            || 'no disponible en este navegador';
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  box.textContent = '🔦 ' + diag;
+  box.style.display = 'block';
+  setTimeout(() => { box.style.display = 'none'; }, 7000);
+}
+
 // ── PERSISTENCIA ─────────────────────────────────────────────
 function saveProgress() {
   try {
@@ -843,6 +855,7 @@ document.getElementById('btn-torch')?.addEventListener('click', async () => {
   let state = await Scanner.toggleTorch();
   if (state === null) state = await Scanner2.toggleTorch();
   setTorchBtnState(btn, state);
+  if (state === null) mostrarDiagLinterna('scanner-error');
 });
 
 // Finalizar preparación del lote completo

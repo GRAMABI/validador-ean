@@ -869,6 +869,7 @@ tr.mar td{background:#e8eefc;font-weight:700;font-size:12px}
       let st = await Scanner2.toggleTorch();
       if (st === null) st = await Scanner.toggleTorch();
       setTorchBtnState(btn, st);
+      if (st === null && typeof mostrarDiagLinterna === 'function') mostrarDiagLinterna('stock-scanner-error');
     });
     document.getElementById('btn-stock-xls')?.addEventListener('click', () => exportarExcel(false));
     document.getElementById('btn-stock-pdf')?.addEventListener('click', () => exportarPDF(false));
