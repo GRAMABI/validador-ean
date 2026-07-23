@@ -8,7 +8,12 @@ empresa) e imprime un reporte priorizado. NUNCA escribe ni corrige nada.
 Separa lo ACCIONABLE del ruido conocido, y marca lo CONFIRMADO vs lo DUDOSO.
 Cada ítem accionable dice DÓNDE se corrige.
 
-Uso:  python auditar.py
+Uso:  python auditar.py [export_tiendanube.xlsx]
+
+Si se pasa un export de Tienda Nube (con la columna id_interno), el auditor
+anota en cada grupo P1 cuál SKU es MÁS NUEVO (id_interno más alto = creado
+después = el duplicado que suele quedar con el código viejo). Sin el export
+corre igual, solo que sin ese dato.
 """
 
 import os, re, json, sys, unicodedata, subprocess
@@ -62,6 +67,34 @@ def check_digit_13(ean):
     s = sum(int(d) * (1 if i % 2 == 0 else 3) for i, d in enumerate(ean[:12]))
     return (10 - s % 10) % 10 == int(ean[12])
 
+def leer_id_interno(path):
+    """{SKU_upper: id_interno} desde un export de Tienda Nube. {} si no se puede."""
+    try:
+        import openpyxl
+    except ImportError:
+        print("  (aviso: falta openpyxl, no puedo leer el id_interno del export)")
+        return {}
+    try:
+        wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    except Exception as e:
+        print(f"  (aviso: no pude abrir el export: {e})")
+        return {}
+    for ws in wb.worksheets:
+        headers = None
+        for row in ws.iter_rows(min_row=1, max_row=1, values_only=True):
+            headers = [str(h).strip().lower().split('\n')[0] if h else '' for h in row]; break
+        if headers and 'id_interno' in headers and 'sku' in headers:
+            i_id, i_sku = headers.index('id_interno'), headers.index('sku')
+            out = {}
+            for row in ws.iter_rows(min_row=3, values_only=True):
+                if i_sku < len(row) and row[i_sku]:
+                    sku = str(row[i_sku]).strip().upper()
+                    try: out[sku] = int(row[i_id])
+                    except (TypeError, ValueError): pass
+            return out
+    print("  (aviso: el export no tiene columnas id_interno + sku; ¿es de Tienda Nube?)")
+    return {}
+
 def marcas_larix_de_stock():
     try:
         txt = open(STOCK_JS, encoding='utf-8').read()
@@ -73,6 +106,10 @@ def marcas_larix_de_stock():
 # ── Cargar ──────────────────────────────────────────────────
 cat = json.load(open(CAT_PATH, encoding='utf-8'))
 N = len(cat)
+
+# Export de TN opcional → id_interno para inferir cuál SKU es más nuevo
+_export = next((a for a in sys.argv[1:] if not a.startswith('--')), None)
+ID_MAP = leer_id_interno(_export) if _export else {}
 
 # ── Agrupar por EAN ─────────────────────────────────────────
 by_ean = {}
@@ -132,15 +169,24 @@ largos_raros = {k: n for k, n in largos.items() if k not in (8, 12, 13, 14)}
 
 # ── REPORTE ─────────────────────────────────────────────────
 def linea(): print('─' * 70)
-def show_grupo(e, ss):
-    print(f"     EAN {e}")
-    for s in ss:
-        print(f"        {s:<18} [{cat[s].get('marca','')}] {cat[s].get('desc','')[:52]}")
 
-def show_grupo3(e, ss, extra):
-    print(f"     EAN {e}   → {extra}")
+def _nuevo_de(ss):
+    """SKU con id_interno más alto del grupo (= más nuevo), o None si no hay datos."""
+    ids = [(s, ID_MAP[s.upper()]) for s in ss if s.upper() in ID_MAP]
+    if len(ids) < 2:
+        return None
+    return max(ids, key=lambda x: x[1])[0]
+
+def _fila(s, nuevo):
+    idtxt = f"  id:{ID_MAP[s.upper()]}" if s.upper() in ID_MAP else ("  id:—" if ID_MAP else "")
+    marca = f"  ⬅ MÁS NUEVO (probable duplicado)" if s == nuevo else ""
+    print(f"        {s:<18} [{cat[s].get('marca','')}] {cat[s].get('desc','')[:44]}{idtxt}{marca}")
+
+def show_grupo(e, ss, extra=None):
+    print(f"     EAN {e}" + (f"   → {extra}" if extra else ""))
+    nuevo = _nuevo_de(ss)
     for s in ss:
-        print(f"        {s:<18} [{cat[s].get('marca','')}] {cat[s].get('desc','')[:52]}")
+        _fila(s, nuevo)
 
 print('=' * 70)
 print(f"AUDITORÍA DE CATÁLOGO — {N} SKUs                       (SOLO LECTURA)")
@@ -151,8 +197,11 @@ print(f"\n🔴 P1 · Mismo código en productos de DOS MARCAS REALES distintas "
       f"({len(confirmados)})  [CONFIRMADO]")
 print("     Dos fabricantes distintos no comparten un código legítimamente: o el")
 print("     código está mal, o la marca está mal. → CORREGIR EN TIENDA NUBE (planilla).")
+if not ID_MAP:
+    print("     (pasame un export de Tienda Nube y te marco cuál SKU es MÁS NUEVO")
+    print("      por id_interno — el duplicado suele ser el nuevo con el código viejo.)")
 for e, ss, marcas in confirmados:
-    show_grupo3(e, ss, ' vs '.join(marcas))
+    show_grupo(e, ss, ' vs '.join(marcas))
 
 # P1 dudosos
 print(f"\n🟠 P1 (DUDOSO) · Misma marca, capacidad/medida distinta con el MISMO código "
@@ -168,7 +217,7 @@ print("     Mismo producto (mismo código, variantes de color): algunos SKUs tie
 print("     marca y otros quedaron en 'Otros'. No es un código mal, es completar marca.")
 print("     → asignar la marca a los 'Otros' en Tienda Nube o el catálogo.")
 for e, ss, marca in marca_fill:
-    show_grupo3(e, ss, 'completar a: ' + marca)
+    show_grupo(e, ss, 'completar a: ' + marca)
 
 # P2 empresa (CÓDIGO)
 print(f"\n🟠 P2 · Juguetería clasificada como GRAMABI ({len(juguete_en_gramabi)})")

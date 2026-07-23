@@ -10,6 +10,17 @@ Corré el auditor y mostrá el reporte tal cual:
 python .claude/skills/auditar-catalogo/auditar.py
 ```
 
+Si el usuario tiene un **export de Tienda Nube** a mano (el que trae la columna
+`id_interno`, o sea el de publicaciones con gtin), pasáselo como argumento:
+```
+python .claude/skills/auditar-catalogo/auditar.py "<export_tn.xlsx>"
+```
+Con eso, en cada grupo P1 se anota el `id_interno` de cada SKU y se marca el
+**MÁS NUEVO** (id más alto = creado después) — que es el duplicado que suele
+haber quedado con el código viejo, lo que le ahorra al usuario la mitad de la
+búsqueda. Sin el export corre igual, solo que sin ese dato. Ojo: los SKUs que no
+están en ese export (ej. juguetería que no vino en el gtin) salen con `id:—`.
+
 **Es SOLO LECTURA.** El script solo lee `catalog_data.json` (y `js/stock.js`
 para la clasificación de empresa). No escribe ni corrige nada. No pide
 confirmación porque no hay nada que aprobar.
