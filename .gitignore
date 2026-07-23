@@ -6,3 +6,7 @@ catalog_data.backup-*.json
 
 # Config local de Claude Code (si alguna vez aparece)
 .claude/settings.local.json
+
+# Python (bytecode del motor de la skill)
+__pycache__/
+*.pyc
