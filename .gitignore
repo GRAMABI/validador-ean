@@ -1,0 +1,8 @@
+# Backups del catálogo — el repo es PÚBLICO y GitHub Pages sirve desde la raíz.
+# Nunca deben commitearse ni publicarse. Además viven en .backups/ (carpeta que
+# empieza con punto: Jekyll la excluye del sitio), así que quedan doblemente fuera.
+.backups/
+catalog_data.backup-*.json
+
+# Config local de Claude Code (si alguna vez aparece)
+.claude/settings.local.json
