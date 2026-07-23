@@ -1,0 +1,29 @@
+#!/bin/sh
+# Hook pre-commit del Validador EAN.
+# Valida SOLO lo que entra en el commit (catálogo + JS) antes de publicar a
+# GitHub Pages. La lógica vive en validar-deploy.mjs (para poder revisarla en
+# el diff). Este wrapper solo mapea los códigos de salida:
+#   0 = todo bien (o nada que validar)  -> commit pasa
+#   1 = la validación encontró un problema real -> commit BLOQUEADO
+#   otro (2, 127, ...) = el validador no pudo correr -> commit PASA pero avisa
+#
+# Se conecta con:  git config core.hooksPath .githooks   (una vez por máquina)
+
+DIR=$(dirname "$0")
+node "$DIR/validar-deploy.mjs"
+code=$?
+
+if [ "$code" -eq 0 ]; then
+  exit 0
+elif [ "$code" -eq 1 ]; then
+  exit 1   # validar-deploy.mjs ya imprimió el detalle
+else
+  echo ""
+  echo "  ⚠️  ==================================================================="
+  echo "  ⚠️   LA VALIDACIÓN PRE-DEPLOY NO CORRIÓ (código de salida $code)."
+  echo "  ⚠️   El commit se PERMITE, pero SIN chequear catálogo ni JavaScript."
+  echo "  ⚠️   Revisá a mano antes de pushear, o arreglá .githooks/validar-deploy.mjs"
+  echo "  ⚠️  ==================================================================="
+  echo ""
+  exit 0
+fi
