@@ -1,5 +1,5 @@
-/* Service Worker v4 — precachea app-shell + catálogo para que la PWA abra offline */
-const CACHE = 'vean-static-v4';
+/* Service Worker v5 — precachea app-shell + catálogo para que la PWA abra offline */
+const CACHE = 'vean-static-v5';
 
 // Archivos propios: sin esto cacheado, abrir la app sin señal da pantalla en blanco
 const OWN_FILES = [

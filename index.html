@@ -265,10 +265,15 @@
 <script src="js/catalog.js"></script>
 <script src="js/pdfParser.js"></script>
 <script src="js/scanner.js"></script>
+<!-- stockStore.js ANTES de app.js: no depende de nadie, y app.js lo necesita ya
+     cargado. initApp() corre en el top-level de app.js y, cuando el catálogo
+     sale de la caché, su continuación se ejecuta en el microtask de ese mismo
+     script — o sea ANTES de los <script> que siguen. Con este archivo abajo, el
+     rescate del lote cerrado se salteaba en silencio. -->
+<script src="js/stockStore.js"></script>
 <script src="js/app.js"></script>
 <!-- stock.js DESPUÉS de app.js: usa `State`, que app.js declara con const
      (no es window.State) — cargarlo antes daría ReferenceError por TDZ. -->
-<script src="js/stockStore.js"></script>
 <script src="js/stock.js"></script>
 </body>
 </html>

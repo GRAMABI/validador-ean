@@ -19,7 +19,15 @@ const State = {
   batchFinalized: false, // lote cerrado por el operario
   finalizedAt: null,     // ISO timestamp del cierre
   shortages: [],          // [{sku, desc, marca, missingQty, reason}] quiebres de stock
+  pdfName: '',           // archivo de origen del lote (para el informe)
+  despachoId: null,      // id del informe ya guardado — evita duplicarlo
 };
+
+// Tope de lecturas fallidas que se guardan por ítem. El contador
+// (item.erroresTotal) sigue subiendo más allá del tope: llegar a 20 no es un
+// detalle a truncar en silencio, es señal de EAN mal cargado o etiqueta
+// ilegible, y el informe lo tiene que poder destacar.
+const MAX_ERRORES_ITEM = 20;
 let _scanning = false;
 let _readyToastShown = false; // aviso "todo escaneado" una vez por transición
 let _quotaWarned = false;     // aviso de cuota de localStorage una vez
@@ -64,6 +72,8 @@ function saveProgress() {
       batchFinalized: State.batchFinalized,
       finalizedAt: State.finalizedAt,
       shortages: State.shortages,
+      pdfName: State.pdfName,
+      despachoId: State.despachoId,
     }));
   } catch(e) {
     // Cuota de localStorage llena → avisar (una vez) en vez de perder progreso en silencio
@@ -83,6 +93,8 @@ function clearProgress() {
   State.batchFinalized = false;
   State.finalizedAt = null;
   State.shortages = [];
+  State.pdfName = '';
+  State.despachoId = null;
   _readyToastShown = false;
   _quotaWarned = false;
 }
@@ -135,7 +147,13 @@ async function initApp() {
   const prog = loadProgress();
   if (prog && prog.orders && prog.orders.length > 0) {
     const pending = prog.orders.filter(o => o.status === 'pending').length;
-    if (pending > 0) showResumeDialog(prog);
+    if (pending > 0) {
+      showResumeDialog(prog);
+    } else if (prog.batchFinalized && !prog.despachoId) {
+      // Lote cerrado antes de esta actualización: sin pendientes no se ofrece
+      // reanudar, así que si no se rescata acá se pierde con el próximo PDF.
+      rescatarDespachoPrevio(prog);
+    }
   }
 }
 
@@ -164,7 +182,12 @@ window.doResume = function() {
   State.batchFinalized = prog.batchFinalized || false;
   State.finalizedAt    = prog.finalizedAt || null;
   State.shortages      = prog.shortages || [];
+  State.pdfName        = prog.pdfName || '';
+  State.despachoId     = prog.despachoId || null;
   State.pdfLoaded = true;
+  // Lote ya cerrado y sin informe (cerrado antes de esta actualización): se
+  // guarda ahora para que no se pierda.
+  if (State.batchFinalized && !State.despachoId) guardarDespacho(State);
   renderOrdersList();
   showScreen('screen-orders');
 };
@@ -260,6 +283,8 @@ document.getElementById('input-pdf').addEventListener('change', async e => {
     State.batchFinalized = false;
     State.finalizedAt = null;
     State.shortages = [];
+    State.pdfName = file.name;   // origen del lote, para el informe
+    State.despachoId = null;     // lote nuevo = informe nuevo
     _readyToastShown = false;
     saveProgress();
 
@@ -312,9 +337,12 @@ document.getElementById('back-to-config').addEventListener('click', () => {
  * Estructura: Map<sku, { sku, desc, marca, hasEan, totalQty, scannedQty, allDone, hasError, items[] }>
  * items[] = referencias a los {order, item} originales, para poder actualizar el estado.
  */
-function buildSkuMap() {
+// `orders` opcional: sin argumento usa State.orders (todos los llamadores
+// actuales). Se parametriza para poder armar el informe de un lote que viene de
+// localStorage sin tener que pisar el State en curso.
+function buildSkuMap(orders) {
   const map = new Map(); // key = sku
-  State.orders.forEach((order, orderIdx) => {
+  (orders || State.orders).forEach((order, orderIdx) => {
     order.items.forEach((item, itemIdx) => {
       const key = item.sku;
       if (!map.has(key)) {
@@ -444,15 +472,17 @@ function renderOrdersList() {
  * que es la fuente de verdad del modo consolidado — no sobre order.status.
  * Un SKU está "listo" si escaneó todas sus unidades o el resto se declaró faltante.
  */
-function getBatchStats() {
-  const map = buildSkuMap();
+// `src` opcional: { orders, shortages }. Sin argumento usa State.
+function getBatchStats(src) {
+  const map = buildSkuMap(src ? src.orders : null);
+  const shortages = src ? (src.shortages || []) : State.shortages;
   let totalSkus = 0, readySkus = 0, pendingSkus = 0, errorSkus = 0, noEanPendingSkus = 0;
   let totalUnits = 0, scannedUnits = 0, missingUnits = 0;
   map.forEach(entry => {
     totalSkus++;
     totalUnits   += entry.totalQty;
     scannedUnits += entry.scannedQty;
-    const sh = State.shortages.find(s => s.sku === entry.sku);
+    const sh = shortages.find(s => s.sku === entry.sku);
     const shMissing = sh ? sh.missingQty : 0;
     missingUnits += shMissing;
     const covered = entry.scannedQty + shMissing;
@@ -551,6 +581,127 @@ function finalizeBatch() {
   Scanner.stop();
   saveProgress();
   showToast('✓ Lote finalizado', 'ok');
+  guardarDespacho(State); // en segundo plano: no puede trabar el cierre
+}
+
+// ── INFORME DE DESPACHO (persistencia) ───────────────────────
+/**
+ * Números de envío/pedido del lote, SIN nombre del comprador.
+ * El modo consolidado le oculta el comprador al operario a propósito, y estos
+ * informes se comparten por WhatsApp: los datos del cliente no tienen por qué
+ * viajar ahí. Por eso no se filtran al exportar — directamente no se guardan.
+ */
+function enviosDelLote(orders) {
+  const out = [];
+  (orders || []).forEach(o => {
+    const id = String(o.id || '').replace(/^FULL-/, '');
+    [id, o.ventaId, o.packId].forEach(v => {
+      const s = String(v || '').trim();
+      if (s && out.indexOf(s) === -1) out.push(s);
+    });
+  });
+  return out;
+}
+
+/**
+ * Arma el registro del lote a partir del mapa consolidado por SKU — que es lo
+ * que ve el operario — y no de los pedidos crudos.
+ * `src` = { orders, operario, finalizedAt, shortages, pdfName }.
+ */
+function buildDespachoRecord(src) {
+  const map       = buildSkuMap(src.orders);
+  const stats     = getBatchStats(src);
+  const shortages = src.shortages || [];
+
+  const items = [];
+  map.forEach((entry, sku) => {
+    const sh        = shortages.find(x => x.sku === sku);
+    const faltantes = sh ? sh.missingQty : 0;
+    const allOk     = entry.allDone && !entry.hasError;
+
+    // Los errores viven en los ítems de cada pedido: se juntan por SKU.
+    let errores = [], erroresTotal = 0;
+    entry.refs.forEach(r => {
+      if (r.item.errores && r.item.errores.length) errores = errores.concat(r.item.errores);
+      erroresTotal += (r.item.erroresTotal || 0);
+    });
+    if (errores.length > MAX_ERRORES_ITEM) errores = errores.slice(0, MAX_ERRORES_ITEM);
+
+    let estado = 'pendiente';
+    if (entry.hasError) estado = 'error';
+    else if (allOk) estado = 'ok';
+    else if (faltantes && entry.scannedQty + faltantes >= entry.totalQty) estado = 'faltante';
+
+    items.push({
+      sku, desc: entry.desc || '', marca: entry.marca || '',
+      pedidas: entry.totalQty, escaneadas: entry.scannedQty, faltantes,
+      estado, errores, erroresTotal,
+      // Marca los casos que hay que mirar sí o sí: llegar al tope no es ruido.
+      erroresAlTope: erroresTotal >= MAX_ERRORES_ITEM,
+    });
+  });
+
+  const fecha = src.finalizedAt || new Date().toISOString();
+  return {
+    id: 'D-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7),
+    fecha,
+    operario: src.operario || '',
+    estado: stats.allReady ? 'finalizado' : 'con_pendientes',
+    origen: { archivo: src.pdfName || '', envios: enviosDelLote(src.orders) },
+    totales: {
+      skus: stats.totalSkus, listos: stats.readySkus,
+      pendientes: stats.pendingSkus, conError: stats.errorSkus,
+      unidades: stats.totalUnits, escaneadas: stats.scannedUnits,
+      faltantes: stats.missingUnits,
+    },
+    items,
+    faltantes: shortages.slice(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Guarda el informe. NO bloqueante y NO fatal: si IndexedDB falla, el lote
+ * queda finalizado igual — el operario no puede quedar trabado por esto.
+ * Devuelve el id guardado, o null.
+ */
+async function guardarDespacho(src) {
+  if (src === State && State.despachoId) return State.despachoId; // ya guardado
+  if (!window.DespachoStore) { console.warn('[Despacho] store no disponible todavía'); return null; }
+  try {
+    const rec = buildDespachoRecord(src);
+    await DespachoStore.put(rec);
+    if (src === State) { State.despachoId = rec.id; saveProgress(); }
+    DespachoStore.requestPersist().catch(() => {});
+    console.info('[Despacho] informe guardado:', rec.id, rec.items.length + ' SKUs');
+    return rec.id;
+  } catch (e) {
+    console.error('[Despacho] no se pudo guardar:', e);
+    showToast('⚠ El lote se finalizó, pero no se pudo guardar el informe', 'warn', 6000);
+    return null;
+  }
+}
+
+/**
+ * Rescate de lotes cerrados ANTES de esta actualización: quedaron en
+ * localStorage como finalizados y sin informe, y como no tienen pendientes
+ * initApp no los ofrece reanudar, así que se perderían al cargar el próximo PDF.
+ * Se guarda su informe en silencio, sin cambiar nada de lo que ve el operario.
+ */
+async function rescatarDespachoPrevio(prog) {
+  const id = await guardarDespacho({
+    orders: prog.orders, operario: prog.operario,
+    finalizedAt: prog.finalizedAt, shortages: prog.shortages || [],
+    pdfName: prog.pdfName || '',
+  });
+  if (!id) return;
+  try {
+    const actual = loadProgress() || {};
+    actual.despachoId = id;
+    localStorage.setItem('vean_progress', JSON.stringify(actual));
+  } catch {}
+  console.info('[Despacho] lote previo rescatado:', id);
 }
 
 // ── DETALLE SKU (modo consolidado) ───────────────────────────
@@ -775,6 +926,20 @@ function validarLectura(item, code) {
 }
 
 /**
+ * Registra una lectura fallida del ítem. Antes solo sobrevivía la ÚLTIMA
+ * (item.lastError se pisaba en cada intento), así que no había forma de saber si
+ * un SKU costó un escaneo o veinte. Se guardan hasta MAX_ERRORES_ITEM códigos y
+ * el total real aparte, para que el informe pueda destacar los casos graves.
+ */
+function registrarErrorLectura(item, code) {
+  item.erroresTotal = (item.erroresTotal || 0) + 1;
+  if (!item.errores) item.errores = [];
+  if (item.errores.length < MAX_ERRORES_ITEM) {
+    item.errores.push({ code: String(code || ''), at: new Date().toISOString() });
+  }
+}
+
+/**
  * Al escanear en modo SKU consolidado:
  * - Busca el primer ítem pendiente de ese SKU (en cualquier pedido)
  * - Valida el EAN contra el SKU
@@ -823,6 +988,7 @@ function onEanScannedSku(ean) {
 
   } else if (result.status === 'error') {
     item.lastError = ean;
+    registrarErrorLectura(item, ean);
     playBeep('error');
     // La cámara sigue activa: no hace falta ubicar un botón para reintentar,
     // solo reapuntar. El lock de scanner.js ya evita re-disparar el mismo EAN.
