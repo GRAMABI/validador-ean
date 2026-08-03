@@ -28,6 +28,7 @@ import { execFileSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import fs from 'node:fs';
+import https from 'node:https';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -88,14 +89,34 @@ function archivosDelRango(desde, hasta) {
 }
 
 // ── Verificación contra la URL real ────────────────────────────────────────
-async function bajar(url) {
-  const sep = url.includes('?') ? '&' : '?';
-  const r = await fetch(`${url}${sep}_v=${Date.now()}${Math.random().toString(36).slice(2)}`, {
-    headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
-    redirect: 'follow',
+// fetch() nativo (undici) deja un socket keep-alive pendiente que en Windows +
+// Node 24 crashea el proceso al cerrar (UV_HANDLE_CLOSING assertion, src\win\async.c).
+// agent:false con https.get fuerza un socket sin pool que cierra solo.
+function bajar(url, redirects = 5) {
+  return new Promise((resolve, reject) => {
+    const sep = url.includes('?') ? '&' : '?';
+    const full = `${url}${sep}_v=${Date.now()}${Math.random().toString(36).slice(2)}`;
+    const req = https.get(full, {
+      agent: false,
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+    }, (res) => {
+      if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location && redirects > 0) {
+        res.resume();
+        resolve(bajar(new URL(res.headers.location, full).toString(), redirects - 1));
+        return;
+      }
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        res.resume();
+        resolve({ ok: false, status: res.statusCode });
+        return;
+      }
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => resolve({ ok: true, buf: Buffer.concat(chunks) }));
+      res.on('error', reject);
+    });
+    req.on('error', reject);
   });
-  if (!r.ok) return { ok: false, status: r.status };
-  return { ok: true, buf: Buffer.from(await r.arrayBuffer()) };
 }
 
 async function verificar(base, sha, archivos) {
