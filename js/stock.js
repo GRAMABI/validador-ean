@@ -267,7 +267,7 @@ const StockModule = (() => {
     // "cantidad" se abre un diálogo, así que alcanza con el anti-repetición.
     const opts = S.modo === 'sumar'
       ? { dedupeMs: 1200, allowRepeat: true, vibrate: true }
-      : { dedupeMs: 2000, allowRepeat: false, vibrate: true };
+      : { dedupeMs: 800, allowRepeat: false, vibrate: true };
 
     Scanner2.start('scanner-video-stock', onScan, (msg, motivo) => {
       // Si el operario ya salió, no arrancar nada (evita cámara en pantalla oculta)

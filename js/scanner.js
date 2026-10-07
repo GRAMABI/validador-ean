@@ -7,12 +7,13 @@ const Scanner = window.Scanner = (() => {
 
   let activeScanner = null;
 
-  // opts: { dedupeMs = 2000, allowRepeat = false, vibrate = true }
-  // Defaults idénticos al comportamiento previo — pedidos y validador no cambian.
+  // opts: { dedupeMs = 800, allowRepeat = false, vibrate = true }
+  // dedupeMs = cuánto tiempo tiene que estar AUSENTE de cuadro el mismo código
+  // para que una relectura cuente como unidad nueva (no cuánto se bloquea todo).
   async function start(videoId, onScan, onErr, opts) {
     await stop();
     const o = opts || {};
-    const dedupeMs   = o.dedupeMs != null ? o.dedupeMs : 2000;
+    const dedupeMs   = o.dedupeMs != null ? o.dedupeMs : 800;
     const allowRepeat = !!o.allowRepeat;
     const doVibrate  = o.vibrate !== false;
 
@@ -75,15 +76,27 @@ const Scanner = window.Scanner = (() => {
         config,
         (() => {
           let _lastEan = null;
+          let _lastSeenAt = 0;
           let _lock = false;
           return (decodedText) => {
-            // Anti-repetición: en modo ráfaga (allowRepeat) se permite releer el
-            // mismo código, solo se respeta la ventana de dedupeMs.
+            const now = Date.now();
             if (_lock) return;
-            if (!allowRepeat && decodedText === _lastEan) return;
+            // Modo normal: si es el MISMO código que la última vez, solo cuenta
+            // como lectura nueva si estuvo AUSENTE de cuadro al menos dedupeMs.
+            // Mientras la etiqueta siga en cuadro, _lastSeenAt se sigue
+            // actualizando y el bloqueo no vence solo — antes vencía por un
+            // timer fijo aunque la etiqueta nunca se hubiera ido, y una sola
+            // etiqueta quieta terminaba contando 2 veces.
+            // Modo ráfaga (allowRepeat) no cambia: se sigue rigiendo por _lock.
+            if (!allowRepeat && decodedText === _lastEan) {
+              const ausente = now - _lastSeenAt;
+              _lastSeenAt = now;
+              if (ausente < dedupeMs) return;
+            }
             _lock = true;
             _lastEan = decodedText;
-            setTimeout(() => { _lock = false; if (!allowRepeat) _lastEan = null; }, dedupeMs);
+            _lastSeenAt = now;
+            setTimeout(() => { _lock = false; }, allowRepeat ? dedupeMs : 300);
             if (doVibrate && navigator.vibrate) navigator.vibrate(50);
             onScan(decodedText);
           };
@@ -225,11 +238,13 @@ const Scanner2 = window.Scanner2 = (() => {
   let _detector = null;
   let _video = null;
 
-  // opts: { dedupeMs = 2500, allowRepeat = false, vibrate = true }
+  // opts: { dedupeMs = 800, allowRepeat = false, vibrate = true }
+  // dedupeMs = cuánto tiempo tiene que estar AUSENTE de cuadro el mismo código
+  // para que una relectura cuente como unidad nueva (no cuánto se bloquea todo).
   async function start(videoId, onScan, onErr, opts) {
     await stop();
     const o = opts || {};
-    const dedupeMs    = o.dedupeMs != null ? o.dedupeMs : 2500;
+    const dedupeMs    = o.dedupeMs != null ? o.dedupeMs : 800;
     const allowRepeat = !!o.allowRepeat;
     const doVibrate   = o.vibrate !== false;
 
@@ -277,6 +292,7 @@ const Scanner2 = window.Scanner2 = (() => {
 
       // Escanear cada 300ms
       let _lastEan = null;
+      let _lastSeenAt = 0;
       let _lock = false;
       _interval = setInterval(async () => {
         if (!_video || _lock) return;
@@ -286,10 +302,19 @@ const Scanner2 = window.Scanner2 = (() => {
           const barcodes = await _detector.detect(_video);
           if (barcodes.length > 0) {
             const ean = barcodes[0].rawValue;
-            if (!allowRepeat && ean === _lastEan) return;
+            const now = Date.now();
+            // Mismo criterio que Scanner (ver comentario arriba en este archivo):
+            // una repetición del mismo código solo cuenta si estuvo ausente
+            // dedupeMs; si sigue en cuadro, no vuelve a contar.
+            if (!allowRepeat && ean === _lastEan) {
+              const ausente = now - _lastSeenAt;
+              _lastSeenAt = now;
+              if (ausente < dedupeMs) return;
+            }
             _lock = true;
             _lastEan = ean;
-            setTimeout(() => { _lock = false; if (!allowRepeat) _lastEan = null; }, dedupeMs);
+            _lastSeenAt = now;
+            setTimeout(() => { _lock = false; }, allowRepeat ? dedupeMs : 300);
             if (doVibrate && navigator.vibrate) navigator.vibrate(50);
             onScan(ean);
           }

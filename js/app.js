@@ -31,7 +31,11 @@ const MAX_ERRORES_ITEM = 20;
 let _scanning = false;
 let _readyToastShown = false; // aviso "todo escaneado" una vez por transición
 let _quotaWarned = false;     // aviso de cuota de localStorage una vez
-const SCAN_LOCK_MS = 2000;    // alineado con el lock anti-repetición de scanner.js
+// Solo un guard de re-entrancia (evita procesar 2 veces el mismo instante) —
+// el anti-repetición de fondo ahora vive en scanner.js (por ausencia de cuadro,
+// no por tiempo fijo), así que este valor puede ser chico sin tapar lecturas
+// legítimas de la unidad siguiente.
+const SCAN_LOCK_MS = 300;
 
 function setTorchBtnState(btn, state) {
   if (!btn) return;
