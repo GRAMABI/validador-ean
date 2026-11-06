@@ -24168,5 +24168,245 @@
     "ean": "7790368299330",
     "desc": "Yogurtera Eléctrica Yelmo 20w 9 Jarros 180 Ml Vidrio Verde Verde",
     "marca": "Yelmo"
+  },
+  "ALAMIGE080X5P2": {
+    "ean": "2043037216479",
+    "desc": "Pack X2 Alambre Mig Mag Esab Conarco Weld 0.80 Mm Rollo 5kg Cobre",
+    "marca": "Esab"
+  },
+  "ALSFL080X5P2": {
+    "ean": "2033455739865",
+    "desc": "Pack X2 Alambre Mig Flux 0.8mm Sin Gas Rollo 5kg Lusqtoff",
+    "marca": "Lüsqtoff"
+  },
+  "ALSGF080X5P2": {
+    "ean": "2020386747595",
+    "desc": "Pack X2 Alambre Tubular Mig Esab Sin Gas 0,8 Mm Rollo 5kg",
+    "marca": "Esab"
+  },
+  "ALSL060X5P2": {
+    "ean": "2087995348469",
+    "desc": "Pack X2 Alambre Mig Macizo 0,60 Mm Rollo 5kg Lusqtoff",
+    "marca": "Lüsqtoff"
+  },
+  "AMALL8207": {
+    "ean": "7799108061930",
+    "desc": "Amoladora Angular Lusqtoff L820-7 720w 115mm 220v Naranja Claro",
+    "marca": "Lüsqtoff"
+  },
+  "CARLLCC45": {
+    "ean": "7798225224105",
+    "desc": "Cargador Inteligente De Batería Lusqtoff Lcc-45 30a 12v 24v",
+    "marca": "Lüsqtoff"
+  },
+  "CARRL70": {
+    "ean": "7798225221906",
+    "desc": "Carro De Transporte Plegable Lusqtoff Lqc-70 Aluminio 70kg Gris",
+    "marca": "Lüsqtoff"
+  },
+  "CINEP10P2": {
+    "ean": "2009953538927",
+    "desc": "Pack X2 Cinta Métrica Evel Premiumblok 10 Metros 510 Freno",
+    "marca": "Evel"
+  },
+  "COCLLJC23": {
+    "ean": "7798225220022",
+    "desc": "Cortacerco A Explosión Naftero Lusqtoff Lj-c23 23cc 60cm",
+    "marca": "Lüsqtoff"
+  },
+  "CTZD30P4": {
+    "ean": "2021182046752",
+    "desc": "Pack 4 Pares Corredera Telescópica Cajón Ducasse 30cm Zinc Plateado",
+    "marca": "Ducasse"
+  },
+  "CTZD35P4": {
+    "ean": "2028646379494",
+    "desc": "Pack 4 Pares Corredera Telescópica Cajón Ducasse 35cm Zinc Plateado",
+    "marca": "Ducasse"
+  },
+  "CTZD40CLAP3": {
+    "ean": "2079664404002",
+    "desc": "Pack 3 Pares Corredera Cajón H45 Ducasse 40cm Classic Zinc Plateado",
+    "marca": "Ducasse"
+  },
+  "CTZD40P4": {
+    "ean": "2038262946185",
+    "desc": "Pack 4 Pares Corredera Telescópica Cajón Ducasse 40cm Zinc Plateado",
+    "marca": "Ducasse"
+  },
+  "CTZD45P4": {
+    "ean": "2066335348697",
+    "desc": "Pack 4 Pares Corredera Telescópica Cajón Ducasse 45cm Zinc Plateado",
+    "marca": "Ducasse"
+  },
+  "CTZD50CLAP4": {
+    "ean": "2001286862151",
+    "desc": "Pack 4 Pares Corredera Cajón H45 Ducasse 50cm Classic Zinc Plateado",
+    "marca": "Ducasse"
+  },
+  "CTZD50P3": {
+    "ean": "2069003445162",
+    "desc": "Pack 3 Pares Corredera Telescópica Cajón Ducasse 50cm Zinc Plateado",
+    "marca": "Ducasse"
+  },
+  "DCA115X160DP50P2": {
+    "ean": "2053061114627",
+    "desc": "Pack X2 Disco Corte Dogo 115 X 1,6 Mm Caja X 50 Unidades Negro",
+    "marca": "Dogo"
+  },
+  "DCA180X160TEBP25P2": {
+    "ean": "2012503319389",
+    "desc": "Pack X2 Disco Corte Tyrolit Basic Eco 180 X 1,6 Caja X 25 Negro",
+    "marca": "Tyrolit"
+  },
+  "DCS355X320TP5P2": {
+    "ean": "2069940719838",
+    "desc": "Pack X2 Disco Corte Tyrolit Xpert 350 X 3 Mm Caja X 5 Negro",
+    "marca": "Tyrolit"
+  },
+  "DDA115X475TP10P2": {
+    "ean": "2099218680782",
+    "desc": "Pack X2 Disco Desbaste Tyrolit Xpert 114 X 4,75 Caja X 10",
+    "marca": "Tyrolit"
+  },
+  "DESCAÑMGDC1P3": {
+    "ean": "2027736118074",
+    "desc": "Pack X3 Destapa Cañerías Max Gel 1 Lt Merclin 3 En 1",
+    "marca": "Merclin"
+  },
+  "ELC3207018P10": {
+    "ean": "2077742416848",
+    "desc": "Pack X2 Electrodos Conarco 18 7018 3,25 Mm 10 Kg Pta Verde Verde",
+    "marca": "Conarco"
+  },
+  "ELCA250P10": {
+    "ean": "2030494274807",
+    "desc": "Pack X2 Electrodos Acindar 6013 2,50 Mm 10 Kg Punta Azul",
+    "marca": "Acindar"
+  },
+  "ELCA250P3": {
+    "ean": "2021596640850",
+    "desc": "Pack X3 Electrodos Acindar 6013 2,50 Mm 3 Kg Punta Azul",
+    "marca": "Acindar"
+  },
+  "ELCA320P10": {
+    "ean": "2001863433781",
+    "desc": "Pack X2 Electrodos Acindar 6013 3,25 Mm 10 Kg Punta Azul Azul",
+    "marca": "Acindar"
+  },
+  "ELCC250P10": {
+    "ean": "2096775498263",
+    "desc": "Pack X2 Electrodo Conarco 6013 13a 2,50 Mm 10 Kg Punta Azul",
+    "marca": "Conarco"
+  },
+  "ELCL200P3": {
+    "ean": "2038716715473",
+    "desc": "Pack X3 Electrodos 6013 Lusqtoff 2 Mm 3 Kg Punta Azul Azul",
+    "marca": "Lüsqtoff"
+  },
+  "ELCL250P3": {
+    "ean": "2092200030619",
+    "desc": "Pack X3 Electrodos 6013 Lusqtoff 2,50 Mm 3 Kg Punta Azul Azul",
+    "marca": "Lüsqtoff"
+  },
+  "ELCL3207018P10": {
+    "ean": "2059731170221",
+    "desc": "Pack X2 Electrodos Lusqtoff 7018 3,25 Mm 10 Kg Punta Verde Verde",
+    "marca": "Lüsqtoff"
+  },
+  "ELELLQ64007": {
+    "ean": "7798225222255",
+    "desc": "Elevador De Motos Con Rampa Lusqtoff Lq64007 Hidráulico",
+    "marca": "Lüsqtoff"
+  },
+  "ESTRODP4": {
+    "ean": "2085068339444",
+    "desc": "Pack X4 Rodillo Estabilizador 38 Mm Portón Corredizo Nylon",
+    "marca": "Ruedamas"
+  },
+  "HORLHO350L8": {
+    "ean": "7799108064627",
+    "desc": "Hormigonera De Volteo 350 L 3000w 220v Lusqtoff Ho350l-8",
+    "marca": "Lüsqtoff"
+  },
+  "JUHLL4902": {
+    "ean": "7799108057186",
+    "desc": "Juego 20 Herramientas Lusqtoff L4902 Maletín Martillo Pinza Negro",
+    "marca": "Lüsqtoff"
+  },
+  "JUHLL4904": {
+    "ean": "7799108057193",
+    "desc": "Juego 67 Herramientas Lusqtoff L4904 Maletín Pinzas Llaves Negro",
+    "marca": "Lüsqtoff"
+  },
+  "JUHLL4906": {
+    "ean": "7799108057209",
+    "desc": "Juego 14 Herramientas Lusqtoff L4906 Pinza Martillo Puntas Negro",
+    "marca": "Lüsqtoff"
+  },
+  "MORBL06": {
+    "ean": "7798225224402",
+    "desc": "Morsa De Banco Base Giratoria Lusqtoff Lmo6 6 Pulgadas Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "MOTLGS527": {
+    "ean": "7799108050217",
+    "desc": "Motosierra Naftera Lusqtoff Gs52-7 52cc 2.5hp Espada 20 Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "NIVLL10L8": {
+    "ean": "7799108054147",
+    "desc": "Nivel Láser Lusqtoff Nv10l-8 Cruz Verde 10m Con Trípode",
+    "marca": "Lüsqtoff"
+  },
+  "PACLLPACK0038": {
+    "ean": "7799108061947",
+    "desc": "Pack Racing Herramientas Inalámbricas Lusqtoff Lpack003-8 Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "PISLPASL228": {
+    "ean": "7799108049709",
+    "desc": "Pistola Aplicadora De Selladores Silicona Lusqtoff Pasl22-8",
+    "marca": "Lüsqtoff"
+  },
+  "PUNLPUNTL38": {
+    "ean": "7799108044292",
+    "desc": "Puntal Telescópico Lusqtoff Puntl3-8 1.70 A 3 Metros",
+    "marca": "Lüsqtoff"
+  },
+  "RUE60P4": {
+    "ean": "2047065839938",
+    "desc": "Pack X4 Rueda Acero Portón Corredizo 60 Mm V Con Ruleman",
+    "marca": "Ducasse"
+  },
+  "RUE70P4": {
+    "ean": "2054982157236",
+    "desc": "Pack X4 Rueda Acero Portón Corredizo 70 Mm V Con Ruleman",
+    "marca": "Ducasse"
+  },
+  "RUE80P4": {
+    "ean": "2093766490558",
+    "desc": "Pack X4 Rueda Acero Portón Corredizo 80 Mm V Con Ruleman",
+    "marca": "Ducasse"
+  },
+  "TALLTPL7107": {
+    "ean": "7799108061909",
+    "desc": "Taladro Percutor De Impacto Lusqtoff Tpl710-7 710w 13mm Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "VAACAR164NP4": {
+    "ean": "2095172591171",
+    "desc": "Pack X4 Carro Riel Portón Corredizo Art 164 4 Ruedas Nylon",
+    "marca": "Ruedamas"
+  },
+  "VAACAR164P4": {
+    "ean": "2056636678944",
+    "desc": "Pack X4 Carro Riel Portón Corredizo Art 164 4 Ruedas Acero",
+    "marca": "Ducasse"
+  },
+  "VAACAR168P4": {
+    "ean": "2008186516009",
+    "desc": "Pack X4 Carro Riel Portón Corredizo Art 168 4 Ruedas Acero",
+    "marca": "Ducasse"
   }
 }
