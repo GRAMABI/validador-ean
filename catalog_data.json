@@ -24408,5 +24408,45 @@
     "ean": "2008186516009",
     "desc": "Pack X4 Carro Riel Portón Corredizo Art 168 4 Ruedas Acero",
     "marca": "Ducasse"
+  },
+  "ALCLACDTL20008": {
+    "ean": "2054469933544",
+    "desc": "Alisador De Concreto Doble Tripulado 21 Hp Lusqtoff 2000mm",
+    "marca": "Lüsqtoff"
+  },
+  "FREY73HP": {
+    "ean": "7790368299033",
+    "desc": "Freidora De Aire Yelmo Harry Potter Fr-73hp 7 L 1700 W Violeta/dorado",
+    "marca": "Yelmo"
+  },
+  "FREY75HP": {
+    "ean": "7790368299538",
+    "desc": "Freidora De Aire Yelmo Harry Potter Fr-75hp 9 L 1700 W Violeta/dorado",
+    "marca": "Yelmo"
+  },
+  "LICY10HP": {
+    "ean": "7790368298975",
+    "desc": "Licuadora Yelmo Harry Potter Lc-10hp 650 W Vidrio 1,5 L Violeta Oscuro",
+    "marca": "Yelmo"
+  },
+  "POCY37HP": {
+    "ean": "7790368298944",
+    "desc": "Pochoclera Yelmo Harry Potter Po-37hp 1100 W Aire Caliente Violeta Oscuro",
+    "marca": "Yelmo"
+  },
+  "SANY18HP": {
+    "ean": "7790368298951",
+    "desc": "Sandwichera Yelmo Harry Potter Sw-18hp 750 W Antiadherente Violeta Oscuro",
+    "marca": "Yelmo"
+  },
+  "SANY19HP": {
+    "ean": "7790368298968",
+    "desc": "Waflera Yelmo Harry Potter Wm-19hp 850 W Antiadherente Violeta Oscuro",
+    "marca": "Yelmo"
+  },
+  "TOSYTO30HP": {
+    "ean": "7790368299002",
+    "desc": "Tostadora Yelmo Harry Potter To-30hp 700 W 6 Niveles Violeta Oscuro",
+    "marca": "Yelmo"
   }
 }
