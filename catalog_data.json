@@ -16560,7 +16560,7 @@
     "marca": "Otros"
   },
   "VEB3/4": {
-    "ean": "",
+    "ean": "7798102310372",
     "desc": "Válvula Esférica Valforte Rf Plus Bronce Cromado De Ø 3/4 Roscada Llave Riego Agua Caliente Y Fria Reforzada",
     "marca": "Otros"
   },
@@ -24448,5 +24448,25 @@
     "ean": "7790368299002",
     "desc": "Tostadora Yelmo Harry Potter To-30hp 700 W 6 Niveles Violeta Oscuro",
     "marca": "Yelmo"
+  },
+  "SOLLI100CK1": {
+    "ean": "2095662798899",
+    "desc": "Soldadora Lüsqtoff Mega Iron 100 + Electrodos + Guantes Naranja/negro",
+    "marca": "Lüsqtoff"
+  },
+  "SOLLI100CK2": {
+    "ean": "2010724709439",
+    "desc": "Soldadora Lüsqtoff Mega Iron 100 Electrodos + Antiadherente Naranja/negro",
+    "marca": "Lüsqtoff"
+  },
+  "SOLLI100CNK1": {
+    "ean": "2057254742710",
+    "desc": "Soldadora Inverter Lüsqtoff Iron 100 + Electrodos + Guantes Naranja/negro",
+    "marca": "Lüsqtoff"
+  },
+  "SOLLI100CNK2": {
+    "ean": "2085668544804",
+    "desc": "Soldadora Lüsqtoff Iron 100 + Electrodos + Antiadherente Naranja/negro",
+    "marca": "Lüsqtoff"
   }
 }
