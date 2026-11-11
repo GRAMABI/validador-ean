@@ -24468,5 +24468,305 @@
     "ean": "2085668544804",
     "desc": "Soldadora Lüsqtoff Iron 100 + Electrodos + Antiadherente Naranja/negro",
     "marca": "Lüsqtoff"
+  },
+  "AMAL1159BKK1": {
+    "ean": "2068704064276",
+    "desc": "Amoladora Inalámbrica Lusqtoff 2 Baterías + 12 Discos 115mm Negro",
+    "marca": "Lüsqtoff"
+  },
+  "AMAL180K1": {
+    "ean": "2013014039001",
+    "desc": "Amoladora Lusqtoff 180mm 2200w + 12 Discos Corte Y Desbaste Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "AMAL720K1": {
+    "ean": "2060979586248",
+    "desc": "Amoladora Lusqtoff 720w 115mm + 10 Discos Corte + 2 Desbaste Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "AML1300B8K1": {
+    "ean": "2002603295287",
+    "desc": "Amoladora Lusqtoff 115mm 1300w + 12 Discos Corte Y Desbaste Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "AML2200B8K1": {
+    "ean": "2063087257734",
+    "desc": "Amoladora Brushless Lusqtoff 180mm 2200w + 12 Discos",
+    "marca": "Lüsqtoff"
+  },
+  "AMOL24009K1": {
+    "ean": "2037242770840",
+    "desc": "Amoladora Lusqtoff 180mm 2400w + 12 Discos Corte Y Desbaste Negro",
+    "marca": "Lüsqtoff"
+  },
+  "AMOL240710K1": {
+    "ean": "2079989735553",
+    "desc": "Amoladora Lusqtoff 180mm 2400w Antivibración + 12 Discos Negro",
+    "marca": "Lüsqtoff"
+  },
+  "AMOL240910K1": {
+    "ean": "2069509654334",
+    "desc": "Amoladora Lusqtoff 230mm 2400w + 10 Discos De Corte 230mm Negro",
+    "marca": "Lüsqtoff"
+  },
+  "ARCSIET10254": {
+    "ean": "7501206654088",
+    "desc": "Arco De Sierra Montaraz 53 Cm 21 Pulgadas Poda Truper 10254",
+    "marca": "Truper"
+  },
+  "ARCSIET10258": {
+    "ean": "7501206654095",
+    "desc": "Arco De Sierra Montaraz 61 Cm 24 Pulgadas Poda Truper 10258",
+    "marca": "Truper"
+  },
+  "ASPLLA5000": {
+    "ean": "",
+    "desc": "Aspiradora Industrial Lusqtoff La-5000 1600w 50 L Acero Inox Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "ASPLLTL177": {
+    "ean": "",
+    "desc": "Aspiradora Lava Tapizados Lusqtoff Ltl1.7-7 500w 1.7 L Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "BART13919": {
+    "ean": "7506240630128",
+    "desc": "Barra De Extensión 50 Cm Encastre 1/2 Truper 13919 Plateado",
+    "marca": "Truper"
+  },
+  "BART13920": {
+    "ean": "7506240630135",
+    "desc": "Barra De Extensión 61 Cm Encastre 1/2 Truper 13920 Plateado",
+    "marca": "Truper"
+  },
+  "BTRLBTTL158RG": {
+    "ean": "",
+    "desc": "Banco De Trabajo Taller Lusqtoff 1.5 M 2 Cajones 600 Kg",
+    "marca": "Lüsqtoff"
+  },
+  "BTRLBTTL28RG": {
+    "ean": "",
+    "desc": "Banco De Trabajo Taller Lusqtoff 2 M 3 Cajones 800 Kg",
+    "marca": "Lüsqtoff"
+  },
+  "CAFU2208K1": {
+    "ean": "2008775136908",
+    "desc": "Cafetera Ultracomb 12 Pocillos + Molinillo De Café 120w Negro",
+    "marca": "Ultracomb"
+  },
+  "ELEK1815": {
+    "ean": "",
+    "desc": "Elevador De Motos Hidráulico Neumático Kld 450 Kg Con Rampa",
+    "marca": "KLD"
+  },
+  "EMBT18064": {
+    "ean": "7501206678886",
+    "desc": "Juego 3 Embutidores De Clavos 1 1,5 2,5 Mm Truper 18064",
+    "marca": "Truper"
+  },
+  "ESCT14369": {
+    "ean": "7501206626467",
+    "desc": "Escuadra Combinada Con Punzón 15 Cm 6 Truper 14369 Nivel Naranja Claro",
+    "marca": "Truper"
+  },
+  "ESCT14380": {
+    "ean": "7501206630457",
+    "desc": "Escuadra Combinada Con Punzón 30 Cm 12 Truper 14380 Nivel",
+    "marca": "Truper"
+  },
+  "ESPT101962": {
+    "ean": "7506240693369",
+    "desc": "Espejo Telescópico De Inspección Con Luz Led Truper 101962",
+    "marca": "Truper"
+  },
+  "GRIH33911K1": {
+    "ean": "2017270931710",
+    "desc": "Juego Grifería Hydros Calyx Lavatorio + Bidet Monocomando Plateado",
+    "marca": "Hydros"
+  },
+  "HORT11015": {
+    "ean": "7501206612798",
+    "desc": "Horquilla Bieldo 5 Dientes Mango Madera Puño Truper 11015",
+    "marca": "Truper"
+  },
+  "LLAP21801": {
+    "ean": "7501206671450",
+    "desc": "Llave Cruz Auto 46 Cm 18 Pulgadas 4 Medidas Pretul 21801",
+    "marca": "Pretul"
+  },
+  "LLAT100421": {
+    "ean": "7506240678472",
+    "desc": "Juego 5 Llaves Media Luna Obstrucción Mm Truper 100421 Plateado",
+    "marca": "Truper"
+  },
+  "LLAT15841": {
+    "ean": "7501206643518",
+    "desc": "Llave Para Caños Stilson 90 Cm 36 Pulgadas Truper 15841 Naranja",
+    "marca": "Truper"
+  },
+  "LLIL3008BK": {
+    "ean": "",
+    "desc": "Llave De Impacto A Batería Lusqtoff Lil300-8bk 18v 350nm 1/2 Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "MANGT13912": {
+    "ean": "7501206641620",
+    "desc": "Mango Deslizante T 45 Cm Encastre 3/4 Truper 13912 Plateado",
+    "marca": "Truper"
+  },
+  "MARTP22290": {
+    "ean": "7501206623954",
+    "desc": "Martillo Galponero Uña Curva 455 Gr Madera Pretul 22290",
+    "marca": "Pretul"
+  },
+  "MARTT16864": {
+    "ean": "7501206603765",
+    "desc": "Martillo Chapista Desabollador 11 Oz Madera Truper 16864",
+    "marca": "Truper"
+  },
+  "PALT11973": {
+    "ean": "7501206610503",
+    "desc": "Pala Vizcachera Doble Cavador De Pozos Truper 11973 Gris",
+    "marca": "Truper"
+  },
+  "PALT17156": {
+    "ean": "7501206650202",
+    "desc": "Pala Punta Escarramán Mango Madera Puño Y Truper 17156 Naranja",
+    "marca": "Truper"
+  },
+  "PICT19647": {
+    "ean": "7501206622391",
+    "desc": "Mini Pico Rastrillo Jardinero Mango Madera Truper 19647",
+    "marca": "Truper"
+  },
+  "PINZT13065": {
+    "ean": "7506240647058",
+    "desc": "Pinza De Chofer 20 Cm 8 Pulgadas Aislada Truper 13065",
+    "marca": "Truper"
+  },
+  "PINZT17434": {
+    "ean": "7501206603376",
+    "desc": "Pinza De Presión Punta Larga 10 Cm 4 Truper 17434",
+    "marca": "Truper"
+  },
+  "PREGT17663": {
+    "ean": "7501206620618",
+    "desc": "Prensa G De Hierro 15 Cm 6 Pulgadas Truper 17663",
+    "marca": "Truper"
+  },
+  "RASPT16951": {
+    "ean": "7501206683514",
+    "desc": "Raspador Retráctil Cuchilla 4 Cm Acero Truper 16951",
+    "marca": "Truper"
+  },
+  "RTML8507K1": {
+    "ean": "2088803002528",
+    "desc": "Rotomartillo Lusqtoff 800w 13mm + 11 Mechas Widia Y Acero Naranja 50 Hz",
+    "marca": "Lüsqtoff"
+  },
+  "SERT18165": {
+    "ean": "7501206620786",
+    "desc": "Serrucho De Costilla 30 Cm 12 Pulgadas Truper 18165",
+    "marca": "Truper"
+  },
+  "SERT18166": {
+    "ean": "7501206620793",
+    "desc": "Serrucho De Costilla 35 Cm 14 Pulgadas Truper 18166",
+    "marca": "Truper"
+  },
+  "SERT18168": {
+    "ean": "7501206620717",
+    "desc": "Serrucho Carpintero 50 Cm 20 Pulgadas Dorado Truper 18168",
+    "marca": "Truper"
+  },
+  "SERT18169": {
+    "ean": "7501206620724",
+    "desc": "Serrucho Carpintero 55 Cm 22 Pulgadas Dorado Truper 18169",
+    "marca": "Truper"
+  },
+  "SETBOCT14165": {
+    "ean": "7501206642474",
+    "desc": "Juego 10 Tubos Bocallaves Pulgadas Encastre 1/4 Truper 14165 Plateado",
+    "marca": "Truper"
+  },
+  "SETBOCT14176": {
+    "ean": "7501206643440",
+    "desc": "Juego 10 Tubos Bocallaves Pulgadas Encastre 1/2 Truper 14176 Plateado",
+    "marca": "Truper"
+  },
+  "SETBOCT14177": {
+    "ean": "7501206643457",
+    "desc": "Juego 10 Tubos Bocallaves Milimétricos 1/2 Truper 14177",
+    "marca": "Truper"
+  },
+  "SETDESP21420": {
+    "ean": "7506240614357",
+    "desc": "Juego 7 Destornilladores De Caja Pretul 21420 Boca Hexagonal",
+    "marca": "Pretul"
+  },
+  "SOLD100K1": {
+    "ean": "2080228549176",
+    "desc": "Soldadora Dogo 100a + Careta + 5kg Electrodos + 2 Escuadras Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD120K1": {
+    "ean": "2036709753600",
+    "desc": "Soldadora Dogo 120a + Careta + 5kg Electrodos + 2 Escuadras Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD140K1": {
+    "ean": "2047630686493",
+    "desc": "Soldadora Dogo 140a + Careta + 5kg Electrodos + 2 Escuadras Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD160K1": {
+    "ean": "2072593179607",
+    "desc": "Soldadora Dogo 160a + Careta + 5kg Electrodos + 2 Escuadras Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD180K1": {
+    "ean": "2095491275264",
+    "desc": "Soldadora Dogo 180a + Careta + 5kg Electrodos + 2 Escuadras Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD200K1": {
+    "ean": "2074205401748",
+    "desc": "Soldadora Dogo 200a + Careta + 5kg Electrodos + 2 Escuadras Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD250K1": {
+    "ean": "2044645514773",
+    "desc": "Soldadora Dogo 250a + Careta + 5kg Electrodos + 2 Escuadras Amarillo",
+    "marca": "Dogo"
+  },
+  "SUJT18346": {
+    "ean": "7506240635611",
+    "desc": "Linga Eslinga De Remolque Con Ganchos 4,5 M Truper 18346 Naranja",
+    "marca": "Truper"
+  },
+  "TAIL959BKK1": {
+    "ean": "2064136848163",
+    "desc": "Taladro Percutor Inalámbrico Lusqtoff 18v + 24 Mechas Negro",
+    "marca": "Lüsqtoff"
+  },
+  "TALL1100BK1": {
+    "ean": "2091002318000",
+    "desc": "Taladro Percutor Lusqtoff 1100w 16mm + Set 11 Mechas Negro",
+    "marca": "Lüsqtoff"
+  },
+  "TALL458BKK1": {
+    "ean": "2032494623944",
+    "desc": "Taladro Impacto Inalámbrico Lusqtoff 13mm + 11 Mechas Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "TALL609BK1": {
+    "ean": "2048057834696",
+    "desc": "Taladro Atornillador Inalámbrico Lusqtoff 18v + 11 Mechas Negro",
+    "marca": "Lüsqtoff"
+  },
+  "TALP20240": {
+    "ean": "7501206668412",
+    "desc": "Taladro Manual Berbiquí Profesional 12 Pretul 20240",
+    "marca": "Pretul"
   }
 }
