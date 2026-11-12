@@ -24768,5 +24768,50 @@
     "ean": "7501206668412",
     "desc": "Taladro Manual Berbiquí Profesional 12 Pretul 20240",
     "marca": "Pretul"
+  },
+  "CODLK5K1": {
+    "ean": "2034540792987",
+    "desc": "Kit Compresor Lusqtoff 5 Piezas + Kit Acoples Rápidos 4pz",
+    "marca": "Lüsqtoff"
+  },
+  "ENGLN8416K1": {
+    "ean": "2037039748953",
+    "desc": "Engrampadora Neumática Lusqtoff 8416 + 5000 Grampas 16mm",
+    "marca": "Lüsqtoff"
+  },
+  "ESIL2000K1": {
+    "ean": "2042831890311",
+    "desc": "Electrosierra Lusqtoff 2000w 40cm + Aceite Para Cadena 1l Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "LIBL810K1": {
+    "ean": "2006711515633",
+    "desc": "Lijadora De Banda Lusqtoff 810w + 12 Lijas Grano 60 Y 150 50 Hz",
+    "marca": "Lüsqtoff"
+  },
+  "MOTL2500K1": {
+    "ean": "2037262389060",
+    "desc": "Motosierra Nafta Lusqtoff 25cc + Aceite 2t + Aceite Cadena Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "MOTL3800K1": {
+    "ean": "2012219632888",
+    "desc": "Motosierra Nafta Lusqtoff 38cc + Aceite 2t + Aceite Cadena",
+    "marca": "Lüsqtoff"
+  },
+  "MOTL5200K1": {
+    "ean": "2005575636744",
+    "desc": "Motosierra Nafta Lusqtoff 52cc + Aceite 2t + Aceite Cadena Naranja Claro",
+    "marca": "Lüsqtoff"
+  },
+  "MOTL6200K1": {
+    "ean": "2005337022242",
+    "desc": "Motosierra Nafta Lusqtoff 62cc + Aceite 2t + Aceite Cadena",
+    "marca": "Lüsqtoff"
+  },
+  "SOLL1208DK1": {
+    "ean": "2071273402561",
+    "desc": "Soldadora Mig Lusqtoff 120a Dual + Alambre Flux + Aerosol Naranja/negro",
+    "marca": "Lüsqtoff"
   }
 }
