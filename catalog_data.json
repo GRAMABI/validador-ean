@@ -24813,5 +24813,50 @@
     "ean": "2071273402561",
     "desc": "Soldadora Mig Lusqtoff 120a Dual + Alambre Flux + Aerosol Naranja/negro",
     "marca": "Lüsqtoff"
+  },
+  "GRIP11109GF": {
+    "ean": "7799100218943",
+    "desc": "Griferia Piazza Cube Grafito Ducha Con Duchador Monocomando Gris Oscuro",
+    "marca": "Piazza"
+  },
+  "GRIP11109OM": {
+    "ean": "7799100218950",
+    "desc": "Griferia Piazza Cube Oro Mate Ducha Con Duchador Monocomando Oro Mate",
+    "marca": "Piazza"
+  },
+  "KIHL150K1": {
+    "ean": "2062102483455",
+    "desc": "Juego Herramientas Lusqtoff 150 Pz + Llave Impacto 1/2 18v Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "KIHL150K2": {
+    "ean": "2000637538998",
+    "desc": "Juego Herramientas Lusqtoff 150 Pz + Set Taladro 82 Pz Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "LIOL18K1": {
+    "ean": "2051827936902",
+    "desc": "Lijadora + Inflador Inalámbrico Lusqtoff Powerlink 18v Kit Naranja 0",
+    "marca": "Lüsqtoff"
+  },
+  "PULIL18K1": {
+    "ean": "2045920707088",
+    "desc": "Pulidora + Lijadora Inalámbrica Lusqtoff Powerlink 18v Kit Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "PULIL18K2": {
+    "ean": "2059192284512",
+    "desc": "Pulidora Orbital + Inflador Inalámbrico Lusqtoff Powerlink Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "PULIL18K3": {
+    "ean": "2001198989281",
+    "desc": "Pulidora + Lijadora + Inflador Lusqtoff Powerlink 18v Kit Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "TRACL2248": {
+    "ean": "2090038483713",
+    "desc": "Tractor Cortacésped Lusqtoff 6 Hp 224cc Naftero Recolector",
+    "marca": "Lüsqtoff"
   }
 }
