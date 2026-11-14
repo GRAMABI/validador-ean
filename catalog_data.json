@@ -15200,7 +15200,7 @@
     "marca": "Dogo"
   },
   "TPRAD300X1": {
-    "ean": "",
+    "ean": "7798147567007",
     "desc": "Tanza Redonda 3,0 Mm Nylon Bobina 1 Kg Bordeadora Dogo Color Amarillo DOG28230",
     "marca": "Dogo"
   },
@@ -24857,6 +24857,226 @@
   "TRACL2248": {
     "ean": "2090038483713",
     "desc": "Tractor Cortacésped Lusqtoff 6 Hp 224cc Naftero Recolector",
+    "marca": "Lüsqtoff"
+  },
+  "ASPROBY7077L": {
+    "ean": "7790368298982",
+    "desc": "Robot Aspiradora Trapeadora Yelmo As-7077l Lidar 5000 Pa Negro",
+    "marca": "Yelmo"
+  },
+  "ASPRU6062": {
+    "ean": "7790368298852",
+    "desc": "Robot Aspiradora Trapeadora Ultracomb As-6062 2000 Pa App Negro",
+    "marca": "Ultracomb"
+  },
+  "ASPY3260": {
+    "ean": "7790368299170",
+    "desc": "Aspiradora Vertical Inalámbrica Yelmo As-3260 2 En 1 Hepa Azul",
+    "marca": "Yelmo"
+  },
+  "CABLJCAL48": {
+    "ean": "2036811577514",
+    "desc": "Cable Puente Para Batería 4 M 1200a Lusqtoff Jcal4-8",
+    "marca": "Lüsqtoff"
+  },
+  "CAFU2203": {
+    "ean": "7790368298500",
+    "desc": "Cafetera De Filtro Ultracomb Ca-2203 600w 6 Pocillos Negro",
+    "marca": "Ultracomb"
+  },
+  "CODLC1050010AP": {
+    "ean": "2039716968869",
+    "desc": "Compresor De Aire A Correa 10 Hp 500 L Lusqtoff Lc10500-10ap Negro Trifásica",
+    "marca": "Lüsqtoff"
+  },
+  "CODLCS508": {
+    "ean": "2097794944687",
+    "desc": "Compresor De Aire Sin Aceite 50 L 2 Hp Lusqtoff Lcs50-8 Naranja Monofásica",
+    "marca": "Lüsqtoff"
+  },
+  "CORLM16008B": {
+    "ean": "",
+    "desc": "Cortadora De Césped Eléctrica Lusqtoff Lcom1600-8b 1600w Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "CORY3701": {
+    "ean": "7790368298494",
+    "desc": "Cortadora De Cabello Yelmo Bc-3701 Cuchillas Acero 4 Peines Gris",
+    "marca": "Yelmo"
+  },
+  "CORY3705": {
+    "ean": "7790368298845",
+    "desc": "Cortadora De Cabello Inalámbrica Yelmo Bc-3705 Carga Usb Plateado",
+    "marca": "Yelmo"
+  },
+  "CORY3911": {
+    "ean": "7790368298647",
+    "desc": "Cortadora De Cabello Recargable Yelmo Bk-3911 Pantalla Led Plateado",
+    "marca": "Yelmo"
+  },
+  "CORY3919": {
+    "ean": "7790368298661",
+    "desc": "Cortadora De Cabello Recargable Yelmo Bk-3919 Kit Accesorios Negro",
+    "marca": "Yelmo"
+  },
+  "CRCLC4": {
+    "ean": "2021671354146",
+    "desc": "Crique Carrito Hidráulico 4 Tn Extra Chato Lusqtoff Lq-c4",
+    "marca": "Lüsqtoff"
+  },
+  "CRCLC5": {
+    "ean": "2029155989457",
+    "desc": "Crique Carrito Hidráulico 5 Tn Extra Chato Lusqtoff Lq-c5",
+    "marca": "Lüsqtoff"
+  },
+  "ESCLEPL128T": {
+    "ean": "2064821064823",
+    "desc": "Escarificadora De Piso 350mm 12 Hp 380v Lusqtoff Epl12-8t",
+    "marca": "Lüsqtoff"
+  },
+  "ESCLEPL158": {
+    "ean": "2063677190960",
+    "desc": "Escarificadora De Piso 350mm 15 Hp Naftera Lusqtoff Epl15-8",
+    "marca": "Lüsqtoff"
+  },
+  "ESCLLE25": {
+    "ean": "2032295251360",
+    "desc": "Escalera Ultra Compacta 5 Escalones Doble Lusqtoff Le25 Gris",
+    "marca": "Lüsqtoff"
+  },
+  "ESPU8501B": {
+    "ean": "7790368023072",
+    "desc": "Espumador Leche Ultracomb Batidor Emulsionador 300ml Beige Beige",
+    "marca": "Ultracomb"
+  },
+  "FILLLG06": {
+    "ean": "2020999162716",
+    "desc": "Filtro Regulador De Aire Con Lubricador Lusqtoff LG-06",
+    "marca": "Lüsqtoff"
+  },
+  "HORU55ACN": {
+    "ean": "7790368296803",
+    "desc": "Horno Eléctrico Ultracomb Uc-55acn 55 L Doble Anafe Rojo",
+    "marca": "Ultracomb"
+  },
+  "LICMU2560": {
+    "ean": "7790368299354",
+    "desc": "Licuadora De Mano Ultracomb Lm-2560 1200w Batidor Y Vaso Negro",
+    "marca": "Ultracomb"
+  },
+  "LICMY1560": {
+    "ean": "7790368299378",
+    "desc": "Licuadora De Mano Yelmo Lm-1560 1200w 7 Velocidades Batidor Celeste",
+    "marca": "Yelmo"
+  },
+  "LICMY1568": {
+    "ean": "7790368299385",
+    "desc": "Licuadora De Mano Yelmo Lm-1568 1200w Procesador Y Rallador Celeste",
+    "marca": "Yelmo"
+  },
+  "MUELMTPH58RG": {
+    "ean": "2041414005647",
+    "desc": "Mueble De Taller 5 Módulos Acero Lusqtoff Racing Mtph5-8rg",
+    "marca": "Lüsqtoff"
+  },
+  "MUELMTPH68RG": {
+    "ean": "2098159449519",
+    "desc": "Mueble De Taller 6 Módulos Acero Lusqtoff Racing Mtph6-8rg",
+    "marca": "Lüsqtoff"
+  },
+  "PAEY3922": {
+    "ean": "7790368298791",
+    "desc": "Pava Eléctrica Yelmo Pe-3922 Digital Temperatura 1,7 L Negro",
+    "marca": "Yelmo"
+  },
+  "PLAPU4422": {
+    "ean": "7790368298654",
+    "desc": "Planchita De Pelo Ultracomb Ap-4422 Cerámica Control Digital Plateado",
+    "marca": "Ultracomb"
+  },
+  "PLAPU4426": {
+    "ean": "7790368299088",
+    "desc": "Planchita De Pelo Ultracomb Ap-4426 Placas Anchas Digital Cobre",
+    "marca": "Ultracomb"
+  },
+  "PLAPU4429": {
+    "ean": "7790368299132",
+    "desc": "Planchita De Pelo Ultracomb Ap-4429 Iónica Bivolt De Viaje Rojo",
+    "marca": "Ultracomb"
+  },
+  "PLAPY3361": {
+    "ean": "7790368299057",
+    "desc": "Planchita De Pelo Yelmo Ap-3361 Placas Flotantes Bivolt Amarillo",
+    "marca": "Yelmo"
+  },
+  "PLAPY3362": {
+    "ean": "7790368299064",
+    "desc": "Planchita De Pelo Yelmo Ap-3362 Placas De Titanio Bivolt Gris",
+    "marca": "Yelmo"
+  },
+  "PLAPY3363": {
+    "ean": "7790368299071",
+    "desc": "Planchita De Pelo Yelmo Ap-3363 Temperatura Regulable Led Lila",
+    "marca": "Yelmo"
+  },
+  "PLAPY3365": {
+    "ean": "7790368299125",
+    "desc": "Planchita De Pelo Yelmo Ap-3365 Placas Anchas Cable 360 Rosa",
+    "marca": "Yelmo"
+  },
+  "PLAPY3428": {
+    "ean": "7790368299118",
+    "desc": "Planchita De Pelo Yelmo Ap-3428 Doble Sistema De Placas Azul Marino",
+    "marca": "Yelmo"
+  },
+  "RECY9707": {
+    "ean": "7790368298463",
+    "desc": "Recortadora De Barba Yelmo Rc-9707 Trimmer Inalámbrico Usb Negro",
+    "marca": "Yelmo"
+  },
+  "SEPU4663": {
+    "ean": "7790368299149",
+    "desc": "Secador De Pelo Ultracomb Sc-4663 2000w Con Soporte De Pared Verde",
+    "marca": "Ultracomb"
+  },
+  "SEPU4682": {
+    "ean": "7790368299163",
+    "desc": "Secador De Pelo Ultracomb Sc-4682 1800w Iónico Display Led Gris Oscuro",
+    "marca": "Ultracomb"
+  },
+  "SEPY3655": {
+    "ean": "7790368299156",
+    "desc": "Secador De Pelo Yelmo Sc-3655 1600w Plegable De Viaje Azul Petróleo",
+    "marca": "Yelmo"
+  },
+  "SEPY3665": {
+    "ean": "7790368299040",
+    "desc": "Secador De Pelo Yelmo Sc-3665 2300w Iónico Profesional Violeta Oscuro",
+    "marca": "Yelmo"
+  },
+  "SETLSCPL68": {
+    "ean": "2012185109100",
+    "desc": "Set De Cuchillos Profesional 6 Piezas Lusqtoff Scpl6-8",
+    "marca": "Lüsqtoff"
+  },
+  "TABLTB138": {
+    "ean": "2057699330046",
+    "desc": "Taladro De Banco 13mm 350w 5 Velocidades Lusqtoff Tb13-8 Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "TORLTDIL4048": {
+    "ean": "2030886911259",
+    "desc": "Torre De Iluminación Móvil Led 4.5 M Lusqtoff Tdil404-8",
+    "marca": "Lüsqtoff"
+  },
+  "TORLTDIL529G": {
+    "ean": "2015411230678",
+    "desc": "Torre De Iluminación Con Generador 9 M Lusqtoff Tdil52-9g",
+    "marca": "Lüsqtoff"
+  },
+  "TRACL7088": {
+    "ean": "2035918379915",
+    "desc": "Tractor Corta Césped Radio Cero Lusqtoff Tcl708-8 22 Hp 50",
     "marca": "Lüsqtoff"
   }
 }
