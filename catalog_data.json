@@ -25133,5 +25133,75 @@
     "ean": "",
     "desc": "Nivel Láser 360 3d 12 Líneas Verde Crossmaster 9936182 20m",
     "marca": "Crossmaster"
+  },
+  "ASPDW15T": {
+    "ean": "2092646575323",
+    "desc": "Aspiradora Sopladora Dewalt Dxv15t 15 L 1100w Polvo Líquido",
+    "marca": "Dewalt"
+  },
+  "ASPDW20S": {
+    "ean": "2080187388168",
+    "desc": "Aspiradora Sopladora Dewalt Dxv20s 20 L Acero Inox 1050w Negro",
+    "marca": "Dewalt"
+  },
+  "ASPDW234P": {
+    "ean": "2099255191272",
+    "desc": "Aspiradora Dewalt Dxv234p 34 L Con Soplador Independiente Amarillo",
+    "marca": "Dewalt"
+  },
+  "ASPDW23G": {
+    "ean": "2044975862117",
+    "desc": "Aspiradora De Pared Dewalt Dxv23g 23 L Control Remoto 1100w Amarillo",
+    "marca": "Dewalt"
+  },
+  "ASPDW23P": {
+    "ean": "2090895669435",
+    "desc": "Aspiradora Sopladora Dewalt Dxv23p 23 L Sólidos Y Líquidos Amarillo",
+    "marca": "Dewalt"
+  },
+  "ASPDW38SB": {
+    "ean": "2097986871043",
+    "desc": "Aspiradora Dewalt Dxv38sb 38 L 1250w Acero Sólidos Líquidos Plateado",
+    "marca": "Dewalt"
+  },
+  "CAFAS20K1": {
+    "ean": "2041590196504",
+    "desc": "Careta Fotosensible Esab Swarm A20 + Guantes Soldar Esab Negro Swarm A 20",
+    "marca": "Esab"
+  },
+  "CAFLST1XK1": {
+    "ean": "2010720366483",
+    "desc": "Careta Fotosensible Lusqtoff St1x + 4 Escuadras Magnéticas Negro St-1x",
+    "marca": "Lüsqtoff"
+  },
+  "ELC200K1": {
+    "ean": "2038374340956",
+    "desc": "Electrodos Esab Ok 2,00 Mm Y 2,50 Mm Kit 1 Kg De Cada Uno Azul",
+    "marca": "Esab"
+  },
+  "HIDA143": {
+    "ean": "2016430656265",
+    "desc": "Hidrolavadora Annovi Reverberi An143 1500w 120 Bar 390 L/h Azul",
+    "marca": "Annovi Reverberi"
+  },
+  "HIDA387": {
+    "ean": "2099787414085",
+    "desc": "Hidrolavadora Annovi Reverberi An387 1900w 150 Bar Compacta Azul Marino",
+    "marca": "Annovi Reverberi"
+  },
+  "HIDA589": {
+    "ean": "2083864707573",
+    "desc": "Hidrolavadora Annovi Reverberi An589 2500w 170bar Enrollador Azul",
+    "marca": "Annovi Reverberi"
+  },
+  "HIDA610": {
+    "ean": "2013324411504",
+    "desc": "Hidrolavadora Industrial Annovi Reverberi An610 2200w 500l/h",
+    "marca": "Annovi Reverberi"
+  },
+  "SOLEH160IMMFLUXK1": {
+    "ean": "2032846434303",
+    "desc": "Soldadora Mig Esab Handyarc 160 Flux + Careta Fotosensible",
+    "marca": "Esab"
   }
 }
