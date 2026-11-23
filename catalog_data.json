@@ -25203,5 +25203,40 @@
     "ean": "2032846434303",
     "desc": "Soldadora Mig Esab Handyarc 160 Flux + Careta Fotosensible",
     "marca": "Esab"
+  },
+  "APSDEE748570K1": {
+    "ean": "2017388362529",
+    "desc": "Delantal Descarne Soldador Esab + Guantes Soldar Esab 748570 + 747898",
+    "marca": "Esab"
+  },
+  "APSGUSLSOL8K1": {
+    "ean": "2006771504004",
+    "desc": "Guantes Soldador Forrados Lusqtoff + Electrodos 2,50 1 Kg Caqui",
+    "marca": "Lüsqtoff"
+  },
+  "CAFAS10K1": {
+    "ean": "2045346186528",
+    "desc": "Careta Fotosensible Esab Swarm A10 + Guantes Soldar Esab Negro Swarm A 10",
+    "marca": "Esab"
+  },
+  "CAFAS20K2": {
+    "ean": "2049279098774",
+    "desc": "Careta Fotosensible Esab A20 + Electrodos West Arco 2,5 5kg Negro Swarm A 20",
+    "marca": "Esab"
+  },
+  "CAFAS20K3": {
+    "ean": "2038211863310",
+    "desc": "Careta Fotosensible Esab A20 + Electrodos Esab Ok 2,5 1kg Negro Swarm A 20",
+    "marca": "Esab"
+  },
+  "CAFPESA20P5K1": {
+    "ean": "2082742858413",
+    "desc": "Kit 5 Protectores Externos + 5 Internos Careta Esab A20 A10 Transparente",
+    "marca": "Esab"
+  },
+  "DCA115X100TEBP25K1": {
+    "ean": "2023183992137",
+    "desc": "Disco Corte Tyrolit 115mm Kit 50 Un: 25 De 1,0 Y 25 De 1,6 Gris",
+    "marca": "Tyrolit"
   }
 }
