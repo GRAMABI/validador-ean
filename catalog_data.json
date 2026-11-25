@@ -25238,5 +25238,130 @@
     "ean": "2023183992137",
     "desc": "Disco Corte Tyrolit 115mm Kit 50 Un: 25 De 1,0 Y 25 De 1,6 Gris",
     "marca": "Tyrolit"
+  },
+  "AMOL150010": {
+    "ean": "7799108065419",
+    "desc": "Amoladora Angular Lusqtoff Eléctrica 1500w 125mm Mango Later Negro",
+    "marca": "Lüsqtoff"
+  },
+  "APSGUSEK1": {
+    "ean": "2035545821252",
+    "desc": "Guantes Soldar Esab Heavy Duty + Electrodos Ok 2,50 1 Kg Negro",
+    "marca": "Esab"
+  },
+  "BAPY1107": {
+    "ean": "7790368299491",
+    "desc": "Batidora Planetaria Yelmo C/ Pie Bowl Acero 4lts Amasadora Amarillo 50 Hz X 60 Hz",
+    "marca": "Yelmo"
+  },
+  "BOPD15015": {
+    "ean": "7798331918073",
+    "desc": "Bomba Presurizadora Dogo Dogopress1 100w Hasta 2 Baños",
+    "marca": "Dogo"
+  },
+  "BOPD15016": {
+    "ean": "7798331918080",
+    "desc": "Bomba Presurizadora Dogo Dogopress2 248w Hasta 4 Baños",
+    "marca": "Dogo"
+  },
+  "CAFAS10K2": {
+    "ean": "2052372114890",
+    "desc": "Careta Fotosensible Esab A10 + Electrodos West Arco 2,5 5kg Negro Swarm A 10",
+    "marca": "Esab"
+  },
+  "CAFAS20K4": {
+    "ean": "2083620768534",
+    "desc": "Careta Esab A20 + Guantes + Electrodos West Arco 2,5 5 Kg Negro Swarm A 20",
+    "marca": "Esab"
+  },
+  "CAFAS20K5": {
+    "ean": "2056879954881",
+    "desc": "Careta Fotosensible Esab A20 + Alambre Mig Esab 0,80 5 Kg Negro Swarm A 20",
+    "marca": "Esab"
+  },
+  "CAFAS20K6": {
+    "ean": "2045771417723",
+    "desc": "Careta Fotosensible Esab A20 + Delantal Descarne + Guantes Negro Swarm A 20",
+    "marca": "Esab"
+  },
+  "CAFLST1XK2": {
+    "ean": "2027169327142",
+    "desc": "Careta Fotosensible Lusqtoff St1x + Electrodos 2,50 1 Kg Negro St-1x",
+    "marca": "Lüsqtoff"
+  },
+  "CLAPP15K1": {
+    "ean": "2003541179394",
+    "desc": "Clavos Punta Paris Acindar Kit 1 1/2 1 Kg + 2 Pulgadas 1 Kg",
+    "marca": "Acindar"
+  },
+  "CLAPP15K2": {
+    "ean": "2089470396385",
+    "desc": "Clavos Punta Paris Acindar Kit 1 1/2 + 2 + 3 + 4 1 Kg C/u",
+    "marca": "Acindar"
+  },
+  "DCA115X100TEBP25K2": {
+    "ean": "2064269188044",
+    "desc": "Kit Tyrolit 115mm 25 Discos De Corte 1,0 + 1 De Desbaste Gris",
+    "marca": "Tyrolit"
+  },
+  "DCA115X160TEBP50K1": {
+    "ean": "2039752349783",
+    "desc": "Kit Tyrolit 115mm 50 Discos De Corte 1,6 + 10 De Desbaste",
+    "marca": "Tyrolit"
+  },
+  "DFA115X2260TK1": {
+    "ean": "2090311484741",
+    "desc": "Disco Flap Tyrolit 115mm Kit Grano 60 + Grano 120",
+    "marca": "Tyrolit"
+  },
+  "ELCA250P5K1": {
+    "ean": "2073137502769",
+    "desc": "Electrodos Acindar 6013 Kit 2,50 Mm 5 Kg + 3,25 Mm 5 Kg 264658 + 264659",
+    "marca": "Acindar"
+  },
+  "ELCC200P5K1": {
+    "ean": "2093263582749",
+    "desc": "Electrodos Conarco 13a Kit 2,00 Mm 5 Kg + 2,50 Mm 5 Kg",
+    "marca": "Conarco"
+  },
+  "ELCL250K1": {
+    "ean": "2070823690342",
+    "desc": "Electrodos Lusqtoff 6013 Kit 2,50 Mm 1 Kg + 3,25 Mm 1 Kg Azul",
+    "marca": "Lüsqtoff"
+  },
+  "ELCW2507018P45K1": {
+    "ean": "2017590315030",
+    "desc": "Electrodos West Arco 7018 Kit 2,50 4,5 Kg + 3,25 4,5 Kg Verde",
+    "marca": "Esab"
+  },
+  "EXPY1303S": {
+    "ean": "7790368027711",
+    "desc": "Exprimidor Eléctrico Yelmo 40w Jarra Graduada Rosa Jugo Frut Rosa 50 Hz",
+    "marca": "Yelmo"
+  },
+  "PICL4007": {
+    "ean": "7799108068472",
+    "desc": "Pistola De Calor Mini Lusqtoff 400w 2 Temperaturas Soporte Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "SOLD50016": {
+    "ean": "7798147562613",
+    "desc": "Soldadora Mig Inverter Dogo 250 Amp Monofásica Con Torcha Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD50018": {
+    "ean": "7798147569155",
+    "desc": "Soldadora Mig Inverter Dogo 180 Amp Dual Mma Con Torcha Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD50019": {
+    "ean": "7798147569162",
+    "desc": "Soldadora Mig Inverter Dogo 200 Amp Dual Mma Con Torcha Amarillo",
+    "marca": "Dogo"
+  },
+  "SOLD50031": {
+    "ean": "7798331918127",
+    "desc": "Soldadora Mig Mag Dogo 300 Amp Trifásica 380v Con Torcha Amarillo",
+    "marca": "Dogo"
   }
 }
