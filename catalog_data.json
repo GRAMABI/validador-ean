@@ -25363,5 +25363,165 @@
     "ean": "7798331918127",
     "desc": "Soldadora Mig Mag Dogo 300 Amp Trifásica 380v Con Torcha Amarillo",
     "marca": "Dogo"
+  },
+  "BOMLBSPL328B": {
+    "ean": "",
+    "desc": "Bomba Portátil A Batería Lusqtoff Bspl32-8b 18v Sumergible",
+    "marca": "Lüsqtoff"
+  },
+  "CEPLCEL150008B": {
+    "ean": "",
+    "desc": "Cepillo Garlopa A Batería Lusqtoff Cel15000-8b Brushless 18v Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "ESTCMDMK8000BT": {
+    "ean": "7790368031299",
+    "desc": "Kit Estéreo Crown Mustang Dmk-8000bt + Parlantes 6,5 Bt",
+    "marca": "Crown Mustang"
+  },
+  "ESTCMDMK9000BT": {
+    "ean": "7790368031305",
+    "desc": "Kit Estéreo Crown Mustang Dmk-9000bt + Parlantes 6x9 Bt",
+    "marca": "Crown Mustang"
+  },
+  "ESTCMDMR3000BT": {
+    "ean": "7790368031282",
+    "desc": "Estéreo Auto Crown Mustang Dmr-3000bt Bluetooth Usb Sd Aux",
+    "marca": "Crown Mustang"
+  },
+  "LIJLLOL110008B": {
+    "ean": "",
+    "desc": "Lijadora Orbital A Batería Lusqtoff Lol11000-8b 1/4 Hoja 18v Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "LIJLLRL110008B": {
+    "ean": "",
+    "desc": "Lijadora Roto Orbital A Batería Lusqtoff Lrl11000-8b 125mm Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "LINLLLML38B": {
+    "ean": "",
+    "desc": "Linterna Led A Batería Lusqtoff Llml3-8b 18v 200 Lm Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "MARD9993206": {
+    "ean": "",
+    "desc": "Martillo Demoledor Inalámbrico 12j Sds Max 18v Dowen Pagio Naranja",
+    "marca": "Dowen Pagio"
+  },
+  "PARCMATOMIC65": {
+    "ean": "7790368293741",
+    "desc": "Parlante Portátil Crown Mustang Atomic 6.5 Bluetooth Led Negro",
+    "marca": "Crown Mustang"
+  },
+  "PARCMCYBERBEAT": {
+    "ean": "7790368298913",
+    "desc": "Bafle Potenciado Crown Mustang Cyberbeat 2x12 150w Rms Láser Negro",
+    "marca": "Crown Mustang"
+  },
+  "PARCMKEMIRA": {
+    "ean": "7790368299309",
+    "desc": "Bafle Potenciado Crown Mustang Kemira 2x15 200w Rms Karaoke Negro",
+    "marca": "Crown Mustang"
+  },
+  "PARCMSWAG12": {
+    "ean": "7790368299262",
+    "desc": "Bafle Potenciado Crown Mustang Swag 12 2x12 Batería 240w Rms Negro",
+    "marca": "Crown Mustang"
+  },
+  "PARKBEPIC8": {
+    "ean": "7790368297435",
+    "desc": "Bafle Potenciado Ken Brown Epic 8 Torre 140w Rms Bluetooth Negro",
+    "marca": "Ken Brown"
+  },
+  "PARKBHIRAKI10": {
+    "ean": "7790368299439",
+    "desc": "Bafle Potenciado Ken Brown Hiraki 10 2x10 120w Rms Batería Negro",
+    "marca": "Ken Brown"
+  },
+  "PARKBKIRABASS": {
+    "ean": "7790368299446",
+    "desc": "Bafle Potenciado Ken Brown Kira Bass 2x12 240w Rms Karaoke Negro",
+    "marca": "Ken Brown"
+  },
+  "PARKBMONSTER12": {
+    "ean": "7790368298906",
+    "desc": "Bafle Potenciado Ken Brown Monster 12 2x12 Bluetooth Led Tws Negro",
+    "marca": "Ken Brown"
+  },
+  "PARKBNEONVIBES": {
+    "ean": "7790368299422",
+    "desc": "Bafle Potenciado Ken Brown Neon Vibes 2x12 120w Rms Led Negro",
+    "marca": "Ken Brown"
+  },
+  "PARKBNOVASMASH": {
+    "ean": "7790368299460",
+    "desc": "Bafle Potenciado Ken Brown Nova Smash 2x15 250w Rms Led Negro",
+    "marca": "Ken Brown"
+  },
+  "PARKBOSAKA12": {
+    "ean": "7790368299453",
+    "desc": "Bafle Potenciado Ken Brown Osaka 12 2x12 200w Rms Batería Negro",
+    "marca": "Ken Brown"
+  },
+  "PINMLLZ1": {
+    "ean": "7798125160329",
+    "desc": "Impermeabilizante Transparente Liquitech Lluvia Zero 1l Transparente Satinado",
+    "marca": "Liquitech"
+  },
+  "PINMLLZ10": {
+    "ean": "7798125160343",
+    "desc": "Impermeabilizante Transparente Liquitech Lluvia Zero 10l Transparente Satinado",
+    "marca": "Liquitech"
+  },
+  "PINMLLZ4": {
+    "ean": "7798125160336",
+    "desc": "Impermeabilizante Transparente Liquitech Lluvia Zero 4l Transparente Satinado",
+    "marca": "Liquitech"
+  },
+  "PINPLAQF1B": {
+    "ean": "7798125160299",
+    "desc": "Hidrolaca Poliuretánica Liquitech Aqua Floor 1l Brillante Transparente Brillante",
+    "marca": "Liquitech"
+  },
+  "PINPLAQF1S": {
+    "ean": "7798125160282",
+    "desc": "Hidrolaca Poliuretánica Liquitech Aqua Floor 1l Satinado Transparente Satinado",
+    "marca": "Liquitech"
+  },
+  "PINPLAQF5B": {
+    "ean": "7798125160312",
+    "desc": "Hidrolaca Poliuretánica Liquitech Aqua Floor 5l Brillante Transparente Brillante",
+    "marca": "Liquitech"
+  },
+  "PINPLAQF5S": {
+    "ean": "7798125160305",
+    "desc": "Hidrolaca Poliuretánica Liquitech Aqua Floor 5l Satinado Transparente Satinado",
+    "marca": "Liquitech"
+  },
+  "REFLRPL218": {
+    "ean": "",
+    "desc": "Reflector Led Portátil A Batería Lusqtoff Rpl21-8 1700 Lm Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "SCALSCL29008B": {
+    "ean": "",
+    "desc": "Sierra Caladora A Batería Lusqtoff Scl2900-8b Brushless 18v",
+    "marca": "Lüsqtoff"
+  },
+  "SIELCSL42008B": {
+    "ean": "",
+    "desc": "Sierra Circular A Batería Lusqtoff Csl4200-8b Brushless 18v Naranja",
+    "marca": "Lüsqtoff"
+  },
+  "WEBCMFHD1080": {
+    "ean": "7790368297015",
+    "desc": "Cámara Web Webcam Crown Mustang Vision Fhd Usb Micrófono Negro",
+    "marca": "Crown Mustang"
+  },
+  "WEBCMV720HD": {
+    "ean": "7790368296506",
+    "desc": "Cámara Web Webcam Crown Mustang Vision 720hd Usb Micrófono Negro",
+    "marca": "Crown Mustang"
   }
 }
