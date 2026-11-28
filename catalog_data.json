@@ -25533,5 +25533,25 @@
     "ean": "7798125160060",
     "desc": "Membrana Liquitech Cauchogoma Frost Atérmica Blanco 4kg Blanco Reflex Mate",
     "marca": "Liquitech"
+  },
+  "BATT2126": {
+    "ean": "6937541237425",
+    "desc": "Batería Total 20v 6ah Litio Industrial P20s Tfbli2126",
+    "marca": "Total"
+  },
+  "BATT2129": {
+    "ean": "6937541238460",
+    "desc": "Batería Total 20v 10ah Tabless Industrial P20s Tfbli2129",
+    "marca": "Total"
+  },
+  "LLAIT20551": {
+    "ean": "6932584807260",
+    "desc": "Llave De Impacto Total 20v Brushless 550nm 1/2 Tiwli20551 Turquesa",
+    "marca": "Total"
+  },
+  "MICROY9028": {
+    "ean": "7790368299231",
+    "desc": "Microondas Horno Yelmo Hm-9028 Grill 28l 900w Táctil Led",
+    "marca": "Yelmo"
   }
 }
